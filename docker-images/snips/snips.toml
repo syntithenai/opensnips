@@ -1,0 +1,39 @@
+[snips-common]
+# bus = "mqtt"
+mqtt = "mosquitto:1883"
+# audio = "localhost:26300"
+# assistant = "/usr/share/snips/assistant"
+# user_dir = "/var/lib/snips"
+
+[snips-analytics]
+
+[snips-asr]
+# no_fst_map = true
+# beam_size = 8
+# model = "/usr/share/snips/asr"
+# audio = ["+"]
+
+[snips-asr-google]
+# credentials = "/usr/share/snips/googlecredentials.json"
+# audio = ["+"]
+
+[snips-audio-server]
+# frame = 256
+# bind = "0.0.0.0:26300"
+# mike = "Built-in Microphone"
+
+[snips-dialogue]
+# resources = "/usr/share/snips/dialogue"
+# session_timeout = 15
+# lambda_timeout = 5
+# retry_count = 3
+
+[snips-hotword]
+# model = "/usr/share/snips/hotword"
+# hotword_id = "default"
+# sensitivity = "0.5"
+# audio = ["+"]
+
+[snips-queries]
+
+[snipt-tts]
