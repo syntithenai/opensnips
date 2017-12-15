@@ -68,11 +68,11 @@ class SnipsMqttServer():
             self.client.subscribe(sub)
             
         while run_event.is_set():
-            try:
+            #try:
                 self.client.loop()
-            except AttributeError as e:
-                self.log("Error in mqtt run loop {}".format(e))
-                time.sleep(1)
+            #except AttributeError as e:
+            #    self.log("Error in mqtt run loop {}".format(e))
+            #    time.sleep(1)
 
     def on_connect(self, client, userdata, flags, result_code):
         self.log("Connected with result code {}".format(result_code))

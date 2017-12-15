@@ -1,0 +1,196 @@
+oot@stever-laptop:/home/stever/projects/opensnips# [11:35:07.559383] - hermes/hotword/default/detected
+[11:35:07.559382] - hermes/hotword/default/detected
+{
+  "sessionId": null,
+  "siteId": "default"
+{
+  "sessionId": null,
+  "siteId": "default"
+}
+}
+[11:35:07.562423] - hermes/asr/stopListening
+[11:35:07.562872] - hermes/asr/stopListening
+{
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default"
+}
+{
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default"
+}
+snips_1       | INFO:snips_hotword_hermes: Hotword detected
+snips_1       | INFO:snips_dialogue_lib::coordinator::coordinator: Site [default]: reset site -> turn off ASR and turn off Hotword
+snips_1       | INFO:snips_dialogue_lib::coordinator::coordinator: Session [0aafde85-c08a-4ad1-9055-154848af6256]: The session has been created because the site "default" is free
+[11:35:07.631429] - hermes/hotword/toggleOff
+[11:35:07.631484] - hermes/hotword/toggleOff
+{
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default"
+}
+{
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default"
+}
+[11:35:07.632266] - hermes/dialogueManager/sessionStarted
+[11:35:07.632352] - hermes/dialogueManager/sessionStarted
+{
+  "customData": null,
+  "reactivatedFromSessionId": null,
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default"
+}
+{
+  "customData": null,
+  "reactivatedFromSessionId": null,
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default"
+}
+[11:35:07.633119] - hermes/asr/startListening
+[11:35:07.633236] - hermes/asr/startListening
+{
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default"
+}
+{
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default"
+}
+snips_1       | INFO:snips_asr_hermes  : Listening
+snips_1       | INFO:snips_asr_lib::asr: T0       entered AsrRunner::run
+snips_1       | INFO:snips_asr_lib::asr: T0+0.058 decoder inited
+snips_1       | INFO:snips_asr_lib::asr: T0+0.058 capture started
+snips_1       | INFO:snips_asr_lib::asr: T0+2.581 endpoint detected (rule:2) frame:156 samples:39936 signal_time:2.496 rtf:0.142
+snips_1       | INFO:snips_asr_lib::asr: T0+2.589 capture ended
+snips_1       | INFO:snips_asr_lib::asr: T0+2.613 decoder finalized
+snips_1       | INFO:snips_asr_lib::asr: T0+2.614 lookup and post-processing done
+snips_1       | INFO:snips_analytics_hermes: Cleanup
+snips_1       | INFO:snips_analytics_hermes: Idle
+[11:35:10.259145] - hermes/asr/textCaptured
+{
+  "likelihood": 0.002332461,
+  "seconds": 2.614,
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default",
+  "text": "play some pop music"
+}
+[11:35:10.259923] - hermes/asr/stopListening
+{
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default"
+}
+[11:35:10.260365] - hermes/nlu/query
+{
+  "id": "8cd53db0-5c89-4f2b-a3dd-2155d07c4ff6",
+  "input": "play some pop music",
+  "intentFilter": null,
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256"
+}
+[11:35:10.261041] - hermes/nlu/intentParsed
+{
+  "id": "8cd53db0-5c89-4f2b-a3dd-2155d07c4ff6",
+  "input": "play some pop music",
+  "intent": {
+    "intentName": "user_Kr5A7b4OD__play_music_genre",
+    "probability": 1.0
+  },
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "slots": []
+}
+[11:35:10.261566] - hermes/intent/user_Kr5A7b4OD__play_music_genre
+{
+  "customData": null,
+  "input": "play some pop music",
+  "intent": {
+    "intentName": "user_Kr5A7b4OD__play_music_genre",
+    "probability": 1.0
+  },
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default",
+  "slots": []
+}
+[11:35:10.262142] - hermes/asr/textCaptured
+{
+  "likelihood": 0.002332461,
+  "seconds": 2.614,
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default",
+  "text": "play some pop music"
+}
+[11:35:10.262515] - hermes/asr/stopListening
+{
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default"
+}
+[11:35:10.262918] - hermes/nlu/query
+{
+  "id": "8cd53db0-5c89-4f2b-a3dd-2155d07c4ff6",
+  "input": "play some pop music",
+  "intentFilter": null,
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256"
+}
+[11:35:10.263251] - hermes/nlu/intentParsed
+{
+  "id": "8cd53db0-5c89-4f2b-a3dd-2155d07c4ff6",
+  "input": "play some pop music",
+  "intent": {
+    "intentName": "user_Kr5A7b4OD__play_music_genre",
+    "probability": 1.0
+  },
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "slots": []
+}
+[11:35:10.263550] - hermes/intent/user_Kr5A7b4OD__play_music_genre
+{
+  "customData": null,
+  "input": "play some pop music",
+  "intent": {
+    "intentName": "user_Kr5A7b4OD__play_music_genre",
+    "probability": 1.0
+  },
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default",
+  "slots": []
+}
+snips_1       | INFO:snips_analytics_hermes: Cleanup
+snips_1       | INFO:snips_analytics_hermes: Idle
+snips_1       | INFO:snips_dialogue_lib::coordinator::coordinator: Session [0aafde85-c08a-4ad1-9055-154848af6256]: closing session which was active: Timeout
+snips_1       | INFO:snips_dialogue_lib::coordinator::coordinator: Site [default]: reset site -> turn off ASR and turn on Hotword
+[11:35:15.855020] - hermes/dialogueManager/sessionEnded
+{
+  "customData": null,
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default",
+  "termination": {
+    "reason": "timeout"
+  }
+}
+[11:35:15.856122] - hermes/dialogueManager/sessionEnded
+{
+  "customData": null,
+  "sessionId": "0aafde85-c08a-4ad1-9055-154848af6256",
+  "siteId": "default",
+  "termination": {
+    "reason": "timeout"
+  }
+}
+[11:35:15.889024] - hermes/asr/stopListening
+{
+  "sessionId": null,
+  "siteId": "default"
+}
+[11:35:15.890441] - hermes/hotword/toggleOn
+[11:35:15.890508] - hermes/asr/stopListening
+{
+  "sessionId": null,
+  "siteId": "default"
+}
+{
+  "sessionId": null,
+  "siteId": "default"
+}
+[11:35:15.891160] - hermes/hotword/toggleOn
+{
+  "sessionId": null,
+  "siteId": "default"
+}
+

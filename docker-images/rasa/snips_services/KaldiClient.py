@@ -38,12 +38,12 @@ class KaldiClient(WebSocketClient):
 
     def received_message(self, m):
         response = json.loads(str(m))
-        #print >> sys.stderr, "RESPONSE:", response
+        print >> sys.stderr, "RESPONSE:", response
         #print >> sys.stderr, "JSON was:", m
         if response['status'] == 0:
             if 'result' in response:
                 trans = response['result']['hypotheses'][0]['transcript']
-                likelihood = response['result']['hypotheses'][0].get('likelihood',100)/100
+                likelihood = response['result']['hypotheses'][0].get('likelihood',1)/300000
                 if response['result']['final']:
                     print(response)
                     #print >> sys.stderr, trans,

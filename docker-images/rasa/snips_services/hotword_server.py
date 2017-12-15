@@ -10,6 +10,9 @@ import sys
 import wave
 import struct
 import StringIO
+#from piwho import recognition
+import collections
+
 
 from socket import error as socket_error
 
@@ -44,7 +47,8 @@ class SnipsHotwordServer(SnipsMqttServer):
                  hotword_model=os.environ.get('hotword_model','resources/snowboy.umdl'),
                  hotword=os.environ.get('hotword','snowboy'),
                  site=os.environ.get('site','default'),
-                 listen_to=os.environ.get('listen_to','default')
+                 listen_to=os.environ.get('listen_to','default'),
+                 enable_piwho=os.environ.get('enable_piwho','yes'),
                  ):
         SnipsMqttServer.__init__(self,mqtt_hostname,mqtt_port)
         self.subscribe_to='hermes/audioServer/+/audioFrame,hermes/hotword/+/toggleOff,hermes/hotword/+/toggleOn'
@@ -52,13 +56,18 @@ class SnipsHotwordServer(SnipsMqttServer):
         self.activeClientList = []
         self.allowedClientList = listen_to.split(',')
         self.messageCount = 0;
+        self.enable_piwho = enable_piwho;
         self.detection = snowboydecoder.HotwordDetector(hotword_model, sensitivity=0.5)
-
+        
         self.hotword = hotword
         self.hotword_model = hotword_model
         self.site = site
         self.listen_to = listen_to
 
+        self.recog = None
+        #if (self.piwho_enabled):
+            #self.recog = recognition.SpeakerRecognizer()
+            
         self.client_buffer = {}
         self.client_recognition = {}
         self.client_talking = {}
@@ -70,6 +79,11 @@ class SnipsHotwordServer(SnipsMqttServer):
             self.record[client] = False
 
 
+    def piwho_enabled(self):
+        if False and self.enable_piwho=="yes" and os.path.isfile("path to marf speakers text and marf data file"):
+            return True
+        else:
+            return False
         
     def on_connect(self, client, userdata, flags, result_code):
         SnipsMqttServer.on_connect(self,client,userdata,flags,result_code)
@@ -107,43 +121,40 @@ class SnipsHotwordServer(SnipsMqttServer):
                     #inform that the hotword has been detected
                     self.client.publish('hermes/hotword/{}/detected'.format(self.hotword), payload="{\"siteId\":\"" + siteId + "\",\"sessionId\":null}", qos=0)
 
-                    waveFile = wave.open( siteId + '_id.wav', 'wb')
-                    waveFile.setnchannels(1)
-                    waveFile.setsampwidth(2)
-                    waveFile.setframerate(16000)
-                    waveFile.writeframes(self.client_recognition[siteId].get()) 
-                    waveFile.close()
-                    speaker = self.recog.identify_speaker(siteId + '_id.wav')[0]
+                    #waveFile = wave.open( siteId + '_id.wav', 'wb')
+                    #waveFile.setnchannels(1)
+                    #waveFile.setsampwidth(2)
+                    #waveFile.setframerate(16000)
+                    #waveFile.writeframes(self.client_recognition[siteId].get()) 
+                    #waveFile.close()
+                    #speaker = self.recog.identify_speaker(siteId + '_id.wav')[0]
 
-                    action = "{\"type\":\"action\",\"text\":null,\"canBeEnqueued\":false,\"intentFilter\":null}"
-                    jsonString = "{\"siteId\":\"" + siteId + "\",\"init\":" + action + ",\"customData\":\"" + speaker + "\"}"
+                    #action = "{\"type\":\"action\",\"text\":null,\"canBeEnqueued\":false,\"intentFilter\":null}"
+                    #jsonString = "{\"siteId\":\"" + siteId + "\",\"init\":" + action + ",\"customData\":\"" + speaker + "\"}"
 
-                    self.client.publish('hermes/dialogueManager/startSession', payload=jsonString, qos=0)
+                    #self.client.publish('hermes/dialogueManager/startSession', payload=jsonString, qos=0)
 
                     self.client_buffer[siteId].extend(data)
                     self.clientList.append(siteId)
                     
-            elif self.record[siteId] == True:
-                #i want to capture what is said after the hotword as a wave
-                data = msg.payload[44:struct.unpack('<L', msg.payload[4:8])[0]]
-                self.client_buffer[siteId].extend(data)
-                ans = self.detection.detector.RunDetection(data)
-                if ans == 0:
-                    #adding the data here misses the first 0.1 sec of the speaking audio and it sounds off
-                    #saying "what is the...." the audio is "ot is the..".. the first word lacks the whole sound
-                    #client_buffer[siteId].extend(data)
-                    self.client_talking[siteId] = True
-                elif ans == -2 and client_talking[siteId] == True:
-                    self.client_talking[siteId] = False
-                    self.record[siteId] = False
-                    data = self.client_buffer[siteId].get()
-                    #save wave file
-                    waveFile = wave.open( siteId + '.wav', 'wb')
-                    waveFile.setnchannels(1)
-                    waveFile.setsampwidth(2)
-                    waveFile.setframerate(16000)
-                    waveFile.writeframes(data) 
-                    waveFile.close()
+            #elif self.record[siteId] == True:
+                ##i want to capture what is said after the hotword as a wave
+                #data = msg.payload[44:struct.unpack('<L', msg.payload[4:8])[0]]
+                #self.client_buffer[siteId].extend(data)
+                #ans = self.detection.detector.RunDetection(data)
+                #if ans == 0:
+                    #self.client_talking[siteId] = True
+                #elif ans == -2 and client_talking[siteId] == True:
+                    #self.client_talking[siteId] = False
+                    #self.record[siteId] = False
+                    #data = self.client_buffer[siteId].get()
+                    ##save wave file
+                    #waveFile = wave.open( siteId + '.wav', 'wb')
+                    #waveFile.setnchannels(1)
+                    #waveFile.setsampwidth(2)
+                    #waveFile.setframerate(16000)
+                    #waveFile.writeframes(data) 
+                    #waveFile.close()
 
 
 

@@ -74,7 +74,6 @@ RUN cd /opt; git clone https://github.com/rabitt/pysox.git; cd pysox ; /opt/rasa
 # hacked entrypoint script and ENV VAR to trigger rasa
 #COPY ./snips-entrypoint.sh /opt/snips/snips-entrypoint.sh
 
-COPY ./snips_services/ /opt/snips_services/
 #COPY ./snips_rasa_core/ /opt/snips_rasa_core/
 #COPY ./rasa_musicplayer/ /opt/rasa_musicplayer/
 
@@ -93,10 +92,11 @@ RUN mkdir -p /opt/snowboy && mkdir /tmp/snowboy && cd /tmp/snowboy && if [ `unam
 #COPY ./snips_hotword_snowboy/* /opt/snips_hotword_snowboy/
 #COPY ./snips_hotword_snowboy/resources/* /opt/snips_hotword_snowboy/resources/
 
-RUN /opt/rasa/anaconda/bin/pip install ws4py
+RUN /opt/rasa/anaconda/bin/pip install ws4py watchdog
 
 COPY ./client.conf /etc/pulse/client.conf
 COPY ./asound-pulse.conf /etc/asound.conf
+COPY ./snips_services/ /opt/snips_services/
 
 ENTRYPOINT ['/opt/snips_rasa_server/start.sh']
 #CMD ["/opt/snips/snips-entrypoint.sh"]
