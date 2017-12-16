@@ -6,7 +6,7 @@
 
 This repository is a collection of projects integrating [Snips AI](http://snips.ai)  and [RASA AI](http://rasa.ai) and [Kaldi](https://github.com/alumae/kaldi-gstreamer-server) and [Meeka@home](http://meekamusic.com) to create a 100% open source implementation of the [Hermes MQTT protocol](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#hermes-protocol) used by Snips. 
 
-The repository is a docker-compose suite configured using an arbitrary combination of official snips and opensnips services.
+<br>
 
 The repository developed to allow running the Hermes protocol on a Linux laptop or server. Most of the services will work fine on a Raspberry Pi but some hacks(temporary swap file) are required for building some services.
 
@@ -16,15 +16,24 @@ By using RASA NLU and Kaldi ASR, it is possible to build training pipelines loca
 
 The provided hotword service is extended to use piwho to identify the speaker from their voice (ack [Greg](https://github.com/oziee/hotword) ).
 
+
+<br><br>
 Note that the official Snips is highly optimised to perform with large data sets on minimum hardware and includes quality software with error checking, logging and testing and is suitable for commercial deployments.
 
 This repository is intended for developers who want to hack on Snips.
 
-Many thanks to the team at snipsco for their ongoing contribution to realising the future of talking to our tech. Namaste.
+__Many thanks to the team at snipsco for their ongoing contribution to realising the future of talking to our tech. Namaste.__
 
 
 
-It includes: 
+
+
+
+<br>
+
+
+
+__The repository includes: __
 
 - Dockerfiles to build 
     - an multi architecture image based on Debian Jessie or Raspbian Stretch supporting the installation of Snips.
@@ -128,6 +137,12 @@ volumes:
             - ./docker-compose/snips/snips.toml:/etc/snips.toml
 ```    
 
+### Audio Server
+snips audio server pushes 256 samples long frames, signed 16bit, mono, 16000Hz
+each frame in its own .wav container
+
+
+
 
     
 ## RASA    
@@ -219,10 +234,7 @@ With the story format, confirmations, Yes/No responses, form wizard (slot fillin
 
 
 
-# JUNK
-
-snips audio server pushes 256 samples long frames, signed 16bit, mono, 16000Hz
-each frame in its own .wav container
+# Links
 
 
 ## DeepSpeech
