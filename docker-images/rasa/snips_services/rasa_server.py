@@ -314,6 +314,8 @@ class SnipsRasaServer():
             self.log("Core query {}".format(msg.topic))
             payload = json.loads(msg.payload.decode('utf-8'))
             print(payload)
+            print('#######################')
+            print(payload.get('slots','fail'))
             if 'input' in payload :        
                 theId = payload.get('id')
                 sessionId = payload.get('sessionId')
@@ -323,7 +325,7 @@ class SnipsRasaServer():
                 intentNameParts = payload['intent']['intentName'].split('__')
                 intentNameParts = intentNameParts[1:]
                 intentName = '__'.join(intentNameParts)
-                if 'slots' in payload:
+                if 'slots' in payload and payload['slots'] is not None:
                     for entity in payload['slots']:
                         entities.append({ "start": entity['range']['start'],"end": entity['range']['end'],"value": entity['rawValue'],"entity": entity['slotName']})
                 output = {
