@@ -2,38 +2,13 @@
 
 ## Overview
 
-!! This project is a work in progress. The documentation is ahead of the function ;)
+!! This project is a work in progress. The documentation is ahead of the function but it does build and run on x86_64.
 
-This repository is a collection of projects integrating [Snips AI](http://snips.ai)  and [RASA AI](http://rasa.ai) and [Kaldi](https://github.com/alumae/kaldi-gstreamer-server) and [Meeka@home](http://meekamusic.com) to create a 100% open source implementation of the [Hermes MQTT protocol](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#hermes-protocol) used by Snips. 
-
-<br>
-
-The repository developed to allow running the Hermes protocol on a Linux laptop or server. Most of the services will work fine on a Raspberry Pi but some hacks(temporary swap file) are required for building some services.
-
-By using RASA core as the basis of a replacement for the Snips Skills server, it is possible to use machine learning to control the flow of conversation and develop extended interactions that go beyond confirmations and form wizards.
-
-By using RASA NLU and Kaldi ASR, it is possible to build training pipelines locally so that changing ASR and/or NLU models is as easy as saving a file. Kaldi also provides a distinct websockets interface that can be used from Android with [Konele](http://kaljurand.github.io/K6nele/about/).
-
-The provided hotword service is extended to use piwho to identify the speaker from their voice (ack [Greg](https://github.com/oziee/hotword) ).
-
-
-<br><br>
-Note that the official Snips is highly optimised to perform with large data sets on minimum hardware and includes quality software with error checking, logging and testing and is suitable for commercial deployments.
-
-This repository is intended for developers who want to hack on Snips.
-
-__Many thanks to the team at snipsco for their ongoing contribution to realising the future of talking to our tech. Namaste.__
-
-
-
-
-
+This repository is a docker-compose suite integrating [Snips AI](http://snips.ai)  and [RASA AI](http://rasa.ai) and [Kaldi](https://github.com/alumae/kaldi-gstreamer-server) and [Meeka@home](http://meekamusic.com) to create a 100% open source implementation of the [Hermes MQTT protocol](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#hermes-protocol) used by Snips. 
 
 <br>
 
-
-
-__The repository includes: __
+__The repository includes:__
 
 - Dockerfiles to build 
     - an multi architecture image based on Debian Jessie or Raspbian Stretch supporting the installation of Snips.
@@ -57,14 +32,6 @@ __The repository includes: __
     - pulseaudio server to share the sound.
  
 
-## Architecture/Platform Support
-
-The Dockerfiles build on both arm7(Raspberry Pi) and x86_64(Linux desktop/server).
-
-It is apparently possible to install pulseaudio on MS Windows and MacOSX which should allow the suite to be used with Docker on other platforms than Linux.
-
-
-    
 ## Quick Start
 
 To get started 
@@ -85,42 +52,143 @@ To get started
 - ```pasuspender -- docker-compose up```
 - OR modify the environment variables and host mounts for the pulseaudio container in docker-compose.yml to use the host pulseaudio system.
 
+### Configuration
+See docker-compose.yml in the root of the project for configuration options.
 
 
-### Build
-- To build rasa on a raspberry pi you will need some swap memory. DO NOT LEAVE THIS ENABLED OR YOU WILL KILL YOUR SD CARD.
+## Architecture/Platform Support
 
-```
+The Dockerfiles build on both arm7(Raspberry Pi) and x86_64(Linux desktop/server).
 
-dd if=/dev/zero of=/swapfile bs=1M count=1024 # For 1GB swap file
-
-mkswap /swapfile
-
-swapon /swapfile
-
-docker-compose build <service key>
-
-```
-
-__when finished be sure to      swapoff /swapfile; rm /swapfile__
+It is apparently possible to install pulseaudio on MS Windows and MacOSX which should allow the suite to be used with Docker on other platforms than Linux.
 
 
+## Feature
+
+The repository developed to allow running the Hermes protocol on a Linux laptop or server. Most of the services will work fine on a Raspberry Pi but some hacks(temporary swap file) are required for building some services.
+
+By using RASA core as the basis of a replacement for the Snips Skills server, it is possible to use machine learning to control the flow of conversation and develop extended interactions that go beyond confirmations and form wizards.
+
+By using RASA NLU and Kaldi ASR, it is possible to build training pipelines locally so that changing ASR and/or NLU models is as easy as saving a file. Kaldi also provides a distinct websockets interface that can be used from Android with [Konele](http://kaljurand.github.io/K6nele/about/).
+
+The provided hotword service is extended to use piwho to identify the speaker from their voice (ack [Greg](https://github.com/oziee/hotword) ).
 
 
+<br><br>
+Note that the official Snips services are highly optimised to perform with large data sets on minimum hardware and includes quality software with error checking, logging and testing and is suitable for commercial deployments.
+
+This repository is intended for developers who want to hack on Snips.
+
+__Many thanks to the teams at Snips, RASA and Kaldi for their ongoing contribution to realising the future of talking to our tech. Namaste.__
+
+
+
+## Services
+
+The open snips services are intended to be compatible with the official snips services.
+[For more detail about each service](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#hermes-protocol)
+
+In general open snips services are configured using environment variables defined in the docker-compose file.
+
+### Audio Server
+
+The audio server sends and recieves audio data over MQTT.
+The server sends a constant stream of messages to subscribed clients, 256 samples long frames, signed 16bit, mono, 16000Hz each frame in its own .wav container.
+
+The server can receive and play audio samples of arbitrary length in the same format.
     
-## Snowboy
+
+### Hotword Server
+
+The hotword server listens to the audio server and fires hermes/hotword/detected when it hears the hotword.
+
+Snowboy is used for detection. Create a model file at [https://snowboy.kitt.ai/](https://snowboy.kitt.ai/)
+
 The docker-compose file contains environment variables to configure snowboy including 
 
-- a path to model file. Create a model file at [https://snowboy.kitt.ai/](https://snowboy.kitt.ai/)
-- site id for multiroom snips
-- hotword ID 
-```    environment:
+```
+    environment:
         - HOTWORD_MODEL=/opt/snips_hotword_snowboy/resources/snowboy.umdl
-        - SITE_ID=default
+        - SITE_ID=default  
         - HOTWORD_ID=snowboy
 ```
 
+### Dialog Server
+
+The dialog server is the glue that listens to other services and sends messages to trigger the next step of recognition.
+
+The opensnips dialog server implements most of the features of the official version.
+
+At this time, the following features are pending.
+
+- hermes/dialogueManager/continueSession
+- hermes/nlu/partialQuery
+- hermes/nlu/slotParsed
+- hermes/asr/partialTextCaptured
+
+
+### Automated Speech Recognition (ASR)
+
+ASR is implemented using two containers
+
+- the [Kaldi GStreamer Server](https://github.com/jcsilva/docker-kaldi-gstreamer-server) 
+- a server script to listen to kaldi and send MQTT messages
+
+The Kaldi image comes with the nnet2 models for English
+
+Alternative ASR models can be installed by host mounting them into /opt/models and creating a configuration file (see nnet2.yaml)
+
+An additional container named dictate showcases using the ASR from a web page.
+
+At this time, the opensnips ASR service has not been adapted for arm on raspberry pi :(   
+   
+    
+### Natural Language Understanding (NLU)
+
+NLU is implemented using RASA.AI. A single python script handles both NLU requests and action handler requests (see below)
+Configuration allows disabling either NLU or action handler.
+
+RASA models are generated based on the nlu training file and the core training or domain file. The server watches changes on these files and regenerates the models when the training files are saved.
+
+Snips user id is used to exclude the user id when processing intent names.
+
+    #- disable_nlu=no|yes
+    # disable_core=yes
+    #- mqtt_hostname=mosquitto
+    #- mqtt_port=1883
+    #- nlu_model_path=models/nlu
+    #- snips_assistant_path=models/snips
+    #- snips_user_id=user_Kr5A7b4OD
+    #- core_model_path=models/dialog
+    #- config_file=config/config.json
+    #- domain_file=config/domain.yml
+    #- nlu_training_file=config/nlu.md
+    #- core_training_file=config/stories.md
+    #- lang=en-GB
+
+This repository comes with models for [Meeka Music](https://meekamusic.com). Try saying "play some pop music" or "play the next track".   The repository also includes an example snips assistant model with an identical vocabulary 
+
+### Text to Speech (TTS)
+
+The text to speech server responds to MQQT message hermes/tts/say by using pico2wave to convert the text into a sound file and playing it.
+
+
+### Action Handler
+
+The action handler replaces the snips skills server. It listens for hermes/intent/XXXX and triggers appropriate actions.
+
+Determining the next action to take given the current intent and slots is done using RASA core.
+
+Where the action is only required to reply, templates from the RASA domain model can be used. Where action are required to do more, the [RASA format can refer to python class files](https://core.rasa.ai/stories.html). 
+
+As described in the NLU section above. Changes to the training files will trigger retraining of the model files.
+
+
+
 ## Snips
+
+The docker compose suite lays out alternatives for each service from either open snips or official snips.
+By default the suite runs the opensnips versions of services. To swap a given service out for the official one, comment the opensnips version and uncomment the official version.
 
 The generic asr model is built into the snips image. To override it, use docker-compose to mount a host volume containing a different model.
 
@@ -137,22 +205,28 @@ volumes:
             - ./docker-compose/snips/snips.toml:/etc/snips.toml
 ```    
 
-### Audio Server
-snips audio server pushes 256 samples long frames, signed 16bit, mono, 16000Hz
-each frame in its own .wav container
 
+## Build
 
+- ```docker-compose build <service key from docker-compose>```
 
+-----------------------------------------------
 
-    
-## RASA    
+- To build rasa on a raspberry pi you will need some swap memory. DO NOT LEAVE THIS ENABLED OR YOU WILL KILL YOUR SD CARD.
 
-```       
-       environment:
-            - NLU_TRAINING_FILE=/opt/rasa/data/nlu-model/stories.md
-            - NLU_CONFIG_FILE=/opt/rasa/data/nlu-model/config.json
-            - NLU_MODEL_FOLDER=/opt/rasa/data/nlu-model/default/model_20171125-071720
- ```    
+```
+
+dd if=/dev/zero of=/swapfile bs=1M count=1024 # For 1GB swap file
+
+mkswap /swapfile
+
+swapon /swapfile
+
+docker-compose build <service key>
+
+```
+
+__when finished be sure to      swapoff /swapfile; rm /swapfile__
 
 
 ## Sound Configuration
