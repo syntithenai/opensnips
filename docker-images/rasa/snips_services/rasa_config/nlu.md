@@ -2,20 +2,42 @@
 - play next track
 - play next
 - play the next track
+- skip this track
+- play the next one
+- play on
+- play the next song
+- play the next one
+
 
 ## intent:agree
 - yes
 - i agree
 - for sure
+- make it happen
+- absolutely
+- sure
+- ok
+- you bet
+
 
 ## intent:disagree
 - no
 - never
 - no way
+- nope
+- eek
+- i disagree
+- not what I want
+- that is not what i want
+- please don't
 
 ## intent:play_previous
 - play the previous song
 - play previous
+- go back a song
+- go back one song
+- play the previous track
+
 
 ## intent:goto_next_track
 - next track please
@@ -46,7 +68,14 @@
 - set volume [one](volume)
 - set the volume to [one](volume)
 - set volume to [one](volume)
-
+- volume [two](volume)
+- volume [three](volume)
+- volume [four](volume)
+- volume [five](volume)
+- volume [six](volume)
+- volume [seven](volume)
+- volume [eight](volume)
+- volume [nine](volume)
 
 
 ## intent:pause
@@ -64,6 +93,11 @@
 - continue playing
 - resume playing
 - start playing music
+- keep playing
+- start playing again
+- start it up again
+- play now
+
 
 ## intent:play_random_music
 - play some random music
@@ -74,6 +108,7 @@
 - play random music
 - play random songs from my collection
 - play my collection
+
 
 ## intent:play_song
 - play the song [second](song)
@@ -236,6 +271,12 @@
 - shuffle the playlist
 - shuffle the songs
 - mix up the playlist
+- shuffle please
+- mix it up
+- mix up the songs
+- randomise the songs
+- randomise the playlist
+
 
 ## intent:open_playlist
 - open the [juggling](playlist) playlist

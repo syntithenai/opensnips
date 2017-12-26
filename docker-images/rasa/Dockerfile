@@ -60,6 +60,8 @@ RUN printf "deb http://deb.debian.org/debian jessie main contrib non-free" > /et
 
 RUN apt-get update
 
+
+# PICO TTS
 RUN apt-get -y install libttspico0 libttspico-utils libttspico-data libav-tools
 
 RUN apt-get -y install pulseaudio sox libsox-fmt-all mosquitto-clients portaudio19-dev  python-pyaudio
@@ -94,9 +96,14 @@ RUN mkdir -p /opt/snowboy && mkdir /tmp/snowboy && cd /tmp/snowboy && if [ `unam
 
 RUN /opt/rasa/anaconda/bin/pip install ws4py watchdog
 
+RUN apt-get install -y alsa-utils
+
 COPY ./client.conf /etc/pulse/client.conf
-COPY ./asound-pulse.conf /etc/asound.conf
+COPY ./asound-dmixrates.conf /etc/asound.conf
 COPY ./snips_services/ /opt/snips_services/
+
+
+
 
 ENTRYPOINT ['/opt/snips_rasa_server/start.sh']
 #CMD ["/opt/snips/snips-entrypoint.sh"]

@@ -403,5 +403,9 @@ then
 fi
 
 export RUMQTT_READ_TIMEOUT_MS=50
+
+# stever hack - set the mic volume to 50%
+amixer sset 'Capture' 75%
+
 /usr/bin/supervisord -c $SUPERVISORD_CONF_FILE
 

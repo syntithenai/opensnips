@@ -37,11 +37,13 @@ class SnipsDialogServer(SnipsMqttServer):
         self.sessionExpiry={} # session expiry time by sessionId
         self.thread_targets.append(self.monitorSessionTimeouts)
         self.expiryTimeout = 10
+        self.hotwords = {}
         
     def closeSession(self,sessionId,reason='nominal'):
         siteId = str(self.getSiteId(sessionId))
         sessionId = str(sessionId)
         data = self.getSessionData(sessionId)
+        hotwordId = self.hotwords.get(sessionId,'default')
         
         #print('clse session {} {}'.format(siteId,sessionId,data))
         #print(sessionId)
@@ -53,7 +55,7 @@ class SnipsDialogServer(SnipsMqttServer):
             #print('really close session')
             self.sendMessage(siteId,sessionId,'hermes/dialogueManager/sessionEnded',{'sessionData':data,'termination':{'reason':reason,'error':''}})
             self.sendMessage(siteId,None,'hermes/asr/stopListening',{})
-            self.sendMessage(siteId,None,'hermes/hotword/toggleOn',{})
+            self.sendMessage(siteId,None,'hermes/hotword/{}/toggleOn'.format(hotwordId),{})
             self.sessions.pop(siteId)
             self.sessionData.pop(sessionId)
             self.sessionExpiry.pop(sessionId)
@@ -138,6 +140,7 @@ class SnipsDialogServer(SnipsMqttServer):
         self.client.publish(topic,payload = json.dumps(thePayload),qos=0,retain=False)
 
     def on_message(self, client, userdata, msg):
+        print('dialog on message') 
         msgJSON = json.loads(msg.payload)
         sessionId = msgJSON.get('sessionId')
         haveSession = self.haveSession(sessionId)
@@ -158,7 +161,7 @@ class SnipsDialogServer(SnipsMqttServer):
                 elif len(msg.topic.split('/')) > 2 and msg.topic.split('/')[2] == 'detected':
                     ok = True
                 print("HOTWORD DETECTED: {}".format(msg.topic))
-                
+                self.hotwords[sessionId] = hotwordId
                 # SEND but silently drop if we already have an active session
                 if not haveSession:
                     self.sendMessage(siteId,sessionId,'hermes/asr/stopListening',{})
@@ -190,7 +193,7 @@ class SnipsDialogServer(SnipsMqttServer):
                     # SEND
                     # hermes/dialogueManager/sessionStarted
                     self.setSessionData(sessionId,msgJSON.get('customData'))
-                    self.sendMessage(siteId,sessionId,'hermes/dialogueManager/sessionStarted',{'sessionData':self.getSessionData(sessionId)})
+                    self.sendMessage(siteId,sessionId,'hermes/dialogueManager/sessionStarted',{'customData':self.getSessionData(sessionId)})
                     self.setSessionExpiry(sessionId,float(time.time()) + float(self.expiryTimeout))
             #elif msg.topic.startswith("hermes/dialogueManager/continueSession"):
                 #print("CONTINUE SESSION: {}".format(msg.topic))

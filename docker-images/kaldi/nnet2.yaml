@@ -5,11 +5,11 @@ decoder:
     # All the properties nested here correspond to the kaldinnet2onlinedecoder GStreamer plugin properties.
     # Use gst-inspect-1.0 ./libgstkaldionline2.so kaldinnet2onlinedecoder to discover the available properties
     use-threaded-decoder:  true
-    model : /opt/models/english/tedlium_nnet_ms_sp_online/final.mdl
-    word-syms : /opt/models/english/tedlium_nnet_ms_sp_online/words.txt
-    fst : /opt/models/english/tedlium_nnet_ms_sp_online/HCLG.fst
-    mfcc-config : /opt/models/english/tedlium_nnet_ms_sp_online/conf/mfcc.conf
-    ivector-extraction-config : /opt/models/english/tedlium_nnet_ms_sp_online/conf/ivector_extractor.conf
+    model : /opt/test/models/english/tedlium_nnet_ms_sp_online/final.mdl
+    word-syms : /opt/test/models/english/tedlium_nnet_ms_sp_online/words.txt
+    fst : /opt/test/models/english/tedlium_nnet_ms_sp_online/HCLG.fst
+    mfcc-config : /opt/test/models/english/tedlium_nnet_ms_sp_online/conf/mfcc.conf
+    ivector-extraction-config : /opt/test/models/english/tedlium_nnet_ms_sp_online/conf/ivector_extractor.conf
     max-active: 10000
     beam: 10.0
     lattice-beam: 6.0
@@ -20,10 +20,10 @@ decoder:
     chunk-length-in-secs: 0.25
     num-nbest: 10
     #Additional functionality that you can play with:
-    #lm-fst:  /opt/models/english/tedlium_nnet_ms_sp_online/G.fst
-    #big-lm-const-arpa: /opt/models/english/tedlium_nnet_ms_sp_online/G.carpa
-    #phone-syms: /opt/models/english/tedlium_nnet_ms_sp_online/phones.txt
-    #word-boundary-file: /opt/models/english/tedlium_nnet_ms_sp_online/word_boundary.int
+    #lm-fst:  /opt/test/models/english/tedlium_nnet_ms_sp_online/G.fst
+    #big-lm-const-arpa: /opt/test/models/english/tedlium_nnet_ms_sp_online/G.carpa
+    #phone-syms: /opt/test/models/english/tedlium_nnet_ms_sp_online/phones.txt
+    #word-boundary-file: /opt/test/models/english/tedlium_nnet_ms_sp_online/word_boundary.int
     #do-phone-alignment: true
 out-dir: tmp
 

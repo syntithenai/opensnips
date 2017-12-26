@@ -1,0 +1,2875 @@
+{
+  "rasa_nlu_data": {
+    "common_examples": [
+      {
+        "text": "play next track", 
+        "intent": "play_next"
+      }, 
+      {
+        "text": "play next", 
+        "intent": "play_next"
+      }, 
+      {
+        "text": "play the next track", 
+        "intent": "play_next"
+      }, 
+      {
+        "text": "skip this track", 
+        "intent": "play_next"
+      }, 
+      {
+        "text": "play the next one", 
+        "intent": "play_next"
+      }, 
+      {
+        "text": "play on", 
+        "intent": "play_next"
+      }, 
+      {
+        "text": "play the next song", 
+        "intent": "play_next"
+      }, 
+      {
+        "text": "play the next one", 
+        "intent": "play_next"
+      }, 
+      {
+        "text": "yes", 
+        "intent": "agree"
+      }, 
+      {
+        "text": "i agree", 
+        "intent": "agree"
+      }, 
+      {
+        "text": "for sure", 
+        "intent": "agree"
+      }, 
+      {
+        "text": "make it happen", 
+        "intent": "agree"
+      }, 
+      {
+        "text": "absolutely", 
+        "intent": "agree"
+      }, 
+      {
+        "text": "sure", 
+        "intent": "agree"
+      }, 
+      {
+        "text": "ok", 
+        "intent": "agree"
+      }, 
+      {
+        "text": "you bet", 
+        "intent": "agree"
+      }, 
+      {
+        "text": "no", 
+        "intent": "disagree"
+      }, 
+      {
+        "text": "never", 
+        "intent": "disagree"
+      }, 
+      {
+        "text": "no way", 
+        "intent": "disagree"
+      }, 
+      {
+        "text": "nope", 
+        "intent": "disagree"
+      }, 
+      {
+        "text": "eek", 
+        "intent": "disagree"
+      }, 
+      {
+        "text": "i disagree", 
+        "intent": "disagree"
+      }, 
+      {
+        "text": "not what I want", 
+        "intent": "disagree"
+      }, 
+      {
+        "text": "that is not what i want", 
+        "intent": "disagree"
+      }, 
+      {
+        "text": "please don't", 
+        "intent": "disagree"
+      }, 
+      {
+        "text": "play the previous song", 
+        "intent": "play_previous"
+      }, 
+      {
+        "text": "play previous", 
+        "intent": "play_previous"
+      }, 
+      {
+        "text": "go back a song", 
+        "intent": "play_previous"
+      }, 
+      {
+        "text": "go back one song", 
+        "intent": "play_previous"
+      }, 
+      {
+        "text": "play the previous track", 
+        "intent": "play_previous"
+      }, 
+      {
+        "text": "next track please", 
+        "intent": "goto_next_track"
+      }, 
+      {
+        "text": "to skip this track", 
+        "intent": "goto_next_track"
+      }, 
+      {
+        "text": "to go to the next track", 
+        "intent": "goto_next_track"
+      }, 
+      {
+        "text": "skip this track", 
+        "intent": "goto_next_track"
+      }, 
+      {
+        "text": "next song please", 
+        "intent": "goto_next_track"
+      }, 
+      {
+        "text": "go to next track", 
+        "intent": "goto_next_track"
+      }, 
+      {
+        "text": "next track", 
+        "intent": "goto_next_track"
+      }, 
+      {
+        "text": "go to previous", 
+        "intent": "goto_previous_track"
+      }, 
+      {
+        "text": "go back", 
+        "intent": "goto_previous_track"
+      }, 
+      {
+        "text": "back one song", 
+        "intent": "goto_previous_track"
+      }, 
+      {
+        "text": "go to the previous track", 
+        "intent": "goto_previous_track"
+      }, 
+      {
+        "text": "go back one song", 
+        "intent": "goto_previous_track"
+      }, 
+      {
+        "text": "go to the previous song", 
+        "intent": "goto_previous_track"
+      }, 
+      {
+        "text": "to go back one song", 
+        "intent": "goto_previous_track"
+      }, 
+      {
+        "text": "previous track", 
+        "intent": "goto_previous_track"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 11, 
+            "end": 14, 
+            "value": "ten", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "set volume ten"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 18, 
+            "end": 21, 
+            "value": "ten", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "set the volume to ten"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 17, 
+            "value": "ten", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "set volume to ten"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 11, 
+            "end": 15, 
+            "value": "five", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "set volume five"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 18, 
+            "end": 22, 
+            "value": "five", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "set the volume to five"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 18, 
+            "value": "five", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "set volume to five"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 11, 
+            "end": 14, 
+            "value": "one", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "set volume one"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 18, 
+            "end": 21, 
+            "value": "one", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "set the volume to one"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 17, 
+            "value": "one", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "set volume to one"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 10, 
+            "value": "two", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "volume two"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 12, 
+            "value": "three", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "volume three"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 11, 
+            "value": "four", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "volume four"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 11, 
+            "value": "five", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "volume five"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 10, 
+            "value": "six", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "volume six"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 12, 
+            "value": "seven", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "volume seven"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 12, 
+            "value": "eight", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "volume eight"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 11, 
+            "value": "nine", 
+            "entity": "volume"
+          }
+        ], 
+        "intent": "set_the_volume", 
+        "text": "volume nine"
+      }, 
+      {
+        "text": "pause playback", 
+        "intent": "pause"
+      }, 
+      {
+        "text": "pause", 
+        "intent": "pause"
+      }, 
+      {
+        "text": "quit playing music", 
+        "intent": "pause"
+      }, 
+      {
+        "text": "quit playing", 
+        "intent": "pause"
+      }, 
+      {
+        "text": "start playing", 
+        "intent": "start_playing"
+      }, 
+      {
+        "text": "start", 
+        "intent": "start_playing"
+      }, 
+      {
+        "text": "start playing", 
+        "intent": "start_playing"
+      }, 
+      {
+        "text": "start the music", 
+        "intent": "start_playing"
+      }, 
+      {
+        "text": "restart the music", 
+        "intent": "start_playing"
+      }, 
+      {
+        "text": "continue playing", 
+        "intent": "start_playing"
+      }, 
+      {
+        "text": "resume playing", 
+        "intent": "start_playing"
+      }, 
+      {
+        "text": "start playing music", 
+        "intent": "start_playing"
+      }, 
+      {
+        "text": "keep playing", 
+        "intent": "start_playing"
+      }, 
+      {
+        "text": "start playing again", 
+        "intent": "start_playing"
+      }, 
+      {
+        "text": "start it up again", 
+        "intent": "start_playing"
+      }, 
+      {
+        "text": "play now", 
+        "intent": "start_playing"
+      }, 
+      {
+        "text": "play some random music", 
+        "intent": "play_random_music"
+      }, 
+      {
+        "text": "shuffle all", 
+        "intent": "play_random_music"
+      }, 
+      {
+        "text": "to play random music", 
+        "intent": "play_random_music"
+      }, 
+      {
+        "text": "to shuffle everything", 
+        "intent": "play_random_music"
+      }, 
+      {
+        "text": "create a random playlist", 
+        "intent": "play_random_music"
+      }, 
+      {
+        "text": "play random music", 
+        "intent": "play_random_music"
+      }, 
+      {
+        "text": "play random songs from my collection", 
+        "intent": "play_random_music"
+      }, 
+      {
+        "text": "play my collection", 
+        "intent": "play_random_music"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 20, 
+            "value": "second", 
+            "entity": "song"
+          }
+        ], 
+        "intent": "play_song", 
+        "text": "play the song second"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 5, 
+            "end": 11, 
+            "value": "second", 
+            "entity": "song"
+          }, 
+          {
+            "start": 17, 
+            "end": 24, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_song", 
+        "text": "play second from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 5, 
+            "end": 11, 
+            "value": "second", 
+            "entity": "song"
+          }
+        ], 
+        "intent": "play_song", 
+        "text": "play second"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 20, 
+            "value": "second", 
+            "entity": "song"
+          }, 
+          {
+            "start": 26, 
+            "end": 33, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_song", 
+        "text": "play the song second from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 20, 
+            "value": "second", 
+            "entity": "song"
+          }, 
+          {
+            "start": 26, 
+            "end": 33, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_song", 
+        "text": "play the song second from jamendo"
+      }, 
+      {
+        "text": "play this album", 
+        "intent": "play_this_album"
+      }, 
+      {
+        "text": "play all the songs on this album", 
+        "intent": "play_this_album"
+      }, 
+      {
+        "text": "play music by this artist", 
+        "intent": "play_this_artist"
+      }, 
+      {
+        "text": "play other music by this artist", 
+        "intent": "play_this_artist"
+      }, 
+      {
+        "text": "play this artist", 
+        "intent": "play_this_artist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 27, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "play_music_by_artist", 
+        "text": "play music by josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 25, 
+            "end": 38, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }, 
+          {
+            "start": 44, 
+            "end": 51, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_music_by_artist", 
+        "text": "play songs by the artist josh woodward from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 27, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }, 
+          {
+            "start": 33, 
+            "end": 40, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_music_by_artist", 
+        "text": "play songs by josh woodward from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 25, 
+            "end": 38, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "play_music_by_artist", 
+        "text": "play songs by the artist josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 27, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "play_music_by_artist", 
+        "text": "play music by josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 15, 
+            "end": 23, 
+            "value": "the wall", 
+            "entity": "album"
+          }, 
+          {
+            "start": 31, 
+            "end": 38, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_music_from_album", 
+        "text": "play the album the wall on the jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 15, 
+            "end": 23, 
+            "value": "the wall", 
+            "entity": "album"
+          }, 
+          {
+            "start": 27, 
+            "end": 34, 
+            "value": "Jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_music_from_album", 
+        "text": "play the album the wall on Jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 24, 
+            "end": 32, 
+            "value": "The Wall", 
+            "entity": "album"
+          }, 
+          {
+            "start": 38, 
+            "end": 45, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_music_from_album", 
+        "text": "play music on the album The Wall from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 15, 
+            "end": 23, 
+            "value": "The Wall", 
+            "entity": "album"
+          }, 
+          {
+            "start": 29, 
+            "end": 36, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_music_from_album", 
+        "text": "play the album The Wall from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 27, 
+            "end": 35, 
+            "value": "The Wall", 
+            "entity": "album"
+          }, 
+          {
+            "start": 41, 
+            "end": 48, 
+            "value": "Jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_music_from_album", 
+        "text": "play tracks from the album The Wall from Jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 27, 
+            "end": 35, 
+            "value": "The Wall", 
+            "entity": "album"
+          }
+        ], 
+        "intent": "play_music_from_album", 
+        "text": "play tracks from the album The Wall"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 15, 
+            "end": 23, 
+            "value": "The Wall", 
+            "entity": "album"
+          }
+        ], 
+        "intent": "play_music_from_album", 
+        "text": "play the album The Wall"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 24, 
+            "end": 32, 
+            "value": "The Wall", 
+            "entity": "album"
+          }
+        ], 
+        "intent": "play_music_from_album", 
+        "text": "play music on the album The Wall"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 10, 
+            "end": 13, 
+            "value": "pop", 
+            "entity": "genre"
+          }, 
+          {
+            "start": 21, 
+            "end": 28, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_music_genre", 
+        "text": "play some pop on the jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 10, 
+            "end": 13, 
+            "value": "pop", 
+            "entity": "genre"
+          }, 
+          {
+            "start": 19, 
+            "end": 26, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_music_genre", 
+        "text": "play some pop from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 24, 
+            "end": 27, 
+            "value": "pop", 
+            "entity": "genre"
+          }, 
+          {
+            "start": 33, 
+            "end": 40, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_music_genre", 
+        "text": "play music in the genre pop from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 37, 
+            "end": 40, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "play_music_genre", 
+        "text": "play music from jamendo in the genre pop"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 10, 
+            "end": 13, 
+            "value": "pop", 
+            "entity": "genre"
+          }, 
+          {
+            "start": 25, 
+            "end": 32, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "play_music_genre", 
+        "text": "play some pop music from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 10, 
+            "end": 13, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "play_music_genre", 
+        "text": "play some pop music"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 24, 
+            "end": 27, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "play_music_genre", 
+        "text": "play music in the genre pop"
+      }, 
+      {
+        "text": "play ole", 
+        "intent": "play_all"
+      }, 
+      {
+        "text": "play al", 
+        "intent": "play_all"
+      }, 
+      {
+        "text": "play everything", 
+        "intent": "play_all"
+      }, 
+      {
+        "text": "play all songs", 
+        "intent": "play_all"
+      }, 
+      {
+        "text": "play all", 
+        "intent": "play_all"
+      }, 
+      {
+        "text": "play all these songs", 
+        "intent": "play_all"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 22, 
+            "end": 35, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "find me some music by josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 14, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }, 
+          {
+            "start": 30, 
+            "end": 43, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "search jamendo for the artist josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 14, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }, 
+          {
+            "start": 30, 
+            "end": 43, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "search jamendo for the artist josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 27, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }, 
+          {
+            "start": 33, 
+            "end": 40, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "find music by josh woodward from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 20, 
+            "end": 33, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }, 
+          {
+            "start": 39, 
+            "end": 46, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "search for music by josh woodward from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 27, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }, 
+          {
+            "start": 31, 
+            "end": 38, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "find music by josh woodward on jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 14, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }, 
+          {
+            "start": 28, 
+            "end": 41, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "search jamendo for music by josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 20, 
+            "end": 33, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "search for music by josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 18, 
+            "end": 31, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "find music by the josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 18, 
+            "end": 31, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "find songs by the josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 14, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }, 
+          {
+            "start": 39, 
+            "end": 52, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "search jamendo for music by the artist josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 14, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }, 
+          {
+            "start": 28, 
+            "end": 41, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "search jamendo for music by josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 20, 
+            "end": 33, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }, 
+          {
+            "start": 37, 
+            "end": 44, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "search for songs by josh woodward on jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 20, 
+            "end": 33, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }, 
+          {
+            "start": 37, 
+            "end": 44, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "search for music by josh woodward on jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 31, 
+            "end": 44, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }, 
+          {
+            "start": 50, 
+            "end": 57, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "search for songs by the artist josh woodward from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 27, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }, 
+          {
+            "start": 33, 
+            "end": 40, 
+            "value": "Jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "find songs by josh woodward from Jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 27, 
+            "end": 40, 
+            "value": "josh woodward", 
+            "entity": "artist"
+          }
+        ], 
+        "intent": "search_music_by_artist", 
+        "text": "search songs by the artist josh woodward"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 29, 
+            "end": 37, 
+            "value": "the wall", 
+            "entity": "album"
+          }
+        ], 
+        "intent": "search_music_from_album", 
+        "text": "find me music from the album the wall"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 14, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }, 
+          {
+            "start": 29, 
+            "end": 37, 
+            "value": "the wall", 
+            "entity": "album"
+          }
+        ], 
+        "intent": "search_music_from_album", 
+        "text": "search jamendo for the album the wall"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 21, 
+            "end": 29, 
+            "value": "the wall", 
+            "entity": "album"
+          }, 
+          {
+            "start": 33, 
+            "end": 40, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_from_album", 
+        "text": "search for the album the wall on jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 14, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }, 
+          {
+            "start": 29, 
+            "end": 37, 
+            "value": "the wall", 
+            "entity": "album"
+          }
+        ], 
+        "intent": "search_music_from_album", 
+        "text": "search jamendo for the album the wall"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 30, 
+            "end": 38, 
+            "value": "The Wall", 
+            "entity": "album"
+          }, 
+          {
+            "start": 44, 
+            "end": 51, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_from_album", 
+        "text": "search for music on the album The Wall from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 21, 
+            "end": 29, 
+            "value": "The Wall", 
+            "entity": "album"
+          }, 
+          {
+            "start": 35, 
+            "end": 42, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_from_album", 
+        "text": "search for the album The Wall from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 29, 
+            "end": 37, 
+            "value": "The Wall", 
+            "entity": "album"
+          }, 
+          {
+            "start": 43, 
+            "end": 50, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_from_album", 
+        "text": "search tracks from the album The Wall from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 33, 
+            "end": 41, 
+            "value": "The Wall", 
+            "entity": "album"
+          }
+        ], 
+        "intent": "search_music_from_album", 
+        "text": "search for tracks from the album The Wall"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 21, 
+            "end": 29, 
+            "value": "The Wall", 
+            "entity": "album"
+          }
+        ], 
+        "intent": "search_music_from_album", 
+        "text": "search for the album The Wall"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 26, 
+            "end": 34, 
+            "value": "The Wall", 
+            "entity": "album"
+          }
+        ], 
+        "intent": "search_music_from_album", 
+        "text": "search music on the album The Wall"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 13, 
+            "end": 16, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "find me some pop music"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 14, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }, 
+          {
+            "start": 24, 
+            "end": 27, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "search jamendo for some pop music"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 14, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }, 
+          {
+            "start": 19, 
+            "end": 22, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "search jamendo for pop music"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 11, 
+            "end": 14, 
+            "value": "pop", 
+            "entity": "genre"
+          }, 
+          {
+            "start": 24, 
+            "end": 31, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "search for pop music on jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 11, 
+            "end": 14, 
+            "value": "pop", 
+            "entity": "genre"
+          }, 
+          {
+            "start": 26, 
+            "end": 33, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "search for pop music from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 11, 
+            "end": 14, 
+            "value": "pop", 
+            "entity": "genre"
+          }, 
+          {
+            "start": 26, 
+            "end": 33, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "search for pop music from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 16, 
+            "end": 19, 
+            "value": "pop", 
+            "entity": "genre"
+          }, 
+          {
+            "start": 31, 
+            "end": 38, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "search for some pop music from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 10, 
+            "end": 13, 
+            "value": "pop", 
+            "entity": "genre"
+          }, 
+          {
+            "start": 23, 
+            "end": 30, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "find some pop music on jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 30, 
+            "end": 33, 
+            "value": "pop", 
+            "entity": "genre"
+          }, 
+          {
+            "start": 39, 
+            "end": 46, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "search for music in the genre pop from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 26, 
+            "end": 29, 
+            "value": "pop", 
+            "entity": "genre"
+          }, 
+          {
+            "start": 35, 
+            "end": 42, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "search music in the genre pop from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 22, 
+            "end": 29, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }, 
+          {
+            "start": 43, 
+            "end": 46, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "search for music from jamendo in the genre pop"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 10, 
+            "end": 13, 
+            "value": "pop", 
+            "entity": "genre"
+          }, 
+          {
+            "start": 25, 
+            "end": 32, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "find some pop music from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 30, 
+            "end": 33, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "search_music_genre", 
+        "text": "search for music in the genre pop"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 17, 
+            "end": 23, 
+            "value": "second", 
+            "entity": "song"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "find me the song second"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 5, 
+            "end": 11, 
+            "value": "second", 
+            "entity": "song"
+          }, 
+          {
+            "start": 17, 
+            "end": 24, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "find second from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 25, 
+            "end": 32, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "search for [second] from jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 23, 
+            "end": 30, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "search for [second] on jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 14, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }, 
+          {
+            "start": 28, 
+            "end": 34, 
+            "value": "second", 
+            "entity": "song"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "search jamendo for the song second"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 17, 
+            "end": 23, 
+            "value": "second", 
+            "entity": "song"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "search for music second"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 5, 
+            "end": 11, 
+            "value": "second", 
+            "entity": "song"
+          }, 
+          {
+            "start": 19, 
+            "end": 26, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "find second on the jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 26, 
+            "end": 33, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "find the song [second] on jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 14, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }, 
+          {
+            "start": 19, 
+            "end": 25, 
+            "value": "second", 
+            "entity": "song"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "search jamendo for second"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 20, 
+            "value": "second", 
+            "entity": "song"
+          }, 
+          {
+            "start": 24, 
+            "end": 31, 
+            "value": "jamendo", 
+            "entity": "music_source"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "find the song second on jamendo"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 20, 
+            "value": "second", 
+            "entity": "song"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "find the song second"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 18, 
+            "end": 24, 
+            "value": "second", 
+            "entity": "song"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "find songs called second"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 20, 
+            "end": 26, 
+            "value": "second", 
+            "entity": "song"
+          }
+        ], 
+        "intent": "search_song", 
+        "text": "search for the song second"
+      }, 
+      {
+        "text": "search for this album", 
+        "intent": "search_this_album"
+      }, 
+      {
+        "text": "search for songs on this album", 
+        "intent": "search_this_album"
+      }, 
+      {
+        "text": "search for music by this artist", 
+        "intent": "search_this_artist"
+      }, 
+      {
+        "text": "search for other music by this artist", 
+        "intent": "search_this_artist"
+      }, 
+      {
+        "text": "search for this artist", 
+        "intent": "search_this_artist"
+      }, 
+      {
+        "text": "favorite this song", 
+        "intent": "favorite_add_this"
+      }, 
+      {
+        "text": "add to my favorites", 
+        "intent": "favorite_add_this"
+      }, 
+      {
+        "text": "i like this", 
+        "intent": "favorite_add_this"
+      }, 
+      {
+        "text": "add this album to my favorites", 
+        "intent": "favorite_add_this"
+      }, 
+      {
+        "text": "i like this artist", 
+        "intent": "favorite_add_this"
+      }, 
+      {
+        "text": "save this song to my favorites", 
+        "intent": "favorite_add_this"
+      }, 
+      {
+        "text": "i really like this song", 
+        "intent": "favorite_add_this"
+      }, 
+      {
+        "text": "i like this song", 
+        "intent": "favorite_add_this"
+      }, 
+      {
+        "text": "add this song to my favorites", 
+        "intent": "favorite_add_this"
+      }, 
+      {
+        "text": "i don't like this artist", 
+        "intent": "favorite_remove_this"
+      }, 
+      {
+        "text": "I don't like this song", 
+        "intent": "favorite_remove_this"
+      }, 
+      {
+        "text": "unfavorite this album", 
+        "intent": "favorite_remove_this"
+      }, 
+      {
+        "text": "remove this from favorites", 
+        "intent": "favorite_remove_this"
+      }, 
+      {
+        "text": "get rid of this artist from my favorites", 
+        "intent": "favorite_remove_this"
+      }, 
+      {
+        "text": "remove this album from my favorites", 
+        "intent": "favorite_remove_this"
+      }, 
+      {
+        "text": "i don't like this track", 
+        "intent": "favorite_remove_this"
+      }, 
+      {
+        "text": "i don't like this song anymore", 
+        "intent": "favorite_remove_this"
+      }, 
+      {
+        "text": "play all my favorites", 
+        "intent": "play_all_my_favorites"
+      }, 
+      {
+        "text": "play my favorite songs", 
+        "intent": "play_all_my_favorites"
+      }, 
+      {
+        "text": "play my favorites", 
+        "intent": "play_all_my_favorites"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 22, 
+            "end": 30, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "save_this_playlist_as", 
+        "text": "copy this playlist as juggling"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 27, 
+            "end": 35, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "save_this_playlist_as", 
+        "text": "save this this playlist as juggling"
+      }, 
+      {
+        "text": "start the playlist", 
+        "intent": "start_playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 10, 
+            "end": 18, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "start_playlist", 
+        "text": "start the juggling playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 10, 
+            "end": 18, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "start_playlist", 
+        "text": "start the juggling playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 9, 
+            "end": 17, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "start_playlist", 
+        "text": "play the juggling playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 6, 
+            "end": 14, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "start_playlist", 
+        "text": "start juggling playlist"
+      }, 
+      {
+        "text": "shuffle the playlist", 
+        "intent": "shuffle_playlist"
+      }, 
+      {
+        "text": "shuffle the songs", 
+        "intent": "shuffle_playlist"
+      }, 
+      {
+        "text": "mix up the playlist", 
+        "intent": "shuffle_playlist"
+      }, 
+      {
+        "text": "shuffle please", 
+        "intent": "shuffle_playlist"
+      }, 
+      {
+        "text": "mix it up", 
+        "intent": "shuffle_playlist"
+      }, 
+      {
+        "text": "mix up the songs", 
+        "intent": "shuffle_playlist"
+      }, 
+      {
+        "text": "randomise the songs", 
+        "intent": "shuffle_playlist"
+      }, 
+      {
+        "text": "randomise the playlist", 
+        "intent": "shuffle_playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 9, 
+            "end": 17, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "open_playlist", 
+        "text": "open the juggling playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 18, 
+            "end": 26, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "open_playlist", 
+        "text": "load the playlist juggling"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 9, 
+            "end": 17, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "open_playlist", 
+        "text": "load the juggling playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 20, 
+            "end": 28, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "add_to_playlist", 
+        "text": "add this song to my juggling playlist"
+      }, 
+      {
+        "text": "add this song to the playlist", 
+        "intent": "add_to_playlist"
+      }, 
+      {
+        "text": "add song to playlist", 
+        "intent": "add_to_playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 30, 
+            "end": 38, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "add_to_playlist", 
+        "text": "add this song to the playlist juggling"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 21, 
+            "end": 29, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "add_to_playlist", 
+        "text": "add this song to the juggling playlist"
+      }, 
+      {
+        "text": "clear the current playlist", 
+        "intent": "clear_the_playlist"
+      }, 
+      {
+        "text": "clear this playlist", 
+        "intent": "clear_the_playlist"
+      }, 
+      {
+        "text": "reset playlist", 
+        "intent": "clear_the_playlist"
+      }, 
+      {
+        "text": "clear playlist", 
+        "intent": "clear_the_playlist"
+      }, 
+      {
+        "text": "clear the playlist", 
+        "intent": "clear_the_playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 29, 
+            "end": 37, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "create_a_playlist", 
+        "text": "create a new playlist called juggling"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 28, 
+            "end": 36, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "create_a_playlist", 
+        "text": "create a new playlist named juggling"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 22, 
+            "end": 30, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "create_a_playlist", 
+        "text": "make a playlist named juggling"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 22, 
+            "end": 30, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "create_a_playlist", 
+        "text": "make a playlist named juggling"
+      }, 
+      {
+        "text": "make a new playlist", 
+        "intent": "create_a_playlist"
+      }, 
+      {
+        "text": "create a playlist", 
+        "intent": "create_a_playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 22, 
+            "end": 30, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "create_a_playlist", 
+        "text": "add a playlist called juggling"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 27, 
+            "end": 35, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "create_a_playlist", 
+        "text": "make a new playlist called juggling"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 25, 
+            "end": 33, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "create_a_playlist", 
+        "text": "create a playlist called juggling"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 11, 
+            "end": 19, 
+            "value": "juggling", 
+            "entity": "playlist"
+          }
+        ], 
+        "intent": "delete_playlist", 
+        "text": "delete the juggling playlist"
+      }, 
+      {
+        "text": "delete this playlist", 
+        "intent": "delete_playlist"
+      }, 
+      {
+        "text": "remove this song from the playlist", 
+        "intent": "delete_song_from_playlist"
+      }, 
+      {
+        "text": "remove this song from my playlist", 
+        "intent": "delete_song_from_playlist"
+      }, 
+      {
+        "text": "remove this song", 
+        "intent": "delete_song_from_playlist"
+      }, 
+      {
+        "text": "delete this song", 
+        "intent": "delete_song_from_playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 20, 
+            "end": 26, 
+            "value": "recent", 
+            "entity": "viewpage"
+          }
+        ], 
+        "intent": "current_view", 
+        "text": "I'd like to see the recent"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 10, 
+            "end": 16, 
+            "value": "recent", 
+            "entity": "viewpage"
+          }
+        ], 
+        "intent": "current_view", 
+        "text": "go to the recent"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 6, 
+            "end": 12, 
+            "value": "recent", 
+            "entity": "viewpage"
+          }
+        ], 
+        "intent": "current_view", 
+        "text": "go to recent"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 5, 
+            "end": 11, 
+            "value": "recent", 
+            "entity": "viewpage"
+          }
+        ], 
+        "intent": "current_view", 
+        "text": "view recent"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 12, 
+            "end": 18, 
+            "value": "recent", 
+            "entity": "viewpage"
+          }
+        ], 
+        "intent": "current_view", 
+        "text": "show me the recent"
+      }, 
+      {
+        "text": "show me", 
+        "intent": "current_view"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 8, 
+            "end": 14, 
+            "value": "recent", 
+            "entity": "viewpage"
+          }
+        ], 
+        "intent": "current_view", 
+        "text": "show me recent"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 12, 
+            "end": 18, 
+            "value": "recent", 
+            "entity": "viewpage"
+          }
+        ], 
+        "intent": "current_view", 
+        "text": "show me the recent"
+      }, 
+      {
+        "text": "quit", 
+        "intent": "stop_listening"
+      }, 
+      {
+        "text": "cancel", 
+        "intent": "stop_listening"
+      }, 
+      {
+        "text": "i'm finished", 
+        "intent": "stop_listening"
+      }, 
+      {
+        "text": "all done", 
+        "intent": "stop_listening"
+      }, 
+      {
+        "text": "stop listening", 
+        "intent": "stop_listening"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 21, 
+            "end": 30, 
+            "value": "Joe Brown", 
+            "entity": "user"
+          }, 
+          {
+            "start": 39, 
+            "end": 55, 
+            "value": "you will love it", 
+            "entity": "message"
+          }
+        ], 
+        "intent": "share_song_playlist_with_user", 
+        "text": "share this song with Joe Brown and say you will love it"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 21, 
+            "end": 30, 
+            "value": "Joe Brown", 
+            "entity": "user"
+          }, 
+          {
+            "start": 39, 
+            "end": 55, 
+            "value": "you will love it", 
+            "entity": "message"
+          }
+        ], 
+        "intent": "share_song_playlist_with_user", 
+        "text": "share this song with Joe Brown and say you will love it"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 31, 
+            "end": 40, 
+            "value": "Joe Brown", 
+            "entity": "user"
+          }, 
+          {
+            "start": 49, 
+            "end": 65, 
+            "value": "you will love it", 
+            "entity": "message"
+          }
+        ], 
+        "intent": "share_song_playlist_with_user", 
+        "text": "share this track by email with Joe Brown and say you will love it"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 28, 
+            "end": 44, 
+            "value": "you will love it", 
+            "entity": "message"
+          }
+        ], 
+        "intent": "share_song_playlist_with_user", 
+        "text": "share this playlist and say you will love it"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 5, 
+            "end": 14, 
+            "value": "Joe Brown", 
+            "entity": "user"
+          }, 
+          {
+            "start": 51, 
+            "end": 67, 
+            "value": "you will love it", 
+            "entity": "message"
+          }
+        ], 
+        "intent": "share_song_playlist_with_user", 
+        "text": "send Joe Brown an email about this playlist saying you will love it"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 5, 
+            "end": 14, 
+            "value": "Joe Brown", 
+            "entity": "user"
+          }, 
+          {
+            "start": 40, 
+            "end": 56, 
+            "value": "you will love it", 
+            "entity": "message"
+          }
+        ], 
+        "intent": "share_song_playlist_with_user", 
+        "text": "tell Joe Brown about this track and say you will love it"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 5, 
+            "end": 14, 
+            "value": "Joe Brown", 
+            "entity": "user"
+          }, 
+          {
+            "start": 52, 
+            "end": 68, 
+            "value": "you will love it", 
+            "entity": "message"
+          }
+        ], 
+        "intent": "share_song_playlist_with_user", 
+        "text": "send Joe Brown a message about this playlist saying you will love it"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 5, 
+            "end": 14, 
+            "value": "Joe Brown", 
+            "entity": "user"
+          }
+        ], 
+        "intent": "share_song_playlist_with_user", 
+        "text": "send Joe Brown a message about this playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 5, 
+            "end": 14, 
+            "value": "Joe Brown", 
+            "entity": "user"
+          }
+        ], 
+        "intent": "share_song_playlist_with_user", 
+        "text": "tell Joe Brown about this track"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 5, 
+            "end": 14, 
+            "value": "Joe Brown", 
+            "entity": "user"
+          }
+        ], 
+        "intent": "share_song_playlist_with_user", 
+        "text": "send Joe Brown an email about this track"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 31, 
+            "end": 40, 
+            "value": "Joe Brown", 
+            "entity": "user"
+          }
+        ], 
+        "intent": "share_song_playlist_with_user", 
+        "text": "share this track by email with Joe Brown"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 25, 
+            "end": 34, 
+            "value": "Joe Brown", 
+            "entity": "user"
+          }
+        ], 
+        "intent": "share_song_playlist_with_user", 
+        "text": "share this playlist with Joe Brown"
+      }, 
+      {
+        "text": "share this track", 
+        "intent": "share_song_playlist"
+      }, 
+      {
+        "text": "share this song", 
+        "intent": "share_song_playlist"
+      }, 
+      {
+        "text": "share this playlist", 
+        "intent": "share_song_playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 23, 
+            "end": 30, 
+            "value": "twitter", 
+            "entity": "share_target"
+          }
+        ], 
+        "intent": "share_song_playlist", 
+        "text": "share this playlist on twitter"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 23, 
+            "end": 29, 
+            "value": "google", 
+            "entity": "share_target"
+          }
+        ], 
+        "intent": "share_song_playlist", 
+        "text": "share this playlist on google"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 23, 
+            "end": 31, 
+            "value": "facebook", 
+            "entity": "share_target"
+          }
+        ], 
+        "intent": "share_song_playlist", 
+        "text": "share this playlist on facebook"
+      }, 
+      {
+        "text": "which album is this song from", 
+        "intent": "song_info_album"
+      }, 
+      {
+        "text": "tell me the album for this song", 
+        "intent": "song_info_album"
+      }, 
+      {
+        "text": "what album is this song on", 
+        "intent": "song_info_album"
+      }, 
+      {
+        "text": "which artist is this", 
+        "intent": "song_info_artist"
+      }, 
+      {
+        "text": "whose song is this", 
+        "intent": "song_info_artist"
+      }, 
+      {
+        "text": "who sings this", 
+        "intent": "song_info_artist"
+      }, 
+      {
+        "text": "what genre is this song", 
+        "intent": "song_info_genre"
+      }, 
+      {
+        "text": "what tag is this song", 
+        "intent": "song_info_genre"
+      }, 
+      {
+        "text": "what category is this song", 
+        "intent": "song_info_genre"
+      }, 
+      {
+        "text": "which song is this", 
+        "intent": "song_info"
+      }, 
+      {
+        "text": "what is this song", 
+        "intent": "song_info"
+      }, 
+      {
+        "text": "tell me the name of the song", 
+        "intent": "song_info"
+      }, 
+      {
+        "text": "tell me about this song", 
+        "intent": "song_info"
+      }, 
+      {
+        "text": "what song is this", 
+        "intent": "song_info"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 7, 
+            "end": 10, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "define_genre", 
+        "text": "define pop"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 8, 
+            "end": 11, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "define_genre", 
+        "text": "what is pop music"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 14, 
+            "end": 17, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "define_genre", 
+        "text": "what genre is pop music"
+      }, 
+      {
+        "text": "what does genre mean?", 
+        "intent": "define_genre"
+      }, 
+      {
+        "text": "what is genre?", 
+        "intent": "define_genre"
+      }, 
+      {
+        "text": "save this song", 
+        "intent": "save_to_collection"
+      }, 
+      {
+        "text": "save this song", 
+        "intent": "save_to_collection"
+      }, 
+      {
+        "text": "add this song to my collection", 
+        "intent": "save_to_collection"
+      }, 
+      {
+        "text": "save this song to my collection", 
+        "intent": "save_to_collection"
+      }, 
+      {
+        "text": "delete this song from my collection", 
+        "intent": "delete song from collection"
+      }, 
+      {
+        "text": "kill this song", 
+        "intent": "delete song from collection"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 17, 
+            "end": 20, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "tag_remove", 
+        "text": "remove the genre pop from this song"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 15, 
+            "end": 18, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "tag_remove", 
+        "text": "remove the tag pop from this song"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 17, 
+            "end": 21, 
+            "value": "jazz", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "tag_remove", 
+        "text": "remove the genre jazz from this song"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 15, 
+            "end": 19, 
+            "value": "jazz", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "tag_remove", 
+        "text": "remove the tag jazz from this song"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 17, 
+            "end": 22, 
+            "value": "disco", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "tag_remove", 
+        "text": "remove the genre disco from this song"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 15, 
+            "end": 20, 
+            "value": "disco", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "tag_remove", 
+        "text": "remove the tag disco from this song"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 16, 
+            "end": 19, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "tag_song_as_genre", 
+        "text": "tag the song is pop"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 20, 
+            "end": 23, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "tag_song_as_genre", 
+        "text": "tagged this song as pop"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 31, 
+            "end": 34, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "tag_song_as_genre", 
+        "text": "set the genre for this song to pop"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 17, 
+            "end": 20, 
+            "value": "pop", 
+            "entity": "genre"
+          }
+        ], 
+        "intent": "tag_song_as_genre", 
+        "text": "tag this song as pop"
+      }, 
+      {
+        "text": "what can i do", 
+        "intent": "what_can_i_say"
+      }, 
+      {
+        "text": "i don't know what to say", 
+        "intent": "what_can_i_say"
+      }, 
+      {
+        "text": "i don't know what to do", 
+        "intent": "what_can_i_say"
+      }, 
+      {
+        "text": "help me", 
+        "intent": "what_can_i_say"
+      }, 
+      {
+        "text": "what can i say", 
+        "intent": "what_can_i_say"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 8, 
+            "end": 16, 
+            "value": "playlist", 
+            "entity": "help_topic"
+          }
+        ], 
+        "intent": "help", 
+        "text": "help me playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 20, 
+            "end": 28, 
+            "value": "playlist", 
+            "entity": "help_topic"
+          }
+        ], 
+        "intent": "help", 
+        "text": "help me learn about playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 8, 
+            "end": 16, 
+            "value": "playlist", 
+            "entity": "help_topic"
+          }
+        ], 
+        "intent": "help", 
+        "text": "what is playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 13, 
+            "end": 21, 
+            "value": "playlist", 
+            "entity": "help_topic"
+          }
+        ], 
+        "intent": "help", 
+        "text": "help me with playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 9, 
+            "end": 17, 
+            "value": "playlist", 
+            "entity": "help_topic"
+          }
+        ], 
+        "intent": "help", 
+        "text": "how do i playlist"
+      }, 
+      {
+        "entities": [
+          {
+            "start": 18, 
+            "end": 26, 
+            "value": "playlist", 
+            "entity": "help_topic"
+          }
+        ], 
+        "intent": "help", 
+        "text": "tell me about the playlist"
+      }
+    ], 
+    "entity_synonyms": [
+      {
+        "synonyms": [
+          "the jamendo"
+        ], 
+        "value": "jamendo"
+      }, 
+      {
+        "synonyms": [
+          "the free music archive", 
+          "free music archive", 
+          "the fma"
+        ], 
+        "value": "fma"
+      }
+    ], 
+    "regex_features": []
+  }
+}

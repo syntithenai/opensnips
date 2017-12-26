@@ -9,9 +9,9 @@ from __future__ import unicode_literals
 import json
 import time
 import os
-import pyaudio
-import wave
-import io
+#import pyaudio
+#import wave
+#import io
 
 from socket import error as socket_error
 
@@ -58,15 +58,21 @@ class SnipsMqttServer():
             try:
                 self.log("Trying to connect to {} {}".format(self.mqtt_hostname,self.mqtt_port))
                 self.client.connect(self.mqtt_hostname, self.mqtt_port, 60)
+                # SUBSCRIBE 
+                print(self.subscribe_to)
+                print(self.subscribe_to.split(","))
+                for sub in self.subscribe_to.split(","):
+                    if len(sub) > 0:
+                        print('sub {}'.format(sub))
+                        self.client.subscribe(sub)
+                    else:
+                        print('no subscriptions')
+                
                 break
             except (socket_error, Exception) as e:
                 self.log("MQTT error {}".format(e))
                 time.sleep(5 + int(retry / 5))
                 retry = retry + 1
-        # SUBSCRIBE 
-        for sub in self.subscribe_to.split(","):
-            self.client.subscribe(sub)
-            
         while run_event.is_set():
             #try:
                 self.client.loop()

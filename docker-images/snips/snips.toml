@@ -12,6 +12,7 @@ mqtt = "mosquitto:1883"
 # beam_size = 8
 # model = "/usr/share/snips/asr"
 # audio = ["+"]
+model = "/usr/share/snips/snips-asr-model-en-500MB"
 
 [snips-asr-google]
 # credentials = "/usr/share/snips/googlecredentials.json"

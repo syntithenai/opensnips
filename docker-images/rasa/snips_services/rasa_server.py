@@ -1,4 +1,4 @@
-#!/opt/rasa/anaconda/bin/python
+#!/usr/local/bin/python
 # -*-: coding utf-8 -*-
 """ Snips core and nlu server. """
 from __future__ import absolute_import
@@ -40,28 +40,28 @@ from rasa_core.channels.direct import CollectingOutputChannel
 logger = logging.getLogger(__name__)
 
 
-class DefaultPolicy(KerasPolicy):
-    def model_architecture(self, num_features, num_actions, max_history_len):
-        """Build a Keras model and return a compiled model."""
-        from keras.layers import LSTM, Activation, Masking, Dense
-        from keras.models import Sequential
+#class DefaultPolicy(KerasPolicy):
+    #def model_architecture(self, num_features, num_actions, max_history_len):
+        #"""Build a Keras model and return a compiled model."""
+        #from keras.layers import LSTM, Activation, Masking, Dense
+        #from keras.models import Sequential
 
-        n_hidden = 32  # size of hidden layer in LSTM
-        # Build Model
-        batch_shape = (None, max_history_len, num_features)
+        #n_hidden = 32  # size of hidden layer in LSTM
+        ## Build Model
+        #batch_shape = (None, max_history_len, num_features)
 
-        model = Sequential()
-        model.add(Masking(-1, batch_input_shape=batch_shape))
-        model.add(LSTM(n_hidden, batch_input_shape=batch_shape))
-        model.add(Dense(input_dim=n_hidden, output_dim=num_actions))
-        model.add(Activation('softmax'))
+        #model = Sequential()
+        #model.add(Masking(-1, batch_input_shape=batch_shape))
+        #model.add(LSTM(n_hidden, batch_input_shape=batch_shape))
+        #model.add(Dense(input_dim=n_hidden, output_dim=num_actions))
+        #model.add(Activation('softmax'))
 
-        model.compile(loss='categorical_crossentropy',
-                      optimizer='adam',
-                      metrics=['accuracy'])
+        #model.compile(loss='categorical_crossentropy',
+                      #optimizer='adam',
+                      #metrics=['accuracy'])
 
-        logger.debug(model.summary())
-        return model
+        #logger.debug(model.summary())
+        #return model
 
 # Thin interpreter to forward already processed NLU message to rasa_core
 # TODO move json transcoding from dialog handling to here
@@ -73,7 +73,8 @@ class SnipsMqttInterpreter(Interpreter):
         pass
     # passthrough parse from mqtt intent
     def parse(self, jsonData):
-        #print('interpret snips')
+        print('interpret snips')
+        print(jsonData)
         return json.loads(jsonData)
 
 
@@ -85,19 +86,19 @@ class SnipsMqttInterpreter(Interpreter):
 class SnipsRasaServer():
     
     def __init__(self,
-                 disable_nlu=os.environ.get('disable_nlu','no'),
-                 disable_core=os.environ.get('disable_core','no'),
+                 disable_nlu=os.environ.get('rasa_disable_nlu','no'),
+                 disable_core=os.environ.get('rasa_disable_core','no'),
                  mqtt_hostname=os.environ.get('mqtt_hostname','mosquitto'),
                  mqtt_port=os.environ.get('mqtt_port',1883),
-                 nlu_model_path=os.environ.get('nlu_model_path','models/nlu'),
-                 snips_assistant_path=os.environ.get('snips_assistant_path','models/snips'),
-                 snips_user_id=os.environ.get('snips_user_id','user_Kr5A7b4OD'),
-                 core_model_path=os.environ.get('core_model_path','models/core'),
-                 config_file=os.environ.get('config_file','rasa_config/config.json'),
-                 domain_file=os.environ.get('domain_file','rasa_config/domain.yml'),
-                 nlu_training_file=os.environ.get('nlu_training_file','rasa_config/nlu.md'),
-                 core_training_file=os.environ.get('core_training_file','rasa_config/stories.md'),
-                 lang=os.environ.get('lang','en-GB')
+                 nlu_model_path=os.environ.get('rasa_nlu_model_path','rasa_config/models/default/current'),
+                 snips_assistant_path=os.environ.get('rasa_snips_assistant_path','models/snips'),
+                 snips_user_id=os.environ.get('rasa_snips_user_id','user_Kr5A7b4OD'),
+                 core_model_path=os.environ.get('rasa_core_model_path','rasa_config/models/dialogue'),
+                 config_file=os.environ.get('rasa_config_file','rasa_config/config.json'),
+                 domain_file=os.environ.get('rasa_domain_file','rasa_config/domain.yml'),
+                 nlu_training_file=os.environ.get('rasa_nlu_training_file','rasa_config/nlu.md'),
+                 core_training_file=os.environ.get('rasa_core_training_file','rasa_config/stories.md'),
+                 lang=os.environ.get('rasa_lang','en-GB')
                  ):
                      
         """ Initialisation.
@@ -138,7 +139,8 @@ class SnipsRasaServer():
         self.core_domain_modified=self.getCoreDomainModified()
         self.nlu_model_modified=self.getNluModelModified()
         self.core_model_modified=self.getCoreModelModified()
-        
+        self.agent = agent = Agent(self.domain_file,policies=[MemoizationPolicy(), KerasPolicy()])
+        self.agentLoaded = None
         self.loadModels(True)
         
     def getNluModified(self):
@@ -148,8 +150,8 @@ class SnipsRasaServer():
         if os.path.isfile(self.core_training_file):
             return os.path.getmtime(self.core_training_file) 
     def getNluModelModified(self):
-        if os.path.isfile("{}/default/current/metadata.json".format(self.nlu_model_path)):
-            return os.path.getmtime("{}/default/current/metadata.json".format(self.nlu_model_path))
+        if os.path.isfile("{}/metadata.json".format(self.nlu_model_path)):
+            return os.path.getmtime("{}/metadata.json".format(self.nlu_model_path))
     def getCoreModelModified(self):
         if os.path.isfile("{}/domain.json".format(self.core_model_path)):
             return os.path.getmtime("{}/domain.json".format(self.core_model_path))
@@ -167,7 +169,7 @@ class SnipsRasaServer():
         return self.getCoreModelModified() != self.core_model_modified
     
     def isNluModelMissing(self):
-        return not os.path.isfile("{}/default/current/metadata.json".format(self.nlu_model_path))
+        return not os.path.isfile("{}/metadata.json".format(self.nlu_model_path))
     def isCoreModelMissing(self):
         return not os.path.isfile("{}/domain.json".format(self.core_model_path))
 
@@ -195,27 +197,24 @@ class SnipsRasaServer():
     # RASA model generation
     def loadModels(self,force=False):
         self.trainModels()
-        
+        self.interpreter = Interpreter.load("{}/".format(self.nlu_model_path), RasaNLUConfig(self.config_file))
+                
         # if file exists import os.path os.path.exists(file_path)
         # create an NLU interpreter and dialog agent based on trained models
         if self.disable_nlu != "yes":
             if force or self.isNluModelModified():
-                self.interpreter = Interpreter.load("{}/default/current".format(self.nlu_model_path), RasaNLUConfig(self.config_file))
                 self.nlu_model_modified=self.getNluModelModified()
                 self.nlu_modified=self.getNluModified()
-        
                 print('loaded nlu model')
-            
         
         #self.interpreter = RasaNLUInterpreter("models/nlu/default/current")
         if self.disable_core != "yes":
             if force or self.isCoreModelModified():
-                self.agent = Agent.load(self.core_model_path, interpreter=SnipsMqttInterpreter())
+                self.agentLoaded = self.agent.load(self.core_model_path,interpreter = self.nlu_model_path) 
                 self.core_model_modified=self.getCoreModelModified()
                 self.core_modified=self.getCoreModified()
                 self.core_domain_modified=self.getCoreDomainModified()
                 print('loaded core model')
-        
         
 
     # RASA training
@@ -234,7 +233,11 @@ class SnipsRasaServer():
                 trainer = Trainer(RasaNLUConfig(self.config_file))
                 trainer.train(training_data)
                 #model_directory = trainer.persist('models/nlu/', fixed_model_name="current")
-                model_directory = trainer.persist(self.nlu_model_path, fixed_model_name="current")
+                pathParts = self.nlu_model_path.split('/')
+                modelName = pathParts[-1]
+                shortPath = "/".join(pathParts[:-2])
+                print("model {} path {}".format(modelName,shortPath))
+                model_directory = trainer.persist(shortPath, fixed_model_name=modelName)
                 #self.core_model_modified=self.getCoreModelModified()
                 self.isNluTraining = False
                 self.nlu_modified=self.getNluModified()
@@ -246,10 +249,8 @@ class SnipsRasaServer():
             if force or self.isCoreModified()  or self.isCoreModelMissing():
                 self.isCoreTraining = True
                 print("CORE TRAIN {} {} {} ".format(force,self.isCoreModified()   , self.isCoreModelMissing()))
-            
-                agent = Agent(self.domain_file,
-                              policies=[MemoizationPolicy(), DefaultPolicy()])
-                agent.train(
+
+                self.agent.train(
                         self.core_training_file,
                         max_history=3,
                         epochs=100,
@@ -257,7 +258,7 @@ class SnipsRasaServer():
                         augmentation_factor=50,
                         validation_split=0.2
                 )
-                agent.persist(self.core_model_path)
+                self.agent.persist(self.core_model_path)
                 self.isCoreTraining = False
                 self.core_modified=self.getCoreModified()
                 self.core_domain_modified=self.getCoreDomainModified()
@@ -315,30 +316,34 @@ class SnipsRasaServer():
             payload = json.loads(msg.payload.decode('utf-8'))
             print(payload)
             print('#######################')
-            print(payload.get('slots','fail'))
+            #print(payload.get('slots','fail'))
             if 'input' in payload :        
                 theId = payload.get('id')
                 sessionId = payload.get('sessionId')
                 siteId = payload.get('siteId','default')
                 entities=[]
-                # strip snips user id from entity name
-                intentNameParts = payload['intent']['intentName'].split('__')
-                intentNameParts = intentNameParts[1:]
-                intentName = '__'.join(intentNameParts)
-                if 'slots' in payload and payload['slots'] is not None:
-                    for entity in payload['slots']:
-                        entities.append({ "start": entity['range']['start'],"end": entity['range']['end'],"value": entity['rawValue'],"entity": entity['slotName']})
-                output = {
-                  "text": payload['input'],
-                  "intent": {
-                    "name": intentName,
-                    "confidence": 1.0
-                  },
-                  "entities": entities
-                }  
-                self.log("CORE HANDLER {}".format(json.dumps(output)))
-                message = json.dumps(output)
-                response = self.agent.handle_message(message,output_channel = CollectingOutputChannel())
+                ## strip snips user id from entity name
+                #intentNameParts = payload['intent']['intentName'].split('__')
+                #print(intentNameParts)
+                #if len(intentNameParts) > 1:
+                    #intentName = intentNameParts[1]
+                ##intentName = '__'.join(intentNameParts)
+                #if 'slots' in payload and payload['slots'] is not None:
+                    #for entity in payload['slots']:
+                        #entities.append({ "start": entity['range']['start'],"end": entity['range']['end'],"value": entity['rawValue'],"entity": entity['slotName']})
+                ##output = {
+                  #"text": payload['input'],
+                  #"intent": {
+                    #"name": intentName,
+                    #"confidence": 1.0
+                  #},
+                  #"entities": entities
+                #}  
+                #self.log("CORE HANDLER {}".format(json.dumps(output)))
+                #message = json.dumps(output)
+                print('IN')
+                print(payload['input'])
+                response = self.agentLoaded.handle_message(payload['input'],output_channel = CollectingOutputChannel())
                 print ("OUT")
                 print(response)
                 if response is not None and len(response) > 0:
@@ -346,6 +351,7 @@ class SnipsRasaServer():
                     payload = json.dumps({"lang":self.lang,"sessionId": sessionId, "text": response[0], "siteId": siteId,"id":theId}), 
                     qos=0,
                     retain=False)
+                    self.client.publish('hermes/dialogue/endSession',json.dumps({"sessionId": sessionId,  "siteId": siteId}))
 
             
     def handleNluQuery(self,msg):
@@ -365,7 +371,7 @@ class SnipsRasaServer():
                     slot = {"entity": entity['value'],"range": {"end": entity['end'],"start": entity['start']},"rawValue": entity['value'],"slotName": "entity","value": {"kind": "Custom","value": entity['value']}} 
                     slots.append(slot)
                 print(slots)
-                intentName = "user_Kr5A7b4OD__{}".format(lookup['intent']['name'])
+                intentName = "{}__{}".format(self.snips_user_id,lookup['intent']['name'])
                 self.client.publish('hermes/nlu/intentParsed',
                 payload=json.dumps({"id": id,"sessionId": sessionId, "input": text,"intent": {"intentName": intentName,"probability": 1.0},"slots": slots}), 
                 qos=0,

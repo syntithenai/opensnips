@@ -31,7 +31,7 @@ class SnipsTTSServer(SnipsMqttServer):
         self.subscribe_to='hermes/tts/say'
 
     def on_message(self, client, userdata, msg):
-        #print("MESSAGEtts: {}".format(msg.topic))
+        print("MESSAGEtts: {}".format(msg.topic))
             
         if msg.topic is not None and msg.topic=="hermes/tts/say":
             print("MESSAGE OK: {}".format(msg.topic))
@@ -54,7 +54,7 @@ class SnipsTTSServer(SnipsMqttServer):
             if theId is not None:
                 topic = topic + '/{}'.format(theId[::-1])
             self.client.publish(topic, payload=bytes(f),qos=0)
-            #print("PUBLISHED on " + topic)
+            print("PUBLISHED on " + topic)
             os.remove(fileName)
 
        

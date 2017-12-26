@@ -1,4 +1,4 @@
-#!/opt/rasa/anaconda/bin/python
+#!/usr/local/bin/python
 # -*-: coding utf-8 -*-
 """ Snips hotword server. """
 

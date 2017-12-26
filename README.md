@@ -23,13 +23,12 @@ __The repository includes:__
     - asr (using Kaldi)
     - nlu (using RASA)
     - dialog
-    - controller (using RASA core)
+    - actionhandler (snips skills manager) (using RASA core)
     
 - docker-compose.yml file to start a suite including 
-    - snips
-    - replacement server for hotword detector using snowboy (snips_hotword_snowboy)
-    - replacement server for NLU processor using rasa NLU (snips_rasa_nlu)
-    - pulseaudio server to share the sound.
+    - all services required for hermes in both opensnips and official snips versions.
+    - pulseaudio server to share the sound
+    - configuration for all services as environment variables
  
 
 ## Quick Start
@@ -102,16 +101,36 @@ The server can receive and play audio samples of arbitrary length in the same fo
 
 The hotword server listens to the audio server and fires hermes/hotword/detected when it hears the hotword.
 
+The default hotword for opensnips is  "snowboy" 
+
 Snowboy is used for detection. Create a model file at [https://snowboy.kitt.ai/](https://snowboy.kitt.ai/)
 
 The docker-compose file contains environment variables to configure snowboy including 
 
 ```
     environment:
-        - HOTWORD_MODEL=/opt/snips_hotword_snowboy/resources/snowboy.umdl
-        - SITE_ID=default  
-        - HOTWORD_ID=snowboy
+        - hotword_model=/opt/snips_hotword_snowboy/resources/snowboy.umdl
+        - hotword=snowboy
+        - sensitivity=0.5
+        - listen_to=default  
+        
 ```
+
+Inside piwho/data a folder structure can be created containing speaker identification training data.
+eg
+- data
+    - steve
+        - wav1.wav
+    - tara
+        - wav1.wav
+        - wav2.wav
+
+There must be at least two different users/folders with wav files.
+
+The hotword server watches for changes to training data and rebuilds the MARF database file and speakers.txt file when the training data changes.
+
+If the identification has trained successfully, the hotword server will send 
+
 
 ### Dialog Server
 
@@ -314,6 +333,8 @@ With the story format, confirmations, Yes/No responses, form wizard (slot fillin
 ## DeepSpeech
 https://github.com/mozilla/DeepSpeech
 https://hub.docker.com/r/voidspacexyz/deepspeech/builds/
+https://tools.taskcluster.net/index/artifacts/project.deepspeech.tensorflow.pip.cpu/08894f64fc67b7a8031fc68cb838a27009c3e6e6
+
 
 
 ### Kaldi

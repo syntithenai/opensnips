@@ -25,6 +25,8 @@ RUN printf "deb http://deb.debian.org/debian jessie main contrib non-free" > /et
 RUN apt-get update
 
 RUN apt-get -y install libttspico0 libttspico-utils libttspico-data libav-tools
+RUN apt-get -y install alsa-utils
+
 
 # startup script from docker image using supervisord
 COPY snips-entrypoint.sh /opt/snips/snips-entrypoint.sh

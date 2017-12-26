@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-
+import hashlib
 import json
 import time
 import os
@@ -25,46 +25,53 @@ import warnings
 class SnipsAudioServer(SnipsMqttServer):
     
     def __init__(self,
-                 mqtt_hostname='mosquitto',
-                 mqtt_port=1883,
-                 site='default'
+                 mqtt_hostname=os.environ.get('mqtt_hostname','mosquitto'),
+                 mqtt_port=os.environ.get('mqtt_port',1883),
+                 site=os.environ.get('audioserver_site','default'),
                  ):
         SnipsMqttServer.__init__(self,mqtt_hostname,mqtt_port)
         self.site = site
         self.thread_targets.append(self.sendAudioFrames)
         self.subscribe_to='hermes/audioServer/+/playBytes/+'
+        self.pyaudio = pyaudio.PyAudio()
+        self.sampleWidth = 2
+        self.formatFromWidth = pyaudio.paInt16
+        self.nchannels = 1
+        self.framerate=16000
+        self.chunkSize = 256
+        self.streamOut = self.pyaudio.open(format=self.formatFromWidth,
+                            channels=self.nchannels,
+                            rate=self.framerate,
+                            output=True)
+        self.streamIn = self.pyaudio.open(format=self.formatFromWidth, channels=self.nchannels,
+                        rate=self.framerate, input=True,
+                        frames_per_buffer=self.chunkSize)
+        
+
 
     def on_message(self, client, userdata, msg):
+        #print("AS msg")                
         parts = msg.topic.split('/')
         if msg.topic.startswith("hermes/audioServer/") and parts[3] == 'playBytes' :
             siteId = parts[2]
-            wf = wave.open(io.BytesIO(bytes(msg.payload)), 'rb')
-            p = pyaudio.PyAudio()
-            CHUNK = 256
-            stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                            channels=wf.getnchannels(),
-                            rate=wf.getframerate(),
-                            output=True)
-
-            data = wf.readframes(CHUNK)
-
-            while data != None:
-                stream.write(data)
-                data = wf.readframes(CHUNK)
-
-            stream.stop_stream()
-            stream.close()
-
-            p.terminate()
+            wf2 = wave.open(io.BytesIO(bytes(msg.payload)), 'rb')
+            data2 = wf2.readframes(wf2.getnframes())
+            self.streamOut.write(data2)
+            
            
     def sendAudioFrames(self,run_event):
-         
-        audio = pyaudio.PyAudio()
-        stream = audio.open(format=pyaudio.paInt16, channels=1,
-                        rate=16000, input=True,
-                        frames_per_buffer=256)
+        #print("SOF start")
+        c=0
         while True  and run_event.is_set():
-            frames = stream.read(256)
+            c=c+1
+            #if c % 20 == 1:
+                #print("SOF DATA 1")
+            self.streamIn.start_stream()
+            frames = self.streamIn.read(self.chunkSize)
+            self.streamIn.stop_stream()
+            #if c % 20 == 1:
+                #print("FRAMES {}".format(len(frames)))
+            
             # generate wav file in memory
             output = io.BytesIO()
             waveFile = wave.open(output, "wb")
@@ -72,18 +79,15 @@ class SnipsAudioServer(SnipsMqttServer):
             waveFile.setsampwidth(2)
             waveFile.setframerate(16000)
             waveFile.writeframes(frames) 
-            #waveFile.close()
+            waveFile.close()
             topic = 'hermes/audioServer/{}/audioFrame'.format(self.site)
+            #if c % 20 == 1:
+                #print("publish {} {}".format(topic,hashlib.md5(output.getvalue()).hexdigest()))
             self.client.publish(topic, payload=output.getvalue(),qos=0)
-            #output.close()  # discard buffer memory
-                    
+            output.close()  # discard buffer memory
+        
+        self.streamIn.close()            
+        #print('exited audios server send frames')
        
 server = SnipsAudioServer()
 server.start()
-
-
-
-
-
-
-
