@@ -2,9 +2,28 @@
 
 ## Overview
 
-!! This project is a work in progress. The documentation is ahead of the function but it does build and run on x86_64.
+!! This project is a work in progress. The documentation is in places, ahead of the function but it does build and run on a x86_64 Linux Desktop.
 
 This repository is a docker-compose suite integrating [Snips AI](http://snips.ai)  and [RASA AI](http://rasa.ai) and [Kaldi](https://github.com/alumae/kaldi-gstreamer-server) and [Meeka@home](http://meekamusic.com) to create a 100% open source implementation of the [Hermes MQTT protocol](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#hermes-protocol) used by Snips. 
+
+## Features
+
+The repository developed to allow running the Hermes protocol on a Linux laptop or server. Most of the services will work fine on a Raspberry Pi but some hacks(temporary swap file) are required for building some services.
+
+By using RASA core as the basis of a replacement for the Snips Skills server, it is possible to use machine learning to control the flow of conversation and develop extended interactions that go beyond confirmations and form wizards.
+
+By using RASA NLU and Kaldi ASR, it is possible to build training pipelines locally so that changing ASR and/or NLU models is as easy as saving a file. Kaldi also provides a distinct websockets interface that can be used from Android with [Konele](http://kaljurand.github.io/K6nele/about/).
+
+The opensnips hotword service is extended to use piwho to identify the speaker from their voice (ack [Greg](https://github.com/oziee/hotword) ). [Piwho is not working at the moment but the hotword service for snowboy is otherwise fine.]
+
+
+<br><br>
+Note that the official Snips services are highly optimised to perform with large data sets on minimum hardware and includes quality software with error checking, logging and testing and is suitable for commercial deployments.
+
+This repository is intended for developers who want to hack on Snips.
+
+__Many thanks to the teams at Snips, RASA and Kaldi for their ongoing contribution to realising the future of talking to our tech. Namaste.__
+
 
 <br>
 
@@ -13,7 +32,6 @@ __The repository includes:__
 - Dockerfiles to build 
     - an multi architecture image based on Debian Jessie or Raspbian Stretch supporting the installation of Snips.
     - a multi architecture image supporting installation of RASA, Kaldi, Snowboy.
-    - a multi architecture image for Pulseaudio.
     - a Kaldi image that incorporates the English language models.
     
 - Python scripts implementing snips MQTT services (docker-images/rasa/snips_services/*)
@@ -27,7 +45,7 @@ __The repository includes:__
     
 - docker-compose.yml file to start a suite including 
     - all services required for hermes in both opensnips and official snips versions.
-    - pulseaudio server to share the sound
+    - examples for the audio server using sound devices directly or pulseaudio server on the host
     - configuration for all services as environment variables
  
 
@@ -46,10 +64,10 @@ To get started
 - ```pip install docker-compose```
 - ```git clone https://github.com/syntithenai/opensnips.git```
 - ```cd opensnips```
-- ```docker-compose up```
-- OR where pulseaudio is running on the host without extra config
+- using sound directly on the host without 
 - ```pasuspender -- docker-compose up```
-- OR modify the environment variables and host mounts for the pulseaudio container in docker-compose.yml to use the host pulseaudio system.
+- OR using pulseaudio (see docker-compose.yml)
+- ```docker-compose up```
 
 ### Configuration
 See docker-compose.yml in the root of the project for configuration options.
@@ -57,35 +75,20 @@ See docker-compose.yml in the root of the project for configuration options.
 
 ## Architecture/Platform Support
 
-The Dockerfiles build on both arm7(Raspberry Pi) and x86_64(Linux desktop/server).
+The Dockerfiles build on x86_64(Linux desktop/server).
+
+Support for raspberry pi on arm is pending but mostly there.
 
 It is apparently possible to install pulseaudio on MS Windows and MacOSX which should allow the suite to be used with Docker on other platforms than Linux.
 
 
-## Feature
-
-The repository developed to allow running the Hermes protocol on a Linux laptop or server. Most of the services will work fine on a Raspberry Pi but some hacks(temporary swap file) are required for building some services.
-
-By using RASA core as the basis of a replacement for the Snips Skills server, it is possible to use machine learning to control the flow of conversation and develop extended interactions that go beyond confirmations and form wizards.
-
-By using RASA NLU and Kaldi ASR, it is possible to build training pipelines locally so that changing ASR and/or NLU models is as easy as saving a file. Kaldi also provides a distinct websockets interface that can be used from Android with [Konele](http://kaljurand.github.io/K6nele/about/).
-
-The provided hotword service is extended to use piwho to identify the speaker from their voice (ack [Greg](https://github.com/oziee/hotword) ).
-
-
-<br><br>
-Note that the official Snips services are highly optimised to perform with large data sets on minimum hardware and includes quality software with error checking, logging and testing and is suitable for commercial deployments.
-
-This repository is intended for developers who want to hack on Snips.
-
-__Many thanks to the teams at Snips, RASA and Kaldi for their ongoing contribution to realising the future of talking to our tech. Namaste.__
 
 
 
 ## Services
 
 The open snips services are intended to be compatible with the official snips services.
-[For more detail about each service](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#hermes-protocol)
+[For more detail about the Hermes protocol ](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#hermes-protocol)
 
 In general open snips services are configured using environment variables defined in the docker-compose file.
 
@@ -111,8 +114,7 @@ The docker-compose file contains environment variables to configure snowboy incl
     environment:
         - hotword_model=/opt/snips_hotword_snowboy/resources/snowboy.umdl
         - hotword=snowboy
-        - sensitivity=0.5
-        - listen_to=default  
+        - hotword_sensitivity=0.5
         
 ```
 

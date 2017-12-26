@@ -21,12 +21,12 @@ class KaldiClient(WebSocketClient):
         self.client = mqttClient
         
     def send_data(self, data):
-        print ('send data')
+        #print ('send data')
         #print(data)
         self.send(data, binary=True)
 
     def opened(self):
-        print "Socket opened!"
+        #print "Socket opened!"
         #def send_data_to_ws():
             #with self.audiofile as audiostream:
                 #for block in iter(lambda: audiostream.read(self.byterate/4), ""):
@@ -47,7 +47,7 @@ class KaldiClient(WebSocketClient):
                 trans = response['result']['hypotheses'][0]['transcript']
                 likelihood = response['result']['hypotheses'][0].get('likelihood',1)/300000
                 if response['result']['final']:
-                    print(response)
+                    #print(response)
                     #print >> sys.stderr, trans,
                     #self.final_hyps.append(trans)
                     #print >> sys.stderr, '\r%s' % trans.replace("\n", "\\n")

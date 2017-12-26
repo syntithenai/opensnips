@@ -28,6 +28,7 @@ services:
     mosquitto:
         # see docker-images/manifest*.yml for multi arch config
         image: syntithenai/mosquitto
+        restart: always
         ports:
             - 1883:1883
             # websockets enabled (for browser clients)
@@ -41,6 +42,7 @@ services:
         #depends_on: ['mosquitto']
         #devices: ['/dev/snd']
         #image: syntithenai/rasa
+        #restart: always
         #build: ./docker-images/rasa
         #working_dir: /opt/snips_services
         ##entrypoint : ["/opt/snips_services/audio_server.py"]
@@ -55,6 +57,7 @@ services:
     #audioserver:
         #depends_on: ['mosquitto']
         #image: syntithenai/rasa
+        #restart: always
         #build: ./docker-images/rasa
         #working_dir: /opt/snips_services
         #entrypoint : ["/opt/snips_services/audio_server.py"]
@@ -76,6 +79,7 @@ services:
         #depends_on: ['mosquitto']
         #devices: ['/dev/snd']
         #image: syntithenai/snips
+        #restart: always
         #build: ./docker-images/snips
         ##entrypoint: ['/bin/sleep','360000']
         #command:  --exclude-components snips-dialogue --exclude-components snips-asr   --exclude-components snips-analytics --exclude-components snips-tts  --exclude-components snips-hotword --exclude-components  snips-queries  -mqqt mosquitto:1883
@@ -88,6 +92,7 @@ services:
     audioserver:
         depends_on: ['mosquitto']
         image: syntithenai/snips
+        restart: always
         build: ./docker-images/snips
         environment: 
             - PULSE_SERVER=192.168.1.100
@@ -111,6 +116,7 @@ services:
         #    devices: ['/dev/snd']
         build: ./docker-images/rasa
         image: syntithenai/rasa
+        restart: always
         working_dir: /opt/snips_services
         #entrypoint: ['/bin/sleep','36000']
         entrypoint: ['/opt/snips_services/startsnowboy.sh']
@@ -131,6 +137,7 @@ services:
     #hotword:
         #depends_on: ['mosquitto']
         #image: syntithenai/snips
+        #restart: always
         #build: ./docker-images/snips
         #command:   --exclude-components snips-dialogue --exclude-components snips-asr  --exclude-components snips-audio-server --exclude-components snips-analytics --exclude-components snips-tts   --exclude-components  snips-queries  -mqqt mosquitto:1883
     
@@ -143,6 +150,7 @@ services:
     tts:
         depends_on: ['mosquitto']
         image: syntithenai/rasa
+        restart: always
         build: ./docker-images/rasa
         working_dir: /opt/snips_services
         entrypoint: ['/opt/snips_services/tts_server.py']
@@ -155,6 +163,7 @@ services:
     ##tts:
         ##depends_on: ['mosquitto']
         ##image: syntithenai/snips
+        ##restart: always
         ##build: ./docker-images/snips
         ##command:   --exclude-components snips-dialogue --exclude-components snips-asr  --exclude-components snips-audio-server --exclude-components snips-analytics  --exclude-components snips-hotword --exclude-components  snips-queries  -mqqt mosquitto:1883
         
@@ -162,51 +171,55 @@ services:
     ## ===========================================================================================   
     ## ASR SERVER   
     ## ===========================================================================================   
-    ## OPENSNIPS ASR SERVER - requires two services, kaldi raw and an mqqt proxy for ASR
-    ##kaldi:
-        ##image: syntithenai/kaldi
-        ##build: ./docker-images/kaldi/
-        ##ports:
-            ##- 8080:80
-        ##entrypoint: ['/opt/delayedstart.sh']
-        ##working_dir: /opt
-        ###entrypoint: ['/bin/sleep','360000']
-        ##volumes:
-            ##- ./docker-images/kaldi/asound-pulse.conf:/etc/asound.conf
-            ###- /home/stever/projects/kaldi-models/models/test:/opt/models
-            ###- /home/stever/projects/kaldi-models/models/test:/opt/test/models
+    # OPENSNIPS ASR SERVER - requires two services, kaldi raw and an mqqt proxy for ASR
+    kaldi:
+        image: syntithenai/kaldi
+        restart: always
+        build: ./docker-images/kaldi/
+        ports:
+            - 8080:80
+        entrypoint: ['/opt/delayedstart.sh']
+        working_dir: /opt
+        #entrypoint: ['/bin/sleep','360000']
+        volumes:
+            - ./docker-images/kaldi/asound-pulse.conf:/etc/asound.conf
+            #- /home/stever/projects/kaldi-models/models/test:/opt/models
+            #- /home/stever/projects/kaldi-models/models/test:/opt/test/models
     
-    ### sample web application talking to kaldi server
-    ##dictate:
-        ##depends_on: ['mosquitto']
-        ##image: syntithenai/rasa
-        ##build: ./docker-images/rasa
-        ##working_dir: /opt/snips_services/dictate.js
-        ##entrypoint: ['python','-m','SimpleHTTPServer']
-        ##ports:
-            ##- 8000:8000
-        ###entrypoint: ['/bin/sleep','360000']
-        ##volumes:
-            ### dev mode
-            ##- ./docker-images/rasa/snips_services:/opt/snips_services
+    # sample web application talking to kaldi server
+    dictate:
+        depends_on: ['mosquitto']
+        image: syntithenai/rasa
+        restart: always
+        build: ./docker-images/rasa
+        working_dir: /opt/snips_services/dictate.js
+        entrypoint: ['python','-m','SimpleHTTPServer']
+        ports:
+            - 8000:8000
+        #entrypoint: ['/bin/sleep','360000']
+        volumes:
+            # dev mode
+            - ./docker-images/rasa/snips_services:/opt/snips_services
         
-    ##asr:
-        ##depends_on: ['kaldi']
-        ##image: syntithenai/rasa2
-        ##build: ./docker-images/rasa2
-        ##working_dir: /opt/snips_services
-        ##entrypoint : ["/opt/snips_services/kaldi_server.py"]
-        ###entrypoint: ['/bin/sleep','360000']
-        ##volumes:
-            ### HOST MOUNT FOR DEVELOPMENT
-            ##- ./docker-images/rasa/snips_services:/opt/snips_services
+    asr:
+        depends_on: ['kaldi']
+        image: syntithenai/rasa2
+        restart: always
+        build: ./docker-images/rasa2
+        working_dir: /opt/snips_services
+        entrypoint : ["/opt/snips_services/kaldi_server.py"]
+        #entrypoint: ['/bin/sleep','360000']
+        volumes:
+            # HOST MOUNT FOR DEVELOPMENT
+            - ./docker-images/rasa/snips_services:/opt/snips_services
 
     # SNIPS ASR SERVER
-    asr:
-        depends_on: ['mosquitto']
-        image: syntithenai/snips
-        build: ./docker-images/snips
-        command:  --exclude-components snips-dialogue --exclude-components snips-audio-server --exclude-components snips-analytics --exclude-components snips-tts  --exclude-components snips-hotword --exclude-components  snips-queries  -mqqt mosquitto:1883
+    #asr:
+        #depends_on: ['mosquitto']
+        #image: syntithenai/snips
+        #restart: always
+        #build: ./docker-images/snips
+        #command:  --exclude-components snips-dialogue --exclude-components snips-audio-server --exclude-components snips-analytics --exclude-components snips-tts  --exclude-components snips-hotword --exclude-components  snips-queries  -mqqt mosquitto:1883
         
    
    
@@ -217,6 +230,7 @@ services:
     nlu:
         depends_on: ['mosquitto']
         image: syntithenai/rasa2
+        restart: always
         build: ./docker-images/rasa2
         working_dir: /opt/snips_services
         environment:
@@ -245,6 +259,7 @@ services:
     ##nlu:
         ##depends_on: ['mosquitto']
         ##image: syntithenai/snips
+        ##restart: always
         ##build: ./docker-images/snips
         ##command:   --exclude-components snips-dialogue --exclude-components snips-asr  --exclude-components snips-audio-server --exclude-components snips-analytics --exclude-components snips-tts  --exclude-components snips-hotword  -mqqt mosquitto:1883
         ##volumes_from: ['pulseaudio']
@@ -258,6 +273,7 @@ services:
     dialog:
         depends_on: ['mosquitto']
         image: syntithenai/rasa
+        restart: always
         build: ./docker-images/rasa
         working_dir: /opt/snips_services
         entrypoint : ["/opt/snips_services/dialog_server.py"]
@@ -271,6 +287,7 @@ services:
     #dialog:
         #depends_on: ['mosquitto']
         #image: syntithenai/snips
+        #restart: always
         #build: ./docker-images/snips
         #command:   --exclude-components snips-queries --exclude-components snips-asr  --exclude-components snips-audio-server --exclude-components snips-analytics --exclude-components snips-tts  --exclude-components snips-hotword  -mqqt mosquitto:1883
         
@@ -281,6 +298,7 @@ services:
     actionhandler:
         depends_on: ['mosquitto']
         image: syntithenai/rasa2
+        restart: always
         build: ./docker-images/rasa2
         working_dir: /opt/snips_services
         environment:
@@ -316,6 +334,7 @@ services:
         #depends_on: ['mosquitto']
         # devices: ['/dev/snd']
         #image: syntithenai/snips
+        #restart: always
         #build: ./docker-images/snips
         #command: -mqqt mosquitto:1883 
         #volumes_from: ['pulseaudio']
