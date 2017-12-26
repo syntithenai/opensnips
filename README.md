@@ -68,6 +68,8 @@ To get started
 - ```pasuspender -- docker-compose up```
 - OR using pulseaudio (see docker-compose.yml)
 - ```docker-compose up```
+- Try saying "play some pop music" or "play the next track" and you should hear a reply.
+
 
 ### Configuration
 See docker-compose.yml in the root of the project for configuration options.
@@ -82,9 +84,6 @@ Support for raspberry pi on arm is pending but mostly there.
 It is apparently possible to install pulseaudio on MS Windows and MacOSX which should allow the suite to be used with Docker on other platforms than Linux.
 
 
-
-
-
 ## Services
 
 The open snips services are intended to be compatible with the official snips services.
@@ -94,11 +93,16 @@ In general open snips services are configured using environment variables define
 
 ### Audio Server
 
+The default setup assumes that there is an external microphone available to ALSA on hw:1,0.
+See docker-compose.yml and docker-images/rasa/snips-services/asound*.conf for variations in sound setup corresponding to which audioserver is used and how.
+
 The audio server sends and recieves audio data over MQTT.
 The server sends a constant stream of messages to subscribed clients, 256 samples long frames, signed 16bit, mono, 16000Hz each frame in its own .wav container.
 
 The server can receive and play audio samples of arbitrary length in the same format.
     
+At this time, a bug in the audio server is negatively but not terminally affecting hotword and speech recognition so the official server is enabled by default.
+
 
 ### Hotword Server
 
@@ -117,6 +121,7 @@ The docker-compose file contains environment variables to configure snowboy incl
         - hotword_sensitivity=0.5
         
 ```
+
 
 Inside piwho/data a folder structure can be created containing speaker identification training data.
 eg
@@ -139,6 +144,10 @@ If the identification has trained successfully, the hotword server will send
 The dialog server is the glue that listens to other services and sends messages to trigger the next step of recognition.
 
 The opensnips dialog server implements most of the features of the official version.
+
+A snips model downloaded from http://console.snips.ai is required to run the official dialog component (as well as the nlu and or asr components).
+
+The opensnips dialog server does not take any models into consideration.
 
 At this time, the following features are pending.
 
@@ -250,26 +259,7 @@ docker-compose build <service key>
 __when finished be sure to      swapoff /swapfile; rm /swapfile__
 
 
-## Sound Configuration
 
-In /etc/asound.conf, types dmix and dsnoop are fine for mixing/sharing device access across multiple services running natively but inside docker, the first container locks the sound device.
-
-To allow multiple containers shared access to sound inside Docker a container running pulseaudio is included.
-
-Other containers in the docker-compose suite can access the server through a shared socket. 
-
-The server can be configured to use the sound hardware direct(default) or pulseaudio on the host system by editing the docker-compose file to remove comments and update to the IP address of the docker host and the path to the pulse cookie on the host.
-
-```
- # proxy for host pulseaudio server
-        #environment: ['PULSE_SERVER=192.168.1.100']
-        volumes: 
-            - ./pulse:/tmp/pulse
-            # proxy for host pulseaudio server auth cookie
-            #- /home/stever/.config/pulse/cookie:/root/.config/pulse/cookie
-```
-
-    
     
 ## Roadmap
 
