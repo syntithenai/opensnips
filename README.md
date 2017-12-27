@@ -1,8 +1,10 @@
 # OpenSnips
 
+
+
 ## Overview
 
-!! This project is a work in progress. The documentation is in places, ahead of the function but it does build and run on a x86_64 Linux Desktop.
+This project is a work in progress. The documentation is in places, ahead of the function but it does build and run on a x86_64 Linux Desktop.
 
 This repository is a docker-compose suite integrating [Snips AI](http://snips.ai)  and [RASA AI](http://rasa.ai) and [Kaldi](https://github.com/alumae/kaldi-gstreamer-server) and [Meeka@home](http://meekamusic.com) to create a 100% open source implementation of the [Hermes MQTT protocol](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#hermes-protocol) used by Snips. 
 
