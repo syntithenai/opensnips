@@ -151,6 +151,19 @@
 - play some [pop](genre) music from [jamendo](music_source)
 - play some [pop](genre) music
 - play music in the genre [pop](genre)
+- play some [pop](genre) music
+- play some [jazz](genre) music
+- play some [blues](genre) music
+- play some [classical](genre) music
+- play some [rock](genre) music
+- play some [dance](genre) music
+- play some [folk](genre) music
+- play some [electronic](genre) music
+- play some [ambient](genre) music
+- play some [relaxing](genre) music
+- play some [exercise](genre) music
+- play some [punk](genre) music
+
 
 ## intent:play_all
 - play ole

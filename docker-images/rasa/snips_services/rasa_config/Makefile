@@ -17,4 +17,13 @@ train-core:
 	python -m rasa_core.train -s stories.md -d domain.yml -o models/dialogue --epochs 300
 
 run:
-	python -m rasa_core.run -d models/dialogue -u models/default/current
+	python -m rasa_core.run -d models/dialogue -u models/default/current -o core.log
+
+train-slots:
+	python -m rasa_nlu.train -c config-slots.json 
+
+run-slots:
+	python -m rasa_nlu.server -c config-slots.json 
+
+run-nlu:
+	python -m rasa_nlu.server -c config.json -p models/

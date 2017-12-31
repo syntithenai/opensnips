@@ -91,10 +91,12 @@ class SnipsRasaServer():
                  mqtt_hostname=os.environ.get('mqtt_hostname','mosquitto'),
                  mqtt_port=os.environ.get('mqtt_port',1883),
                  nlu_model_path=os.environ.get('rasa_nlu_model_path','rasa_config/models/default/current'),
+                 nlu_model_path_slots=os.environ.get('rasa_nlu_model_path_slots','rasa_config/models/default/slots'),
                  snips_assistant_path=os.environ.get('rasa_snips_assistant_path','models/snips'),
                  snips_user_id=os.environ.get('rasa_snips_user_id','user_Kr5A7b4OD'),
                  core_model_path=os.environ.get('rasa_core_model_path','rasa_config/models/dialogue'),
                  config_file=os.environ.get('rasa_config_file','rasa_config/config.json'),
+                 config_file_slots=os.environ.get('rasa_config_file_slots','rasa_config/config-slots.json'),
                  domain_file=os.environ.get('rasa_domain_file','rasa_config/domain.yml'),
                  nlu_training_file=os.environ.get('rasa_nlu_training_file','rasa_config/nlu.md'),
                  core_training_file=os.environ.get('rasa_core_training_file','rasa_config/stories.md'),
@@ -119,12 +121,15 @@ class SnipsRasaServer():
         self.disable_nlu = disable_nlu
         self.disable_core = disable_core
         self.interpreter = None
+        self.interpreter_slots = None
         self.nlu_model_path = nlu_model_path
+        self.nlu_model_path_slots = nlu_model_path_slots
         self.core_model_path = core_model_path
         # to generate stub assistant
         self.snips_assistant_path = snips_assistant_path
         self.snips_user_id = snips_user_id
         self.config_file = config_file
+        self.config_file_slots = config_file_slots
         # RASA training config
         self.domain_file = domain_file
         self.nlu_training_file = nlu_training_file
@@ -169,7 +174,7 @@ class SnipsRasaServer():
         return self.getCoreModelModified() != self.core_model_modified
     
     def isNluModelMissing(self):
-        return not os.path.isfile("{}/metadata.json".format(self.nlu_model_path))
+        return not os.path.isfile("{}/metadata.json".format(self.nlu_model_path)) or not os.path.isfile("{}/metadata.json".format(self.nlu_model_path_slots))
     def isCoreModelMissing(self):
         return not os.path.isfile("{}/domain.json".format(self.core_model_path))
 
@@ -188,7 +193,7 @@ class SnipsRasaServer():
     def watchModels(self,run_event):
         while True and run_event.is_set():
             self.loadModels()
-            time.sleep(10)
+            time.sleep(30)
             
     def trainModels(self,force=False):
         self.train_nlu(force)
@@ -197,12 +202,13 @@ class SnipsRasaServer():
     # RASA model generation
     def loadModels(self,force=False):
         self.trainModels()
-        self.interpreter = Interpreter.load("{}/".format(self.nlu_model_path), RasaNLUConfig(self.config_file))
                 
         # if file exists import os.path os.path.exists(file_path)
         # create an NLU interpreter and dialog agent based on trained models
         if self.disable_nlu != "yes":
             if force or self.isNluModelModified():
+                self.interpreter = Interpreter.load("{}/".format(self.nlu_model_path), RasaNLUConfig(self.config_file))
+                self.interpreter_slots = Interpreter.load("{}/".format(self.nlu_model_path_slots), RasaNLUConfig(self.config_file_slots))
                 self.nlu_model_modified=self.getNluModelModified()
                 self.nlu_modified=self.getNluModified()
                 print('loaded nlu model')
@@ -230,6 +236,7 @@ class SnipsRasaServer():
                 from rasa_nlu.model import Trainer
 
                 training_data = load_data(self.nlu_training_file)
+                # train intents and slots
                 trainer = Trainer(RasaNLUConfig(self.config_file))
                 trainer.train(training_data)
                 #model_directory = trainer.persist('models/nlu/', fixed_model_name="current")
@@ -239,6 +246,20 @@ class SnipsRasaServer():
                 print("model {} path {}".format(modelName,shortPath))
                 model_directory = trainer.persist(shortPath, fixed_model_name=modelName)
                 #self.core_model_modified=self.getCoreModelModified()
+                
+                # train slots only for partials
+                slottrainer = Trainer(RasaNLUConfig(self.config_file_slots))
+                slottrainer.train(training_data)
+                #model_directory = trainer.persist('models/nlu/', fixed_model_name="current")
+                pathParts = self.nlu_model_path_slots.split('/')
+                modelName = pathParts[-1]
+                shortPath = "/".join(pathParts[:-2])
+                print("model {} path {}".format(modelName,shortPath))
+                model_directory = slottrainer.persist(shortPath, fixed_model_name=modelName)
+                #self.core_model_modified=self.getCoreModelModified()
+                
+                
+                
                 self.isNluTraining = False
                 self.nlu_modified=self.getNluModified()
                 return model_directory
@@ -262,7 +283,7 @@ class SnipsRasaServer():
                 self.isCoreTraining = False
                 self.core_modified=self.getCoreModified()
                 self.core_domain_modified=self.getCoreDomainModified()
-                return agent
+                return self.agent
 
 
 
@@ -376,7 +397,30 @@ class SnipsRasaServer():
                 payload=json.dumps({"id": id,"sessionId": sessionId, "input": text,"intent": {"intentName": intentName,"probability": 1.0},"slots": slots}), 
                 qos=0,
                 retain=False)
-                    
+
+    def handleNluSlotsQuery(self,msg):
+            self.log("NLU SLOTS query {}".format(msg.topic))
+            payload = json.loads(msg.payload.decode('utf-8'))
+            print(payload)
+            if 'input' in payload :
+                sessionId = payload['sessionId']
+                id = payload['id']
+                text = payload['input']
+                print(text)
+                lookup = self.interpreter_slots.parse(text)
+   
+                slots=[]
+                
+                for entity in lookup['entities']:
+                    slot = {"entity": entity['value'],"range": {"end": entity['end'],"start": entity['start']},"rawValue": entity['value'],"slotName": "entity","value": {"kind": "Custom","value": entity['value']}} 
+                    slots.append(slot)
+                print(slots)
+                intentName = "{}__{}".format(self.snips_user_id,lookup['intent']['name'])
+                self.client.publish('hermes/nlu/intentParsed',
+                payload=json.dumps({"id": id,"sessionId": sessionId, "input": text,"intent": {"intentName": intentName,"probability": 1.0},"slots": slots}), 
+                qos=0,
+                retain=False)
+                                    
     def log(self, message):
        print (message)
   

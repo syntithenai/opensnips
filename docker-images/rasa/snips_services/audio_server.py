@@ -25,8 +25,8 @@ import warnings
 class SnipsAudioServer(SnipsMqttServer):
     
     def __init__(self,
-                 mqtt_hostname=os.environ.get('mqtt_hostname','mosquitto'),
-                 mqtt_port=os.environ.get('mqtt_port',1883),
+                 mqtt_hostname=os.environ.get('audioserver_mqtt_hostname','mosquitto'),
+                 mqtt_port=os.environ.get('audioserver_mqtt_port',1883),
                  site=os.environ.get('audioserver_site','default'),
                  ):
         SnipsMqttServer.__init__(self,mqtt_hostname,mqtt_port)

@@ -12,7 +12,7 @@
     "spacy_model_name": "en", 
     "language": "en", 
     "intent_classifier_sklearn": "intent_classifier.pkl", 
-    "trained_at": "20171225-041819", 
+    "trained_at": "20171231-024542", 
     "training_data": "training_data.json", 
     "entity_extractor_crf": {
         "BILOU_flag": true, 

@@ -234,21 +234,10 @@ services:
         build: ./docker-images/rasa2
         working_dir: /opt/snips_services
         environment:
-            #- rasa_disable_nlu=no|yes
-            - rasa_disable_core=yes
-            #- mqtt_hostname=mosquitto
-            #- mqtt_port=1883
-            #- rasa_nlu_model_path=models/nlu
-            #- rasa_snips_assistant_path=models/snips
-            #- rasa_snips_user_id=user_Kr5A7b4OD
-            #- rasa_core_model_path=models/dialog
-            #- rasa_config_file=config/config.json
-            #- rasa_domain_file=config/domain.yml
-            #- rasa_nlu_training_file=config/nlu.md
-            #- rasa_core_training_file=config/stories.md
-            #- rasa_lang=en-GB
-        entrypoint : ["/opt/snips_services/rasa_server.py"]
-        #entrypoint: ['/bin/sleep','360000']
+            # this is removed from queries and added to intent names to support snips interoperability
+            - rasa_nlu_snips_user_id=user_Kr5A7b4OD
+        #entrypoint : ["/opt/snips_services/rasa_server.py"]
+        entrypoint: ['/bin/sleep','360000']
         volumes:
             # HOST MOUNT FOR DEVELOPMENT
             - ./docker-images/rasa/snips_services:/opt/snips_services
@@ -267,10 +256,10 @@ services:
 
 
     ### ===========================================================================================   
-    ### DIALOG SERVER   
+    ### DIALOGUE SERVER   
     ### ===========================================================================================   
-    ### OPENSNIPS DIALOG SERVER            
-    dialog:
+    ### OPENSNIPS DIALOGUE SERVER            
+    dialogue:
         depends_on: ['mosquitto']
         image: syntithenai/rasa
         restart: always
@@ -283,7 +272,7 @@ services:
             - ./docker-images/rasa/snips_services:/opt/snips_services
             # HOST MOUNT MODELS TO PERSIST BETWEEN UP/DOWN RESTARTS
             
-    ## SNIPS DIALOG SERVER            
+    ## SNIPS DIALOGUE SERVER            
     #dialog:
         #depends_on: ['mosquitto']
         #image: syntithenai/snips
@@ -302,7 +291,8 @@ services:
         build: ./docker-images/rasa2
         working_dir: /opt/snips_services
         environment:
-            - rasa_disable_nlu=yes
+            - rasa_core_snips_user_id=user_Kr5A7b4OD
+            #- rasa_disable_nlu=yes
             # - rasa_disable_core=yes
             #- mqtt_hostname=mosquitto
             #- mqtt_port=1883
@@ -315,7 +305,8 @@ services:
             #- rasa_nlu_training_file=config/nlu.md
             #- rasa_core_training_file=config/stories.md
             #- rasa_lang=en-GB
-        entrypoint : ["/opt/snips_services/rasa_server.py"]
+        entrypoint : ["/opt/snips_services/rasa_core_server.py"]    
+        #entrypoint : ["/opt/snips_services/rasa_server.py"]
         #entrypoint: ['/bin/sleep','360000']
         volumes:
             # HOST MOUNT FOR DEVELOPMENT
@@ -323,6 +314,7 @@ services:
             # HOST MOUNT MODELS TO PERSIST BETWEEN UP/DOWN RESTARTS
             - /opt/rasa_models:/opt/snips_services/models
             - /home/stever/projects/rasa_core:/opt/rasa_core
+            - /home/stever/projects/rasa_nlu:/rasa_nlu
     
    
 

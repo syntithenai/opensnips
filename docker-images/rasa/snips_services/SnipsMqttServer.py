@@ -12,6 +12,7 @@ import os
 #import pyaudio
 #import wave
 #import io
+from rasa_nlu.model import Metadata, Interpreter
 
 from socket import error as socket_error
 
@@ -98,5 +99,18 @@ class SnipsMqttServer():
 
 
 
+# Thin interpreter to forward already processed NLU message to rasa_core
+# USED BY RASA core and nlu
+class SnipsMqttInterpreter(Interpreter):
+    def __init__(self):
+        pass
+    # skip loading
+    def load(self):
+        pass
+    # tojson parse from mqtt intent
+    def parse(self, jsonData):
+        print('interpret snips')
+        print(jsonData)
+        return json.loads(jsonData)
 
 

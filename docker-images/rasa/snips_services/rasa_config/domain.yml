@@ -247,7 +247,7 @@ templates:
   utter_playing_music_genre_ask_name:
   - what genre music do you want to hear?
   utter_playing_music_genre:
-  - playing XXX music 
+  - playing {genre} music 
   utter_playing_next:
   - playing next tracks
   utter_playing_previous:
