@@ -38,6 +38,7 @@ class SnipsDialogServer(SnipsMqttServer):
         self.thread_targets.append(self.monitorSessionTimeouts)
         self.expiryTimeout = 10
         self.hotwords = {}
+        self.lang = 'en'
         
     def closeSession(self,sessionId,reason='nominal'):
         siteId = str(self.getSiteId(sessionId))
@@ -45,9 +46,9 @@ class SnipsDialogServer(SnipsMqttServer):
         data = self.getSessionData(sessionId)
         hotwordId = self.hotwords.get(sessionId,'default')
         
-        #print('clse session {} {}'.format(siteId,sessionId,data))
+        print('clse session {} {}'.format(siteId,sessionId,data))
         #print(sessionId)
-        #print(self.sessions)
+        print(self.sessions)
         ##print(self.sessionIds)
         #print(self.sessionExpiry)
         #print('##########################')
@@ -64,19 +65,19 @@ class SnipsDialogServer(SnipsMqttServer):
                 
     def monitorSessionTimeouts(self,run_event):
         while (run_event.is_set()):
-            #print("check expiries ")
-            #print(self.sessionExpiry)
+            print("check expiries ")
+            print(self.sessionExpiry)
             time.sleep(3)
-            #print("NOW")
+            print("NOW")
             try:
                 now = time.time()
-                #print("check time {}".format(now))
+                print("check time {}".format(now))
                 if len(self.sessionExpiry) > 0:
                     for sessionId in self.sessionExpiry:
-                        #print("check expiry {}".format(self.sessionExpiry[sessionId]))
+                        print("check expiry {}".format(self.sessionExpiry[sessionId]))
                         
                         if (now > self.sessionExpiry[sessionId]):
-                            #print("check EXPIRED")
+                            print("check EXPIRED")
                             self.closeSession(sessionId,'timeout')
                             
                      
@@ -178,25 +179,62 @@ class SnipsDialogServer(SnipsMqttServer):
                 print("TEXT CAPTURED: {}".format(msg.topic))
                 self.sendMessage(siteId,sessionId,'hermes/asr/stopListening',{})
                 self.sendMessage(siteId,sessionId,'hermes/nlu/query',{'input':text,'intentFilter':None,'id':str(uuid.uuid4())})
+            elif msg.topic.startswith("hermes/nlu/intentNotRecognized"):
+                # check if there is a default action for this session and forward as intent if exists otherwise do nothing
+                pass
+            elif msg.topic.startswith("hermes/nlu/slotParsed"):
+                pass
+                # fake an intent using the last intent before slot parsing was called or intent as passed through parameters
+                #intent = msgJSON.get('intent')
+                #intentName = intent.get('intentName')
+                #intentName = msgJSON.get('intentName')
+                #text = msgJSON.get('input')
+                #theId = msgJSON.get('id','')
+                #print("INTENT PARSED: {}".format(msg.topic))
+                #self.sendMessage(siteId,sessionId,'hermes/intent/{}'.format(intentName),{'customData':self.getSessionData(sessionId),'input':text,'intent':intent,'slots':intent.get('slots')})
             elif msg.topic.startswith("hermes/nlu/intentParsed"):
-                # SEND
-                # hermes/intent/XXX
                 intent = msgJSON.get('intent')
                 intentName = intent.get('intentName')
                 text = msgJSON.get('input')
                 theId = msgJSON.get('id','')
                 print("INTENT PARSED: {}".format(msg.topic))
                 self.sendMessage(siteId,sessionId,'hermes/intent/{}'.format(intentName),{'customData':self.getSessionData(sessionId),'input':text,'intent':intent,'slots':intent.get('slots')})
+            # ALTERNATIVE ENTRY POINT TO NORMAL FLOW INSTEAD OF HOTWORD DETECTED BUT ACCEPTS customData and intentFilter
             elif msg.topic.startswith("hermes/dialogueManager/startSession"):
                 if not haveSession:
                     print("START SESSION: {}".format(msg.topic))
                     # SEND
                     # hermes/dialogueManager/sessionStarted
+                    self.sendMessage(siteId,sessionId,'hermes/asr/stopListening',{})
                     self.setSessionData(sessionId,msgJSON.get('customData'))
                     self.sendMessage(siteId,sessionId,'hermes/dialogueManager/sessionStarted',{'customData':self.getSessionData(sessionId)})
+                    self.sendMessage(siteId,sessionId,'hermes/asr/startListening',{})
                     self.setSessionExpiry(sessionId,float(time.time()) + float(self.expiryTimeout))
-            #elif msg.topic.startswith("hermes/dialogueManager/continueSession"):
-                #print("CONTINUE SESSION: {}".format(msg.topic))
+            # ENTRY POINT FOR COMPLEX FLOW DIALOGUES        
+            elif msg.topic.startswith("hermes/dialogueManager/continueSession"):
+                print("CONTINUE SESSION: {}".format(msg.topic))
+                # save these against the session key to be used when interpreting other messages
+                fallback_intent = msgJSON.get('fallback_intent','')
+                intentFilter = msgJSON.get('intentFilter','')
+                slotFilter = msgJSON.get('slot','')
+                nlu_model = msgJSON.get('nlu_model','default')
+                handler_model = msgJSON.get('handler_model','default')
+                asr_model = msgJSON.get('core_model','default')
+                self.sessionConfig[sessionId] = {"fallback_intent":fallback_intent,"intentFilter":intentFilter,"slotFilter":slotFilter,"nlu_model":nlu_model,"handler_model":handler_model,"asr_model":asr_model}
+                
+                
+                text = msgJSON.get('text','')
+                if len(text) > 0:
+                    self.client.publish('hermes/tts/say',
+                    payload = json.dumps({"lang":self.lang,"sessionId": sessionId, "text": text, "siteId": siteId,"id":theId}), 
+                    qos=0,
+                    retain=False)
+                    
+                self.sendMessage(siteId,sessionId,'hermes/asr/stopListening',{})
+                self.setSessionData(sessionId,msgJSON.get('customData'))
+                #self.sendMessage(siteId,sessionId,'hermes/dialogueManager/sessionStarted',{'customData':self.getSessionData(sessionId)})
+                self.sendMessage(siteId,sessionId,'hermes/asr/startListening',{})
+                self.setSessionExpiry(sessionId,float(time.time()) + float(self.expiryTimeout))
                 ## SEND
                 ## hermes/asr/startListening
                 #self.sendMessage(siteId,sessionId,'hermes/nlu/query',{'input':text,'intentFilter':[],'id':'')

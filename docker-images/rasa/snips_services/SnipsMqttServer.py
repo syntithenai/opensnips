@@ -27,6 +27,8 @@ class SnipsMqttServer():
     def __init__(self,
                  mqtt_hostname='mosquitto',
                  mqtt_port=1883,
+                 training_mqtt_hostname=None,
+                 training_mqtt_port=None
                  ):
         """ Initialisation.
 
@@ -36,14 +38,28 @@ class SnipsMqttServer():
         """
         self.thread_handler = ThreadHandler()
         self.client = mqtt.Client()
+        self.training_client = mqtt.Client()
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
         self.client.on_message = self.on_message
+        self.training_client.on_message = self.on_training_message
         self.mqtt_hostname = mqtt_hostname
         self.mqtt_port = mqtt_port
-        self.thread_targets=[self.startMqtt]
+        self.training_mqtt_hostname=training_mqtt_hostname if training_mqtt_hostname is not None else os.environ.get('training_mqtt_hostname',None),
+        self.training_mqtt_port=training_mqtt_port if training_mqtt_port is not None else os.environ.get('training_mqtt_port',None),
+        self.thread_targets=[self.startMqtt] # don't activate training by default, rely on subclasses to add startTrainingMqtt to thread targets as required
         self.subscribe_to = '#'
-        
+        self.training_mqtt_hostname = training_mqtt_hostname
+        self.training_mqtt_port = training_mqtt_port
+                
+            
+    def getTrainingMqttHostname(self):
+        return self.training_mqtt_hostname if self.training_mqtt_hostname is not None else self.mqtt_hostname
+    def getTrainingMqttPort(self):
+        return self.training_mqtt_port if self.training_mqtt_port is not None else self.mqtt_port
+
+    
+    
     # MQTT LISTENING SERVER
     def start(self):
         self.log("START")
@@ -80,6 +96,29 @@ class SnipsMqttServer():
             #except AttributeError as e:
             #    self.log("Error in mqtt run loop {}".format(e))
             #    time.sleep(1)
+
+    def startTrainingMqtt(self, run_event):
+        self.log("Connecting to {} on port {}".format(self.getTrainingMqttHostname(), str(self.training_mqtt_port)))
+        retry = 0
+        while True and run_event.is_set():
+            try:
+                self.log("Trying to connect to {} {}".format(self.getTrainingMqttHostname(),self.getTrainingMqttPort()))
+                self.training_client.connect(self.getTrainingMqttHostname(), self.getTrainingMqttPort(), 60)
+                break
+            except (socket_error, Exception) as e:
+                self.log("MQTT error {}".format(e))
+                time.sleep(5 + int(retry / 5))
+                retry = retry + 1
+        while run_event.is_set():
+            #try:
+                self.training_client.loop()
+            #except AttributeError as e:
+            #    self.log("Error in mqtt run loop {}".format(e))
+            #    time.sleep(1)
+
+    def on_training_message(self, client, userdata, msg):
+        self.log("TRAINING MESSAGE {}".format(msg.topic))
+
 
     def on_connect(self, client, userdata, flags, result_code):
         self.log("Connected with result code {}".format(result_code))

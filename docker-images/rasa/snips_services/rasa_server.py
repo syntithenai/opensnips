@@ -140,9 +140,9 @@ class SnipsRasaServer():
         
         # save modified times on source files
         self.nlu_modified=self.getNluModified()
+        self.nlu_model_modified=self.getNluModelModified()
         self.core_modified=self.getCoreModified()
         self.core_domain_modified=self.getCoreDomainModified()
-        self.nlu_model_modified=self.getNluModelModified()
         self.core_model_modified=self.getCoreModelModified()
         self.agent = agent = Agent(self.domain_file,policies=[MemoizationPolicy(), KerasPolicy()])
         self.agentLoaded = None
@@ -151,25 +151,25 @@ class SnipsRasaServer():
     def getNluModified(self):
         if os.path.isfile(self.nlu_training_file):
             return os.path.getmtime(self.nlu_training_file)
-    def getCoreModified(self):    
-        if os.path.isfile(self.core_training_file):
-            return os.path.getmtime(self.core_training_file) 
     def getNluModelModified(self):
         if os.path.isfile("{}/metadata.json".format(self.nlu_model_path)):
             return os.path.getmtime("{}/metadata.json".format(self.nlu_model_path))
+    def isNluModified(self):
+        return self.getNluModified() != self.nlu_modified  or self.getNluModified() > self.getNluModelModified()
+    def isNluModelModified(self):
+        return self.getNluModelModified() != self.nlu_model_modified
+    
+    def getCoreModified(self):    
+        if os.path.isfile(self.core_training_file):
+            return os.path.getmtime(self.core_training_file) 
     def getCoreModelModified(self):
         if os.path.isfile("{}/domain.json".format(self.core_model_path)):
             return os.path.getmtime("{}/domain.json".format(self.core_model_path))
     def getCoreDomainModified(self):
         if os.path.isfile(self.domain_file):
             return os.path.getmtime(self.domain_file)
-        
-    def isNluModified(self):
-        return self.getNluModified() != self.nlu_modified  or self.getNluModified() > self.getNluModelModified()
     def isCoreModified(self):    
         return self.getCoreModified() != self.core_modified or self.getCoreModified() > self.getCoreModelModified()  or self.getCoreDomainModified() != self.core_domain_modified or self.getCoreDomainModified() > self.getCoreModelModified()
-    def isNluModelModified(self):
-        return self.getNluModelModified() != self.nlu_model_modified
     def isCoreModelModified(self):
         return self.getCoreModelModified() != self.core_model_modified
     

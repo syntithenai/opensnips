@@ -536,4 +536,13 @@ hermes/dialogue/ask
 hermes/dialogue/ask_slot
 hermes/dialogue/capture_slot
     
-    
+  
+# TODO
+- foreach server
+  - python style - functions _, classNames titleCase, 
+  - comments pylint
+  - constructor parameters and env vars consistency, remove some defaults replace with settings in docker-compose.yml
+  - remove snips references
+  
+
+

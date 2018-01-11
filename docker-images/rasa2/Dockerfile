@@ -105,9 +105,9 @@ RUN pip install Flask
 
 # RASA CORE
 WORKDIR ${RASA_NLU_HOME}
-RUN git clone https://github.com/RasaHQ/rasa_core.git
+RUN git clone https://github.com/syntithenai/rasa_core.git
 RUN cd rasa_core; pip install -r requirements.txt;  
-RUN cd rasa_core; python setup.py install
+RUN cd rasa_core; python setup.py develop
 
 RUN pip install paho-mqtt ws4py
 COPY ./client.conf /etc/pulse/client.conf
