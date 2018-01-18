@@ -46,9 +46,9 @@ class SnipsDialogServer(SnipsMqttServer):
         data = self.getSessionData(sessionId)
         hotwordId = self.hotwords.get(sessionId,'default')
         
-        print('clse session {} {}'.format(siteId,sessionId,data))
+        #print('close session {} {}'.format(siteId,sessionId,data))
         #print(sessionId)
-        print(self.sessions)
+        #print(self.sessions)
         ##print(self.sessionIds)
         #print(self.sessionExpiry)
         #print('##########################')
@@ -65,19 +65,19 @@ class SnipsDialogServer(SnipsMqttServer):
                 
     def monitorSessionTimeouts(self,run_event):
         while (run_event.is_set()):
-            print("check expiries ")
-            print(self.sessionExpiry)
+            #print("check expiries ")
+            #print(self.sessionExpiry)
             time.sleep(3)
-            print("NOW")
+            #print("NOW")
             try:
                 now = time.time()
-                print("check time {}".format(now))
+                #print("check time {}".format(now))
                 if len(self.sessionExpiry) > 0:
                     for sessionId in self.sessionExpiry:
-                        print("check expiry {}".format(self.sessionExpiry[sessionId]))
+                        #print("check expiry {}".format(self.sessionExpiry[sessionId]))
                         
                         if (now > self.sessionExpiry[sessionId]):
-                            print("check EXPIRED")
+                            #print("check EXPIRED")
                             self.closeSession(sessionId,'timeout')
                             
                      
@@ -141,7 +141,7 @@ class SnipsDialogServer(SnipsMqttServer):
         self.client.publish(topic,payload = json.dumps(thePayload),qos=0,retain=False)
 
     def on_message(self, client, userdata, msg):
-        print('dialog on message') 
+        #print('dialog on message') 
         msgJSON = json.loads(msg.payload)
         sessionId = msgJSON.get('sessionId')
         haveSession = self.haveSession(sessionId)
@@ -149,10 +149,10 @@ class SnipsDialogServer(SnipsMqttServer):
             sessionId = str(self.getSessionId(msgJSON.get('siteId')))
         sessionId = str(sessionId)
         siteId = msgJSON.get('siteId',self.getSiteId(sessionId))
-        print("MESSAGE DIALOG {} {}".format(siteId,sessionId))
+        print("MESSAGE:  DIALOG {} {} {}".format(msg.topic,siteId,sessionId))
         if True or len(sessionId) > 0:
             #if msg.topic != "hermes/dialogueManager/sessionEnded":
-            print("MESSAGE EXEC {} {} {}".format(msg.topic,siteId,sessionId))
+            #print("MESSAGE EXEC {} {} {}".format(msg.topic,siteId,sessionId))
             if msg.topic.startswith("hermes/hotword"):
                 hotwordId = 'default'
                 ok = False

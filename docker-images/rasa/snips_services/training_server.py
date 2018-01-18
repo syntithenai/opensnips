@@ -59,106 +59,12 @@ from rasa_core.policies.keras_policy import KerasPolicy
 from rasa_core.policies.memoization import MemoizationPolicy
 from rasa_core.channels.direct import CollectingOutputChannel
 
+
+from rasa_snips_extensions import SnipsMqttAgent, SnipsDomain, SnipsMarkdownToJson
+
+
 logger = logging.getLogger(__name__)
 ##
-
-
-
-SAMPLE_NLU = """
-## intent:play_next
-- play next track
-- play next
-- play the next track
-- skip this track
-- play the next one
-- play on
-- play the next song
-- play the next one
-## intent:agree
-- yes
-- i agree
-- for sure
-- make it happen
-- absolutely
-- sure
-- ok
-- you bet
-
-
-## intent:disagree
-- no
-- never
-- no way
-- nope
-- eek
-- i disagree
-- not what I want
-- that is not what i want
-- please don't
-"""
-
-
-
-SAMPLE_STORIES = """
-## clear_the_playlist
-* clear_the_playlist
-    - ask_confirm_clear_playlist
-* agree
-    - say_clearing_the_playlist
-
-## create_a_playlist
-* create_a_playlist
-- utter_add_to_playlist_ask_name
-* create_a_playlist[playlist=juggling]
-- utter_ok_creating_a_playlist
-
-## create_a_playlist_directly
-* create_a_playlist[playlist=juggling]
-- utter_ok_creating_a_playlist
-
-"""
-
-
-
-
-class SnipsMarkdownToJson(MarkdownToJson):
-
-    def __init__(self, markdown):
-        self.markdown = markdown
-        # set when parsing examples from a given intent
-        self.current_intent = None
-        self.common_examples = []
-        self.entity_synonyms = []
-        self.interpret(markdown)
-
-    def interpret(self,markdown):
-        """Parse the content of the actual .md file."""
-        from rasa_nlu.utils.md_to_json import strip_comments
-
-        f_com_rmved = strip_comments(comment_regex,self.markdown)# Strip comments
-        for row in f_com_rmved:
-            # Remove white-space which may have crept in due to comments
-            row = row.strip() 
-            intent_match = re.search(intent_regex, row)
-            if intent_match is not None:
-                self._set_current_state(
-                        INTENT_PARSING_STATE, intent_match.group(1))
-                continue
-
-            synonym_match = re.search(synonym_regex, row)
-            if synonym_match is not None:
-                self._set_current_state(
-                        SYNONYM_PARSING_STATE, synonym_match.group(1))
-                continue
-            print("PARSE NLU ROW {}".format(row))
-            self._parse_intent_or_synonym_example(row)
-        return {
-            "rasa_nlu_data": {
-                "common_examples": self.common_examples,
-                "entity_synonyms": self.entity_synonyms
-            }
-        }
-
 
 class SnipsTrainingServer(SnipsMqttServer):
     
@@ -170,6 +76,7 @@ class SnipsTrainingServer(SnipsMqttServer):
         self.subscribe_to='hermes/training/start'
         self.thread_targets.append(self.do_training)
         self.queue=[]
+        print("start training server")
         
 
     def on_connect(self, client, userdata, flags, result_code):
@@ -178,7 +85,7 @@ class SnipsTrainingServer(SnipsMqttServer):
         #self.client.publish('hermes/training/start', payload="{\"id\":\"someid\",\"type\":\"rasacore\",\"sessionId\":null}", qos=0)
             
     def send_training_complete(self,theId,modelPath):
-        import shutil
+        print("training complete : {}".format(theId))
         tmpdir = tempfile.mkdtemp()
         try:
             tmparchive = os.path.join(tmpdir, 'archive')
@@ -260,12 +167,13 @@ class SnipsTrainingServer(SnipsMqttServer):
                                 #domain_data = content_file.read()
                         
                         #print(domain_data)
-                        
-                        domainFile = tempfile.NamedTemporaryFile(delete = False,suffix='.yml')
+                        tmpdir = tempfile.mkdtemp()
+                        domainFile = io.open(os.path.join(tmpdir, "domain.yml"),"w")                        
+                        #domainFile = tempfile.NamedTemporaryFile(delete = False,suffix='.yml')
                         domainFile.write(domain_data)
                         domainFile.close()
-
-                        agent = Agent(domainFile.name,policies=[MemoizationPolicy(), KerasPolicy()])
+                        agent = SnipsMqttAgent.createAgent(tmpdir)
+                        #agent = Agent(domainFile.name,policies=[MemoizationPolicy(), KerasPolicy()])
                         agent.train(
                                 trainingFile.name,
                                 max_history=3,

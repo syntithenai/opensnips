@@ -65,72 +65,15 @@ from rasa_core.tracker_store import InMemoryTrackerStore, TrackerStore
 from rasa_core.utils import read_yaml_file
 
 
+from rasa_snips_extensions import SnipsMqttAgent, SnipsDomain
+
+
 logger = logging.getLogger(__name__)
 
 
-# Customised Agent class to use custom SnipsDomain and pass core server through to the Domain for scope access
-class SnipsMqttAgent(Agent):
-    
-    @staticmethod
-    def loadAgent(path, interpreter=None, tracker_store=None,action_factory=None,core_server=None):
-        # type: (Text, Any, Optional[TrackerStore]) -> Agent
-
-        if path is None:
-            raise ValueError("No domain path specified.")
-        
-        domain = SnipsDomain.load(os.path.join(path, "domain.yml"),action_factory,core_server)
-        # ensures the domain hasn't changed between test and train
-        domain.compare_with_specification(path)
-        featurizer = Featurizer.load(path)
-        ensemble = PolicyEnsemble.load(path, featurizer)
-        _interpreter = NaturalLanguageInterpreter.create(interpreter)
-        _tracker_store = SnipsMqttAgent.create_tracker_store(tracker_store, domain)
-        return SnipsMqttAgent(domain, ensemble, featurizer, _interpreter, _tracker_store)
-
-# Customised Domain to allow reference to core server for access to sessionId and other server scope.    
-class SnipsDomain(TemplateDomain):
-    def __init__(self, intents, entities, slots, templates, action_classes,
-                 action_names, action_factory, topics, core_server, **kwargs):
-        self._intents = intents
-        self._entities = entities
-        self._slots = slots
-        self._templates = templates
-        self._action_classes = action_classes
-        self._action_names = action_names
-        self._factory_name = action_factory
-        self.core_server = core_server
-        self._actions = self.instantiate_actions(
-                action_factory, action_classes, action_names, templates)
-        super(TemplateDomain, self).__init__(topics, **kwargs)
 
 
-    @classmethod
-    def load(cls, filename, action_factory=None,core_server=None):
-        if not os.path.isfile(filename):
-            raise Exception(
-                    "Failed to load domain specification from '{}'. "
-                    "File not found!".format(os.path.abspath(filename)))
 
-        cls.validate_domain_yaml(filename)
-        data = read_yaml_file(filename)
-        utter_templates = cls.collect_templates(data.get("templates", {}))
-        if not action_factory:
-            action_factory = data.get("action_factory", None)
-        topics = [Topic(name) for name in data.get("topics", [])]
-        slots = cls.collect_slots(data.get("slots", {}))
-        additional_arguments = data.get("config", {})
-        return SnipsDomain(
-                data.get("intents", []),
-                data.get("entities", []),
-                slots,
-                utter_templates,
-                data.get("actions", []),
-                data.get("action_names", []),
-                action_factory,
-                topics,
-                core_server,
-                **additional_arguments
-        )
 
 # Creates a blocking mqtt listener that can take one of two actions
 # - respond to intents eg nlu/intent/User7_dostuff by calling code
@@ -194,7 +137,7 @@ class SnipsRasaCoreServer(SnipsMqttServer):
             
     def isCoreModified(self):    
         ret =   self.getCoreModified() != self.core_modified or self.getCoreDomainModified() != self.core_domain_modified or self.getCoreModified() > self.getCoreModelModified()  or self.getCoreDomainModified() > self.getCoreModelModified()
-        print("IS CORE MOD {} {} {} {} {} {}".format(ret,self.getCoreModified(),self.core_modified,self.getCoreDomainModified(),self.core_domain_modified,self.getCoreModelModified()))
+        #print("IS CORE MOD {} {} {} {} {} {}".format(ret,self.getCoreModified(),self.core_modified,self.getCoreDomainModified(),self.core_domain_modified,self.getCoreModelModified()))
         return ret
         
     def isCoreModelModified(self):
@@ -220,11 +163,12 @@ class SnipsRasaCoreServer(SnipsMqttServer):
 
     def watchModels(self,run_event):
         while True and run_event.is_set():
-            print("WATCH")
+            time.sleep(5)
+            #print("WATCH")
             if self.isCoreModified():
                 print("WATCH AND MODIFIED")
                 self.sendTrainingRequest()
-            time.sleep(5)
+            
 
     def sendTrainingRequest(self):
         if self.trainingId is None and self.hasTrainingMaterials():
@@ -318,31 +262,7 @@ class SnipsRasaCoreServer(SnipsMqttServer):
                 print('IN')
                 print(query)
                 response = self.agentLoaded.handle_message(query,output_channel = CollectingOutputChannel())
-                #print ("OUT")
-                #print(response)
-                #if response is not None and len(response) > 0:
-                    #self.client.publish('hermes/tts/say',
-                    #payload = json.dumps({"lang":self.lang,"sessionId": sessionId, "text": response[0], "siteId": siteId,"id":theId}), 
-                    #qos=0,
-                    #retain=False)
-                    ## interpret intent names to decide how next to engage the dialogue manager
-                    #if intentName.startswith('utter_askslot_') :
-                        #slot = intentNameParts[2]
-                        #self.client.publish('hermes/dialogue/continueSession',json.dumps({"text":response,"sessionId": sessionId,  "siteId": siteId, "slot": slot}))
-                    #elif intentName.startswith('utter_ask_') :  
-                        #self.client.publish('hermes/dialogue/continueSession',json.dumps({"text":response,"sessionId": sessionId,  "siteId": siteId}))
-                    #elif intentName.startswith('utter_choose_') :  
-                        #allowedIntents = intentNameInnerParts[2:]
-                        #self.client.publish('hermes/dialogue/continueSession',json.dumps({"text":response,"sessionId": sessionId,  "siteId": siteId,"intentFilter":",".join(allowedIntents)}))
-                    
-                    #elif intentName.startswith('utter_captureslot_'):
-                        #slot = intentNameParts[2]
-                        #self.client.publish('hermes/dialogue/continueSession',json.dumps({"text":response,"sessionId": sessionId,  "siteId": siteId, "slot": slot, "capture": "text"}))
-                    #elif intentName.startswith('utter_'):
-                        #self.client.publish('hermes/dialogue/endSession',json.dumps({"sessionId": sessionId,  "siteId": siteId}))
-                    #else :
-                        #pass
-                        ##self.client.publish('hermes/dialogue/endSession',json.dumps({"sessionId": sessionId,  "siteId": siteId}))
+              
         else:
             print("core model missing")
     def log(self, message):

@@ -164,6 +164,7 @@ class SnipsRasaNluServer(SnipsMqttServer):
     def watchModels(self,run_event):
         while True and run_event.is_set():
             for model in self.models:
+                #print("check training {}".format(model))
                 if self.isNluModelMissing(model) or self.isNluModified(model):
                     print("{} NLU training MODIFIED".format(model))
                     self.sendTrainingRequest(model)

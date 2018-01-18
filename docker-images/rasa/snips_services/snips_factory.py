@@ -2,6 +2,7 @@
 
 import rasa_core.utils 
 from rasa_core.actions.action import UtterAction
+from rasa_core.actions.action import ActionListen
 from snips_action import SnipsMqttAction
 
 def snips_action_factory(action_classes, action_names, utter_templates):
@@ -33,10 +34,14 @@ def snips_action_factory(action_classes, action_names, utter_templates):
     for name in action_classes:
         if name.startswith('ask_') or name.startswith('askslot_') or name.startswith('choose_')  or name.startswith('capture_') or name.startswith('say_'):
             actions.append(SnipsMqttAction(name))
+            if not name.startswith('say_'):
+               pass
+               # actions.append(ActionListen())
         elif name in utter_templates:
+            #pass
             actions.append(UtterAction(name))
         else:
             actions.append(_action_class(name))
-
+    print(actions)
     return actions
 
