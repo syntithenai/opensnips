@@ -16,7 +16,8 @@ RUN export DEBIAN_FRONTEND="noninteractive" ;  apt-get -f install && apt-get ins
 RUN if [ `uname -m` = "armv7l" ]; then  bash -c  'echo "deb https://raspbian.snips.ai/$(lsb_release -cs) stable main" > /etc/apt/sources.list.d/snips.list'; apt-key adv --keyserver pgp.mit.edu --recv-keys D4F50CDCA10A2849; elif [ `uname -m` = "x86_64" ]; then bash -c  'echo "deb https://debian.snips.ai/$(lsb_release -cs) stable main" > /etc/apt/sources.list.d/snips.list'; apt-key adv --keyserver pgp.mit.edu --recv-keys F727C778CCB0A455; fi
 
 RUN apt-get update 
-RUN apt-get install -y snips-platform-voice pulseaudio jq snips-watch snips-asr-model-en-500mb
+RUN apt-get install -y snips-platform-voice pulseaudio jq snips-watch
+#    snips-asr-model-en-500mb
 
 # ADD NON FREE REPOS
 # raspian includes them by default
@@ -27,22 +28,29 @@ RUN apt-get update
 RUN apt-get -y install libttspico0 libttspico-utils libttspico-data libav-tools
 RUN apt-get -y install alsa-utils
 
+RUN apt-get install openssl
+
+RUN apt-get install snips-platform-demo
+RUN apt-get install -y snips-asr-injection
+RUN apt-get install -y snips-asr-injection
+RUN apt-get install -y snips-makers-tts
+RUN apt-get install -y snips-skill-server
 
 # startup script from docker image using supervisord
 COPY snips-entrypoint.sh /opt/snips/snips-entrypoint.sh
 # default config file
 COPY snips.toml /etc/snips.toml
 # sample music assistant
-COPY assistant /usr/share/snips/assistant
+#COPY assistant /usr/share/snips/assistant
 # not present after installation so copied from docker image 
 # TODO allow for arm version
-COPY snips-tts-x86 /usr/bin/snips-tts
+#COPY snips-tts-x86 /usr/bin/snips-tts
 
 COPY ./client.conf /etc/pulse/client.conf
 COPY ./asound-pulse.conf /etc/asound.conf
 
 ENTRYPOINT ["/opt/snips/snips-entrypoint.sh"]
 
-CMD [""]
+CMD ["--mqtt mosquitto:1883"]
 
 

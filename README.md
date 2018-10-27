@@ -323,6 +323,20 @@ With the story format, confirmations, Yes/No responses, form wizard (slot fillin
 
 # Links
 
+##  browser microphone
+https://github.com/gabrielpoca/browser-pcm-stream - BASE
+https://github.com/chris-rudmin/opus-recorder  
+https://www.npmjs.com/package/wavefile
+
+### resample wav to 16000
+https://stackoverflow.com/questions/36525264/convert-sample-rate-in-web-audio-api
+https://stackoverflow.com/questions/28821124/how-to-set-up-sample-rate-using-web-audio-api/31366337#31366337
+NPM ONLY https://github.com/notthetup/resampler
+
+
+READ ME STEVE
+https://snips-nlu.readthedocs.io/en/latest/tutorial.html
+
 
 ## DeepSpeech
 https://github.com/mozilla/DeepSpeech

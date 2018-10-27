@@ -1,9 +1,21 @@
 [snips-common]
 # bus = "mqtt"
 mqtt = "mosquitto:1883"
-# audio = "localhost:26300"
+# audio = ["+@mqtt"]
 # assistant = "/usr/share/snips/assistant"
 # user_dir = "/var/lib/snips"
+
+## MQTT authentication
+# mqtt_username = ""
+# mqtt_password = ""
+
+## MQTT TLS configuration
+# mqtt_tls_hostname = ""
+# mqtt_tls_disable_root_store = false
+# mqtt_tls_cafile = ""
+# mqtt_tls_capath = ""
+# mqtt_tls_client_cert = ""
+# mqtt_tls_client_key = ""
 
 [snips-analytics]
 
@@ -11,30 +23,37 @@ mqtt = "mosquitto:1883"
 # no_fst_map = true
 # beam_size = 8
 # model = "/usr/share/snips/asr"
-# audio = ["+"]
-model = "/usr/share/snips/snips-asr-model-en-500MB"
+# audio = ["+@mqtt"]
 
 [snips-asr-google]
 # credentials = "/usr/share/snips/googlecredentials.json"
-# audio = ["+"]
+# audio = ["+@mqtt"]
 
 [snips-audio-server]
 # frame = 256
-# bind = "0.0.0.0:26300"
+# bind = "default@mqtt"
 # mike = "Built-in Microphone"
+# disable_playback = false
 
 [snips-dialogue]
 # resources = "/usr/share/snips/dialogue"
 # session_timeout = 15
 # lambda_timeout = 5
 # retry_count = 3
+# sound_feedback_enabled_default = true
 
 [snips-hotword]
 # model = "/usr/share/snips/hotword"
 # hotword_id = "default"
 # sensitivity = "0.5"
-# audio = ["+"]
+# audio = ["+@mqtt"]
 
-[snips-queries]
+[snips-nlu]
 
-[snipt-tts]
+[snips-tts]
+## Choose one tts provider (defaults to picotts)
+# provider = "picotts"
+provider = "makerstts"
+# provider = "customtts"
+## customtts specific configuration (here configured to use picotts)
+# customtts = { command = ["pico2wave", "-w", "%%OUTPUT_FILE%%", "-l", "%%LANG%%", "%%TEXT%%"] }

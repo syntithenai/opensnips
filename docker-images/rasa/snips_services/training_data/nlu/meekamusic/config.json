@@ -1,7 +1,0 @@
-{
-  "pipeline" : ["nlp_spacy", "tokenizer_spacy", "intent_entity_featurizer_regex", "intent_featurizer_spacy", "ner_crf", "ner_synonyms",  "intent_classifier_sklearn"],
-  "path" : "./models/",
-  "project" : "nlu",
-  "fixed_model_name" : "default",
-  "data" : "nlu.md"
-}

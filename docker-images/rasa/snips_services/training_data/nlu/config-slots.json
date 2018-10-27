@@ -1,7 +1,0 @@
-{
-  "pipeline": ["nlp_spacy",  "tokenizer_spacy","ner_crf", "ner_synonyms"],
-  "path" : "../models",
-  "project" : "nlu",
-  "fixed_model_name" : "default_slots",
-  "data" : "nlu.md"
-}

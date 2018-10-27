@@ -1,0 +1,10 @@
+image: syntithenai/snips_base
+manifests:
+  - image: amd64/debian:stretch
+    platform:
+      architecture: amd64
+      os: linux
+  - image: schachr/raspbian-stretch
+    platform:
+      architecture: arm
+      os: linux

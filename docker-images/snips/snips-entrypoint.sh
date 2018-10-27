@@ -1,10 +1,15 @@
 #!/bin/bash
 # Execute cli if requested
+
+#pulseaudio -vv &
+
 if [ "$1" = "snips" ]
 then
     shift
     exec snips "$@"
 fi
+
+
 
 
 ASSISTANT_FILE=/usr/share/snips/assistant/assistant.json
@@ -17,7 +22,7 @@ fi
 SUPERVISORD_CONF_FILE="/etc/supervisor/conf.d/supervisord.conf"
 ASR_TYPE=`cat $ASSISTANT_FILE|jq --raw-output '.asr.type'`
 ANALYTICS_ENABLED=`cat $ASSISTANT_FILE|jq --raw-output '.analyticsEnabled'`
-SNIPS_MOSQUITTO_FLAG="-h localhost -p 1883"
+SNIPS_MOSQUITTO_FLAG="-h mosquitto -p 1883"
 
 
 if [ -z "$SNIPS_AUDIO_SERVER_MQTT_ARGS" ]
@@ -33,7 +38,7 @@ else
 fi
 if [ -z "$SNIPS_ASR_ARGS" ]
 then
-    SNIPS_ASR_ARGS="$SNIPS_ASR_MODEL --no_fst_map --beam_size=8"
+    SNIPS_ASR_ARGS="$SNIPS_ASR_MODEL  --beam_size=8"
 fi
 
 if [ -z "$SNIPS_ASR_MQTT_ARGS" ]
@@ -72,8 +77,9 @@ fi
 
 
 # Read "global" arguments
-USE_INTERNAL_MQTT=true
-ALL_SNIPS_COMPONENTS=("snips-asr-google" "snips-asr" "snips-audio-server" "snips-tts" "snips-hotword" "snips-queries" "snips-dialogue" "snips-analytics" "snips-debug")
+USE_INTERNAL_MQTT=false
+#"snips-tts"
+ALL_SNIPS_COMPONENTS=("snips-asr-google" "snips-asr" "snips-audio-server"  "snips-hotword" "snips-nlu" "snips-dialogue" "snips-analytics" "snips-debug")
 declare -A SNIPS_COMPONENTS
 for c in ${ALL_SNIPS_COMPONENTS[@]}
 do
@@ -317,12 +323,12 @@ fi
 
 
 # Generate snips-queries
-if [ "${SNIPS_COMPONENTS['snips-queries']}" = true ]
+if [ "${SNIPS_COMPONENTS['snips-nlu']}" = true ]
 then
-    echo Spawning /usr/bin/snips-queries $LOGLEVEL $SNIPS_MQTT_FLAG $SNIPS_QUERIES_MQTT_ARGS
+    echo Spawning /usr/bin/snips-nlu $LOGLEVEL $SNIPS_MQTT_FLAG $SNIPS_QUERIES_MQTT_ARGS
     cat <<EOT >> $SUPERVISORD_CONF_FILE
-[program:snips-queries]
-command=/usr/bin/snips-queries $LOGLEVEL $SNIPS_MQTT_FLAG $SNIPS_QUERIES_MQTT_ARGS
+[program:snips-nlu]
+command=/usr/bin/snips-nlu $LOGLEVEL $SNIPS_MQTT_FLAG $SNIPS_QUERIES_MQTT_ARGS
 autorestart=true
 directory=/root
 environment=RUMQTT_READ_TIMEOUT_MS="50"
@@ -332,7 +338,7 @@ stdout_logfile=/dev/fd/1
 stdout_logfile_maxbytes=0
 EOT
 else
-    echo "snips-queries is disabled"
+    echo "snips-nlu is disabled"
 fi
 
 

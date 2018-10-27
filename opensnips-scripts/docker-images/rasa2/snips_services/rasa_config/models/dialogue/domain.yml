@@ -1,0 +1,412 @@
+action_factory: null
+action_names:
+- utter_greet
+- utter_confirmed
+- utter_cancel
+- utter_add_to_playlist_ask_name
+- utter_adding_to_playlist
+- utter_confirm_clear_playlist
+- utter_clearing_the_playlist
+- utter_ask_new_playlist_name
+- utter_ok_creating_a_playlist
+- utter_set_current_view
+- utter_genre_definition
+- utter_confirm_delete_song_from_collection
+- utter_deleting_song_from_collection
+- utter_delete_playlist_ask_name
+- utter_confirm_delete_playlist
+- utter_delete_playlist
+- utter_confirm_delete_song_from_playlist
+- utter_deleting_song_from_playlist
+- utter_confirm_favorite_add_this
+- utter_favorite_adding_this
+- utter_confirm_favorite_remove_this
+- utter_favorite_removing_this
+- utter_ok_goto_next_track
+- utter_ok_goto_previous_track
+- utter_help
+- utter_open_playlist_ask_name
+- utter_open_playlist
+- utter_ok_pause
+- utter_confirm_play_all
+- utter_playing_all
+- utter_playing_all_my_favorites
+- utter_playing_music_by_artist
+- utter_playing_music_by_artist_ask_name
+- utter_playing_music_from_album
+- utter_playing_music_from_album_ask_name
+- utter_playing_music_genre
+- utter_playing_music_genre_ask_name
+- utter_playing_next
+- utter_playing_previous
+- utter_playing_random_music
+- utter_playing_song_ask_name
+- utter_playing_song
+- utter_playing_this_album
+- utter_playing_this_artist
+- utter_ask_name_for_save_this_playlist_as
+- utter_saving_this_playlist_as
+- utter_confirm_save_to_collection
+- utter_saving_to_collection
+- utter_searching_music_by_artist_ask_name
+- utter_searching_music_by_artist
+- utter_searching_music_from_album_ask_name
+- utter_searching_music_from_album
+- utter_searching_music_genre_ask_name
+- utter_searching_music_genre
+- utter_searching_song_ask_name
+- utter_searching_song
+- utter_searching_this_album
+- utter_searching_this_artist
+- utter_ask_the_volume
+- utter_ok_set_the_volume
+- utter_sharing_song_playlist
+- utter_sharing_song_playlist_with_user
+- utter_shuffling_playlist
+- utter_song_info
+- utter_song_info_album
+- utter_song_info_artist
+- utter_song_info_genre
+- utter_ok_start_playing
+- utter_ask_start_playlist
+- utter_starting_playlist
+- utter_ok_stop_listening
+- utter_confirm_tag_remove
+- utter_tag_removed
+- utter_confirm_tag_song_as_genre
+- utter_ok_tag_song_as_genre
+- utter_you_can_say
+actions:
+- utter_greet
+- utter_confirmed
+- utter_cancel
+- utter_add_to_playlist_ask_name
+- utter_adding_to_playlist
+- utter_confirm_clear_playlist
+- utter_clearing_the_playlist
+- utter_ask_new_playlist_name
+- utter_ok_creating_a_playlist
+- utter_set_current_view
+- utter_genre_definition
+- utter_confirm_delete_song_from_collection
+- utter_deleting_song_from_collection
+- utter_delete_playlist_ask_name
+- utter_confirm_delete_playlist
+- utter_delete_playlist
+- utter_confirm_delete_song_from_playlist
+- utter_deleting_song_from_playlist
+- utter_confirm_favorite_add_this
+- utter_favorite_adding_this
+- utter_confirm_favorite_remove_this
+- utter_favorite_removing_this
+- utter_ok_goto_next_track
+- utter_ok_goto_previous_track
+- utter_help
+- utter_open_playlist_ask_name
+- utter_open_playlist
+- utter_ok_pause
+- utter_confirm_play_all
+- utter_playing_all
+- utter_playing_all_my_favorites
+- utter_playing_music_by_artist
+- utter_playing_music_by_artist_ask_name
+- utter_playing_music_from_album
+- utter_playing_music_from_album_ask_name
+- utter_playing_music_genre
+- utter_playing_music_genre_ask_name
+- utter_playing_next
+- utter_playing_previous
+- utter_playing_random_music
+- utter_playing_song_ask_name
+- utter_playing_song
+- utter_playing_this_album
+- utter_playing_this_artist
+- utter_ask_name_for_save_this_playlist_as
+- utter_saving_this_playlist_as
+- utter_confirm_save_to_collection
+- utter_saving_to_collection
+- utter_searching_music_by_artist_ask_name
+- utter_searching_music_by_artist
+- utter_searching_music_from_album_ask_name
+- utter_searching_music_from_album
+- utter_searching_music_genre_ask_name
+- utter_searching_music_genre
+- utter_searching_song_ask_name
+- utter_searching_song
+- utter_searching_this_album
+- utter_searching_this_artist
+- utter_ask_the_volume
+- utter_ok_set_the_volume
+- utter_sharing_song_playlist
+- utter_sharing_song_playlist_with_user
+- utter_shuffling_playlist
+- utter_song_info
+- utter_song_info_album
+- utter_song_info_artist
+- utter_song_info_genre
+- utter_ok_start_playing
+- utter_ask_start_playlist
+- utter_starting_playlist
+- utter_ok_stop_listening
+- utter_confirm_tag_remove
+- utter_tag_removed
+- utter_confirm_tag_song_as_genre
+- utter_ok_tag_song_as_genre
+- utter_you_can_say
+config:
+  store_entities_as_slots: true
+entities:
+- album
+- playlist
+- artist
+- genre
+- help_topic
+- message
+- music_source
+- share_target
+- song
+- user
+- viewpage
+- volume
+intents:
+- add_to_playlist
+- clear_the_playlist
+- create_a_playlist
+- agree
+- disagree
+- current_view
+- define_genre
+- delete_song_from_collection
+- delete_playlist
+- delete_song_from_playlist
+- favorite_add_this
+- favorite_remove_this
+- goto_next_track
+- goto_previous_track
+- help
+- open_playlist
+- pause
+- play_all
+- play_all_my_favorites
+- play_music_by_artist
+- play_music_from_album
+- play_music_genre
+- play_next
+- play_previous
+- play_random_music
+- play_song
+- play_this_album
+- play_this_artist
+- save_this_playlist_as
+- save_to_collection
+- search_music_by_artist
+- search_music_from_album
+- search_music_genre
+- search_song
+- search_this_album
+- search_this_artist
+- set_the_volume
+- share_song_playlist
+- share_song_playlist_with_user
+- shuffle_playlist
+- song_info
+- song_info_album
+- song_info_artist
+- song_info_genre
+- start_playing
+- start_playlist
+- stop_listening
+- tag_remove
+- tag_song_as_genre
+- what_can_i_say
+slots:
+  album:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  artist:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  genre:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  help_topic:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  message:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  music_source:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  playlist:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  share_target:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  song:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  user:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  viewpage:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  volume:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+templates:
+  utter_add_to_playlist_ask_name:
+  - text: what playlist do you want to add this song to?
+  utter_adding_to_playlist:
+  - text: added song to playlist
+  utter_ask_name_for_save_this_playlist_as:
+  - text: what did you want to call the playlist?
+  utter_ask_new_playlist_name:
+  - text: what do you want to call the new playlist
+  utter_ask_start_playlist:
+  - text: what playlist do you want to start?
+  utter_ask_the_volume:
+  - text: what do you want to set the volume to between 0 and 10
+  utter_cancel:
+  - text: cancelled
+  utter_clearing_the_playlist:
+  - text: clearing the playlist
+  utter_confirm_clear_playlist:
+  - text: do you really want to clear the playlist
+  utter_confirm_delete_playlist:
+  - text: do you really want to delete this playlist
+  utter_confirm_delete_song_from_collection:
+  - text: do you really want to delete this song from your collection
+  utter_confirm_delete_song_from_playlist:
+  - text: do you really want to remove this song from the current playlist
+  utter_confirm_favorite_add_this:
+  - text: so you want to add this song to your favorites?
+  utter_confirm_favorite_remove_this:
+  - text: so you want to remove this song from your favorites?
+  utter_confirm_play_all:
+  - text: do you really want to play all these songs
+  utter_confirm_save_to_collection:
+  - text: do you really want to save this song to your collection?
+  utter_confirm_tag_remove:
+  - text: so you want to remove the tag @tag
+  utter_confirm_tag_song_as_genre:
+  - text: so you want to tag this song as @genre
+  utter_confirmed:
+  - text: ok
+  utter_delete_playlist:
+  - text: ok deleting the playlist
+  utter_delete_playlist_ask_name:
+  - text: what playlist do you want to delete?
+  utter_deleting_song_from_collection:
+  - text: ok deleting the song
+  utter_deleting_song_from_playlist:
+  - text: ok removing the song
+  utter_favorite_adding_this:
+  - text: add this song to your favorites
+  utter_favorite_removing_this:
+  - text: ok this song is no longer a favorite
+  utter_genre_definition:
+  - text: genre XXX is ...
+  utter_greet:
+  - text: hi, what would you like to listen to?
+  utter_help:
+  - text: help with XXXX
+  utter_ok_creating_a_playlist:
+  - text: ok creating a playlist
+  utter_ok_goto_next_track:
+  - text: going to the next track
+  utter_ok_goto_previous_track:
+  - text: going to the previous track
+  utter_ok_pause:
+  - text: paused
+  utter_ok_set_the_volume:
+  - text: ok setting the volume to @volume
+  utter_ok_start_playing:
+  - text: Now playing.
+  utter_ok_stop_listening:
+  - text: bye
+  utter_ok_tag_song_as_genre:
+  - text: ok tagged this song as @genre
+  utter_open_playlist:
+  - text: opening playlist XXX
+  utter_open_playlist_ask_name:
+  - text: what playlist do you want to open
+  utter_playing_all:
+  - text: playing all these songs
+  utter_playing_all_my_favorites:
+  - text: playing all your favorites
+  utter_playing_music_by_artist:
+  - text: playing music by XXX
+  utter_playing_music_by_artist_ask_name:
+  - text: what artist do you want to play?
+  utter_playing_music_from_album:
+  - text: playing music from album XXX
+  utter_playing_music_from_album_ask_name:
+  - text: what album do you want to play?
+  utter_playing_music_genre:
+  - text: playing XXX music
+  utter_playing_music_genre_ask_name:
+  - text: what genre music do you want to hear?
+  utter_playing_next:
+  - text: playing next tracks
+  utter_playing_previous:
+  - text: playing previous track
+  utter_playing_random_music:
+  - text: playing some random music
+  utter_playing_song:
+  - text: playing the song XXX
+  utter_playing_song_ask_name:
+  - text: what song do you want to hear ?
+  utter_playing_this_album:
+  - text: playing other tracks from this album
+  utter_playing_this_artist:
+  - text: playing music by this artist
+  utter_saving_this_playlist_as:
+  - text: saving the playlist XXX
+  utter_saving_to_collection:
+  - text: saving this song to your collection
+  utter_searching_music_by_artist:
+  - text: searching for music by @artist
+  utter_searching_music_by_artist_ask_name:
+  - text: what artist are you searching for?
+  utter_searching_music_from_album:
+  - text: searching for music on @album
+  utter_searching_music_from_album_ask_name:
+  - text: what album are you searching for?
+  utter_searching_music_genre:
+  - text: searching for @genre music
+  utter_searching_music_genre_ask_name:
+  - text: what genre are you searching for?
+  utter_searching_song:
+  - text: searching for the song @song
+  utter_searching_song_ask_name:
+  - text: what song are you searching for?
+  utter_searching_this_album:
+  - text: searching for this album
+  utter_searching_this_artist:
+  - text: searching for this artist
+  utter_set_current_view:
+  - text: changing view
+  utter_sharing_song_playlist:
+  - text: sharing
+  utter_sharing_song_playlist_with_user:
+  - text: sharing with user
+  utter_shuffling_playlist:
+  - text: shuffling the playlist
+  utter_song_info:
+  - text: this song is XXX
+  utter_song_info_album:
+  - text: this song album is XXX
+  utter_song_info_artist:
+  - text: this song artist is XXX
+  utter_song_info_genre:
+  - text: this song genre is XXX
+  utter_starting_playlist:
+  - text: starting the @playlist playlist
+  utter_tag_removed:
+  - text: tag @tag removed
+  utter_you_can_say:
+  - text: you can say all sorts of things
+topics: []
