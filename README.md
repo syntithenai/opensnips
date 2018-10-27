@@ -1,8 +1,10 @@
 # OpenSnips
 
+
+
 ## Overview
 
-!! This project is a work in progress. The documentation is in places, ahead of the function but it does build and run on a x86_64 Linux Desktop.
+This project is a work in progress. The documentation is in places, ahead of the function but it does build and run on a x86_64 Linux Desktop.
 
 This repository is a docker-compose suite integrating [Snips AI](http://snips.ai)  and [RASA AI](http://rasa.ai) and [Kaldi](https://github.com/alumae/kaldi-gstreamer-server) and [Meeka@home](http://meekamusic.com) to create a 100% open source implementation of the [Hermes MQTT protocol](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#hermes-protocol) used by Snips. 
 
@@ -139,15 +141,15 @@ The hotword server watches for changes to training data and rebuilds the MARF da
 If the identification has trained successfully, the hotword server will send 
 
 
-### Dialog Server
+### Dialogue Server
 
-The dialog server is the glue that listens to other services and sends messages to trigger the next step of recognition.
+The dialogue server is the glue that listens to other services and sends messages to trigger the next step of recognition.
 
-The opensnips dialog server implements most of the features of the official version.
+The opensnips dialogue server implements most of the features of the official version.
 
-A snips model downloaded from http://console.snips.ai is required to run the official dialog component (as well as the nlu and or asr components).
+A snips model downloaded from http://console.snips.ai is required to run the official dialogue component (as well as the nlu and or asr components).
 
-The opensnips dialog server does not take any models into consideration.
+The opensnips dialogue server does not take any models into consideration.
 
 At this time, the following features are pending.
 
@@ -189,7 +191,7 @@ Snips user id is used to exclude the user id when processing intent names.
     #- nlu_model_path=models/nlu
     #- snips_assistant_path=models/snips
     #- snips_user_id=user_Kr5A7b4OD
-    #- core_model_path=models/dialog
+    #- core_model_path=models/dialogue
     #- config_file=config/config.json
     #- domain_file=config/domain.yml
     #- nlu_training_file=config/nlu.md
@@ -321,6 +323,20 @@ With the story format, confirmations, Yes/No responses, form wizard (slot fillin
 
 # Links
 
+##  browser microphone
+https://github.com/gabrielpoca/browser-pcm-stream - BASE
+https://github.com/chris-rudmin/opus-recorder  
+https://www.npmjs.com/package/wavefile
+
+### resample wav to 16000
+https://stackoverflow.com/questions/36525264/convert-sample-rate-in-web-audio-api
+https://stackoverflow.com/questions/28821124/how-to-set-up-sample-rate-using-web-audio-api/31366337#31366337
+NPM ONLY https://github.com/notthetup/resampler
+
+
+READ ME STEVE
+https://snips-nlu.readthedocs.io/en/latest/tutorial.html
+
 
 ## DeepSpeech
 https://github.com/mozilla/DeepSpeech
@@ -368,6 +384,14 @@ https://github.com/claritylab/lucida
 http://www.nltk.org/book/
 
 
+## Language Generation
+https://github.com/simplenlg/simplenlg/wiki/Section-I-%E2%80%93-What-is-SimpleNLG
+
+https://github.com/SteGriff/Paprika
+
+https://github.com/spro/nalgene
+
+https://github.com/jeremyfromearth/metonym
 
 ## Corpus
 http://www.openslr.org/12
@@ -378,3 +402,161 @@ http://www.openslr.org/12
 ### WIP    
 - skills server using RASA core and story format described below to listen for hermes/nlu/intentParsed and take actions based on stories.
 - web server with site for editing stories to generate rasa_nlu, rasa_core and snips stubs from a story.
+
+
+
+
+### Protocol Description
+
+The Hermes protocol is designed to allow a suite of services to implement spoken conversational dialogue 
+
+
+
+By splitting the stages of speech recognition into distinct services
+
+- services can be swapped out for alternatives eg rasa dialogflow or snips NLU
+- services are encouraged to be encapsulated knowing as little about other services as possible.
+- some services (eg training) can distributed to higher power devices on the network
+
+In general the services should
+
+- minimise what they know about each other to a public api.
+- be known by as few other services as possible
+
+#### Service Interactions
+
+audioserver is used by 
+    - hotword   (hermes/audioserver/+/audioFrame)
+    - asr
+    - tts   (hermes/audioserver/playBytes)
+
+dialog server uses all services except the audioserver
+
+actionhandler interacts with dialog server via 
+IN
+- intent
+OUT
+- sessionStart 
+- continueSession
+
+#### Description
+
+The audio streamer continuously streams audio frames to the hotword server. It also acts on messages to play audio frames.
+
+1. hermes/hotword/detected?siteId=default
+
+When a hotword is detected a message is sent that triggers the dialogue manager to stop the hotword, and start the ASR.
+The hotword detected message includes a siteId that is saved by the dialogue manager in a dict against the sessionId.
+
+A sessionId is generated by the dialogue manager when the hotword is detected.
+It is used to track the dialogue session as it progresses through the various services.
+
+2. hermes/asr/textCaptured?sessionId
+
+The dialog manager is responsible for managing the flow of speech input and output across the services.
+The default flow is hotword,asr,nlu,handler.
+
+Dialogue manager could be extended to 
+- support flows including choosing from a list of intents or filling the value for a slot from predefined or free text values.
+- support selection of loaded asr or nlu models.
+
+In the current version, 
+- sessionId is passed universally
+at times 
+- siteId
+- hotwordId
+
+
+
+
+hermes/hotword/default/detected
+OR
+hermes/dialogue/startSession
+- siteId
+- customData
+- {'type':'action|notification','text':''}
+
+
+
+hermes/dialogue/continueSession
+- text
+- intentFilter
+extra params
+- slot
+- model
+- capture = true/false
+
+
+
+
+### Protocol Reference
+
+audioserver
+- hermes/audioserver/playFrames
+- hermes/audioserver/audioFrame
+
+hotword
+- hermes/hotword/<hotwordid>/toggleOn?siteId
+- hermes/hotword/<hotwordid>/toggleOn?siteId
+- hermes/hotword/<hotwordid>/detected?siteId
+
+asr
+- hermes/asr/startListening?siteId
+- hermes/asr/stopListening?siteId
+    - hermes/asr/partialTextCaptured?text=?siteId
+    - hermes/asr/textCaptured?text=?siteId
+    
+nlu
+- hermes/nlu/query?input?intentFilter?slot?model?fallback
+    - hermes/nlu/intentParsed
+- hermes/nlu/partialQuery?input?intentName?slotName?model
+    - hermes/nlu/slotParsed
+ 
+
+tts
+- hermes/tts/say
+
+dialog
+- hotword/detected
+    - asr/stopListening
+    - hotword/toggleOff
+    - asr/startListening
+    
+- asr/textCaptured
+    - nlu/query
+
+- nlu/intentParsed
+    - hermes/intent
+    
+- nlu/slotParsed
+    - hermes/intent
+    
+actionhandler
+- hermes/intent
+- hermes/dialogue/startSession
+- hermes/dialogue/continueSession
+
+
+EXTENSION
+# distributed training
+- hermes/training/start?trainingData?type=rasa_nlu,rasa_core,kaldi,snips
+    - hermes/training/complete?trainingResults
+- hermes/training/missingModel?modelName?type
+    - hermes/training/start?trainingData
+
+# dialog shortcuts
+hermes/dialogue/say
+hermes/dialogue/ask
+hermes/dialogue/ask_slot
+hermes/dialogue/capture_slot
+    
+  
+# TODO
+- foreach server
+  - python style - functions _, classNames titleCase, 
+  - comments pylint
+  - constructor parameters and env vars consistency, remove some defaults replace with settings in docker-compose.yml
+  - remove snips references
+  
+
+

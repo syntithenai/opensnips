@@ -1,0 +1,579 @@
+{
+  "name" : "Meeka Music",
+  "intents" : [ {
+    "id" : "user_Kr5A7b4OD__add_to_playlist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "playlist",
+      "id" : "slot_imported_BJW5Y4MmJz",
+      "entity" : "",
+      "entityId" : "entity_GZ9PakA0Bqk",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "add_to_playlist"
+  }, {
+    "id" : "user_Kr5A7b4OD__clear_the_playlist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "clear_the_playlist"
+  }, {
+    "id" : "user_Kr5A7b4OD__create_a_playlist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "playlist",
+      "id" : "slot_imported_HJHfA4GXyG",
+      "entity" : "",
+      "entityId" : "entity_GZ9PakA0Bqk",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "create_a_playlist"
+  }, {
+    "id" : "user_Kr5A7b4OD__current_view",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "view_page",
+      "id" : "slot_imported_SJBwHBfQyz",
+      "entity" : "",
+      "entityId" : "entity_qVzaBwpbkk1",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "current_view"
+  }, {
+    "id" : "user_Kr5A7b4OD__define_genre",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "genre",
+      "id" : "slot_imported_HkWaWufXJG",
+      "entity" : "",
+      "entityId" : "entity_KEzvNkeyqyb",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "define_genre"
+  }, {
+    "id" : "user_Kr5A7b4OD__delete_playlist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "playlist",
+      "id" : "slot_imported_HJ3JHGmyG",
+      "entity" : "",
+      "entityId" : "entity_GZ9PakA0Bqk",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "delete_playlist"
+  }, {
+    "id" : "user_Kr5A7b4OD__delete_song_from_collection",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "delete_song_from_collection"
+  }, {
+    "id" : "user_Kr5A7b4OD__delete_song_from_playlist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "delete_song_from_playlist"
+  }, {
+    "id" : "user_Kr5A7b4OD__disagree",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "disagree"
+  }, {
+    "id" : "user_Kr5A7b4OD__favorite_add_this",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "favorite_type",
+      "id" : "S1OEMMmyM",
+      "entity" : "",
+      "entityId" : "entity_KEzdnaZ1wyq",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "favorite_add_this"
+  }, {
+    "id" : "user_Kr5A7b4OD__favorite_remove_this",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "favorite_type",
+      "id" : "rJ3nGzXkG",
+      "entity" : "",
+      "entityId" : "entity_KEzdnaZ1wyq",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "favorite_remove_this"
+  }, {
+    "id" : "user_Kr5A7b4OD__goto_next_track",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "goto_next_track"
+  }, {
+    "id" : "user_Kr5A7b4OD__goto_previous_track",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "goto_previous_track"
+  }, {
+    "id" : "user_Kr5A7b4OD__help",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "help_topic",
+      "id" : "slot_imported_HkERQFG71f",
+      "entity" : "",
+      "entityId" : "entity_0ZyyqEpQvqz",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "help"
+  }, {
+    "id" : "user_Kr5A7b4OD__open_playlist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "playlist",
+      "id" : "slot_imported_S1-gwVM7Jz",
+      "entity" : "",
+      "entityId" : "entity_GZ9PakA0Bqk",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "open_playlist"
+  }, {
+    "id" : "user_Kr5A7b4OD__pause",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "pause"
+  }, {
+    "id" : "user_Kr5A7b4OD__play_all",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "play_all"
+  }, {
+    "id" : "user_Kr5A7b4OD__play_all_my_favorites",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "play_all_my_favorites"
+  }, {
+    "id" : "user_Kr5A7b4OD__play_music_by_artist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "artist",
+      "id" : "H1FCOb71G",
+      "entity" : "",
+      "entityId" : "entity_3OPZNM795Y2",
+      "missingQuestion" : "",
+      "required" : false
+    }, {
+      "name" : "music_source",
+      "id" : "r1rrF-Q1G",
+      "entity" : "",
+      "entityId" : "entity_g1NBrx7z23o",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "play_music_by_artist"
+  }, {
+    "id" : "user_Kr5A7b4OD__play_music_from_album",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "album",
+      "id" : "HJiV5-QJG",
+      "entity" : "",
+      "entityId" : "entity_6KYlPxlNrPW",
+      "missingQuestion" : "",
+      "required" : false
+    }, {
+      "name" : "music_source",
+      "id" : "BkNY9bmJf",
+      "entity" : "",
+      "entityId" : "entity_g1NBrx7z23o",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "play_music_from_album"
+  }, {
+    "id" : "user_Kr5A7b4OD__play_music_genre",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "genre",
+      "id" : "BJ2esb71G",
+      "entity" : "",
+      "entityId" : "entity_KEzvNkeyqyb",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "play_music_genre"
+  }, {
+    "id" : "user_Kr5A7b4OD__play_next",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "play_next"
+  }, {
+    "id" : "user_Kr5A7b4OD__play_previous",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "play_previous"
+  }, {
+    "id" : "user_Kr5A7b4OD__play_random_music",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "play_random_music"
+  }, {
+    "id" : "user_Kr5A7b4OD__play_song",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "song",
+      "id" : "HyasNbXyG",
+      "entity" : "",
+      "entityId" : "entity_AqN8am8M379",
+      "missingQuestion" : "",
+      "required" : false
+    }, {
+      "name" : "music_source",
+      "id" : "HJkXBW7yG",
+      "entity" : "",
+      "entityId" : "entity_g1NBrx7z23o",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "play_song"
+  }, {
+    "id" : "user_Kr5A7b4OD__play_this_album",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "play_this_album"
+  }, {
+    "id" : "user_Kr5A7b4OD__play_this_artist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "play_this_artist"
+  }, {
+    "id" : "user_Kr5A7b4OD__save_this_playlist_as",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "playlist",
+      "id" : "slot_imported_ByeQ27z71G",
+      "entity" : "",
+      "entityId" : "entity_GZ9PakA0Bqk",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "save_this_playlist_as"
+  }, {
+    "id" : "user_Kr5A7b4OD__save_to_collection",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "save_to_collection"
+  }, {
+    "id" : "user_Kr5A7b4OD__search_music_by_artist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "artist",
+      "id" : "Hy31aZ7JG",
+      "entity" : "",
+      "entityId" : "entity_3OPZNM795Y2",
+      "missingQuestion" : "",
+      "required" : false
+    }, {
+      "name" : "music_source",
+      "id" : "S1Vga-Xkf",
+      "entity" : "",
+      "entityId" : "entity_g1NBrx7z23o",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "search_music_by_artist"
+  }, {
+    "id" : "user_Kr5A7b4OD__search_music_from_album",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "album",
+      "id" : "H17VJMmkf",
+      "entity" : "",
+      "entityId" : "entity_6KYlPxlNrPW",
+      "missingQuestion" : "",
+      "required" : false
+    }, {
+      "name" : "music_source",
+      "id" : "ByAEJzXJM",
+      "entity" : "",
+      "entityId" : "entity_g1NBrx7z23o",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "search_music_from_album"
+  }, {
+    "id" : "user_Kr5A7b4OD__search_music_genre",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "genre",
+      "id" : "Byc7xf71f",
+      "entity" : "",
+      "entityId" : "entity_KEzvNkeyqyb",
+      "missingQuestion" : "",
+      "required" : false
+    }, {
+      "name" : "music_source",
+      "id" : "SJgVgzmyz",
+      "entity" : "",
+      "entityId" : "entity_g1NBrx7z23o",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "search_music_genre"
+  }, {
+    "id" : "user_Kr5A7b4OD__search_song",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "song",
+      "id" : "B1TP-MQkz",
+      "entity" : "",
+      "entityId" : "entity_AqN8am8M379",
+      "missingQuestion" : "",
+      "required" : false
+    }, {
+      "name" : "music_source",
+      "id" : "SkmdZfXkM",
+      "entity" : "",
+      "entityId" : "entity_g1NBrx7z23o",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "search_song"
+  }, {
+    "id" : "user_Kr5A7b4OD__search_this_album",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "search_this_album"
+  }, {
+    "id" : "user_Kr5A7b4OD__search_this_artist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "search_this_artist"
+  }, {
+    "id" : "user_Kr5A7b4OD__set_the_volume",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "volume",
+      "id" : "BJQ_7-QJM",
+      "entity" : "",
+      "entityId" : "numbers.number",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "set_the_volume"
+  }, {
+    "id" : "user_Kr5A7b4OD__share_song_playlist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "share_target",
+      "id" : "slot_imported_r1Zorvf7kM",
+      "entity" : "",
+      "entityId" : "entity_KEz86n7n91l",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "share_song_playlist"
+  }, {
+    "id" : "user_Kr5A7b4OD__share_song_playlist_with_user",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "user",
+      "id" : "slot_imported_HklgRCrMQkz",
+      "entity" : "",
+      "entityId" : "entity_aOEMbDaqAeq",
+      "missingQuestion" : "",
+      "required" : false
+    }, {
+      "name" : "message",
+      "id" : "slot_imported_r1i0RHf7Jf",
+      "entity" : "",
+      "entityId" : "entity_8edBAnKvr91",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "share_song_playlist_with_user"
+  }, {
+    "id" : "user_Kr5A7b4OD__shuffle_playlist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "shuffle_playlist"
+  }, {
+    "id" : "user_Kr5A7b4OD__song_info",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "song_info"
+  }, {
+    "id" : "user_Kr5A7b4OD__song_info_album",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "song_info_album"
+  }, {
+    "id" : "user_Kr5A7b4OD__song_info_artist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "song_info_artist"
+  }, {
+    "id" : "user_Kr5A7b4OD__song_info_genre",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "song_info_genre"
+  }, {
+    "id" : "user_Kr5A7b4OD__start_playing",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "start_playing",
+    "confirmationRequired" : false,
+    "confirmationQuestion" : ""
+  }, {
+    "id" : "user_Kr5A7b4OD__start_playlist",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "playlist",
+      "id" : "slot_imported_SkzVzNfQkM",
+      "entity" : "",
+      "entityId" : "entity_GZ9PakA0Bqk",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "start_playlist"
+  }, {
+    "id" : "user_Kr5A7b4OD__tag_remove",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "genre",
+      "id" : "slot_imported_rJNmtOGQyf",
+      "entity" : "",
+      "entityId" : "entity_KEzvNkeyqyb",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "tag_remove"
+  }, {
+    "id" : "user_Kr5A7b4OD__tag_song_as_genre",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "genre",
+      "id" : "slot_imported_ByMUyYz7yf",
+      "entity" : "",
+      "entityId" : "entity_KEzvNkeyqyb",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "tag_song_as_genre"
+  }, {
+    "id" : "user_Kr5A7b4OD__what_can_i_say",
+    "type" : "registry",
+    "version" : "latest",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "what_can_i_say"
+  } ],
+  "createdAt" : "2017-09-04T23:17:34.721Z",
+  "language" : "en",
+  "nluEngine" : {
+    "version" : "0.10.0"
+  },
+  "platform" : {
+    "type" : "rasberrypi"
+  },
+  "asr" : {
+    "type" : "snips"
+  },
+  "analyticsEnabled" : true,
+  "hotword" : "hey_snips"
+}

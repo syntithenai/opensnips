@@ -1,0 +1,14 @@
+# use  "manifest-tool push from-spec manifest-mosquitto.yaml"
+# from https://github.com/estesp/manifest-tool
+# as at now, the docker manifest command does not support import from file
+
+image: syntithenai/mosquitto
+manifests:
+  - image: toke/mosquitto
+    platform:
+      architecture: amd64
+      os: linux
+  - image: pascaldevink/rpi-mosquitto
+    platform:
+      architecture: arm
+      os: linux
