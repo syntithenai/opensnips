@@ -1,37 +1,28 @@
 /* global window */
 /* global Paho */
 
+/**
+ * This component requires the loading of scripts globally via script tags.
+ * Note also the global statements at the top of this file to enable these elements for React.
+ * The npm version of paho-mqtt threw errors so local.
+ * There are also libraries for hotword and speech generation with associated worker scripts.
+ * All these externals scripts are stored in the example/public folder.
+ * Beyond my ken right now to sort these elements out as proper npm packages ;)
+ */
 
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-//import Paho from  './mqttws31.min'
-import styles from './styles.css'
-
-console.log(Paho)
+import Resources from './resources'
 let hark = require('hark');
-console.log(hark)
 
 export default class SnipsMicrophone extends Component {
-  static propTypes = {
-    text: PropTypes.string
-  }
-   
 
     constructor(props) {
         super(props);
         this.sensitivities = new Float32Array([1]);
 
-        this.keywordIDs = {
-        'ok lamp': new Uint8Array([
-            0xac, 0x24, 0x75, 0x21, 0x14, 0x3d, 0x2a, 0xe7, 0x0a, 0x85, 0x75, 0x4c,
-            0x48, 0x31, 0x5b, 0x44, 0x4b, 0xb6, 0xe8, 0xc3, 0x77, 0x30, 0xd5, 0xac,
-            0xca, 0x54, 0x06, 0x29, 0xbd, 0x15, 0xca, 0x90, 0x55, 0x81, 0xae, 0x21,
-            0x6a, 0x04, 0x1e, 0x5a, 0x9d, 0x64, 0x83, 0x0c, 0x04, 0x03, 0x6b, 0xe8,
-            0x22, 0x2e, 0x19, 0xbf, 0x7e, 0x2b, 0x4d, 0x8c, 0x50, 0x27, 0xb6, 0x11,
-            0xf3, 0x17, 0xc3, 0xf9, 0xe3, 0x69, 0x19, 0x26, 0xbe, 0x0d, 0xad, 0x78,
-            0x74, 0x61, 0x4b, 0xb8, 0xde, 0x83, 0x1c, 0xb9, 0xa1, 0x06, 0x27, 0x77,
-            0x03, 0xb2, 0x24, 0x82])};
-        this.state={recording:false,messages:[],lastIntent:'',lastTts:'',lastTranscript:'',showMessage:false,activated:false,speaking:false}
+        this.keywordIDs = Resources.keywordIDs;
+        this.state={recording:false,messages:[],lastIntent:'',lastTts:'',lastTranscript:'',showMessage:false,activated:false,speaking:false,showConfig:false,connected:false,config:{},logs:{}}
         this.recording = false;
         this.siteId = this.props.sitedId ? this.props.sitedId : 'browser'; //+parseInt(Math.random()*100000000,10);
         this.clientId = this.props.clientId ? this.props.clientId :  'client'+parseInt(Math.random()*100000000,10);
@@ -41,9 +32,10 @@ export default class SnipsMicrophone extends Component {
         this.messageTimeout = null;
         this.mqttClient = null;
         this.speakingTimeout = null;
-        //this.hark = require('hark');
-
-        this.hotwordManager =  null; //new PicovoiceAudioManager(); //!this.props.disableHotword ? new PicovoiceAudioManager() : null; 
+        this.failCount=0;
+        this.hotwordManager =  null;
+        this.speechEvents =  null;
+        this.audioBuffer = [];
         this.debug = this.props.debug ? true : false;
         // default mqtt server localhost
         this.mqttServer = this.props.mqttServer && this.props.mqttServer.length > 0 ? this.props.mqttServer : 'localhost'
@@ -72,60 +64,75 @@ export default class SnipsMicrophone extends Component {
         this.activate = this.activate.bind(this);
         this.deactivate = this.deactivate.bind(this);
         this.hotwordCallback = this.hotwordCallback.bind(this);
-        
+        this.logAudio = this.logAudio.bind(this);
+        this.logTts = this.logTts.bind(this);
+        this.logAsr = this.logAsr.bind(this);
+        this.logIntent = this.logIntent.bind(this);
+        this.currentLogEntry = this.currentLogEntry.bind(this);
+        this.resetConfig = this.resetConfig.bind(this);
     };
  
-    startRecording = function() {
-     //   console.log('START');
-        this.recording = true;
-      this.setState({speaking:true,recording : true,lastIntent:'',lastTts:'',lastTranscript:'',showMessage:false});
-      let message = new Paho.MQTT.Message(JSON.stringify({siteId:this.siteId,modelId:this.hotwordId,modelType:'universal'}));
-      message.destinationName = "hermes/hotword/"+this.hotwordId+"/detected";
-      this.mqttClient.send(message);
-    }
-
-    stopRecording = function() {
-       // console.log('STOP');
-        this.recording = false;
-        this.setState({recording : false});
-      let message = new Paho.MQTT.Message(JSON.stringify({sessionId:this.sessionId}));
-      message.destinationName = "hermes/dialogueManager/endSession";
-      try {
-          this.mqttClient.send(message);
-      } catch (e) {
-          // not connected
-      }
-      
-    }
-    
+    /**
+     * Lifecycle functions
+     */
+     
+    /**
+     * Activate on mount if user has previously enabled.
+     */ 
     componentDidMount() {
+        this.initSpeechSynthesis.bind(this)();
+        let configString = localStorage.getItem('snipsmicrophone_config');
+        let config = null;
+        try {
+            config = JSON.parse(configString)
+        } catch(e) {
+        }
+        console.log(['LOAD CONFIG',config,configString]);
+        if (config) {
+            // load config
+            this.setState({'config':config});
+        } else {
+            // default config
+            let newConfig = this.getDefaultConfig.bind(this)();
+            
+            this.setState({'config':newConfig});
+            localStorage.setItem('snipsmicrophone_config',JSON.stringify(newConfig));
+        }
+        // if previously activated, restore microphone
         if (localStorage.getItem('snipsmicrophone_enabled') === 'true') {
             this.activate(false);
         }
-       // this.hotwordManager =  new PicovoiceAudioManager(); 
-                  
+        
     }
     
-    activate(start = true) {
-        let that = this;
-        // mqtt server
-    // Create a client instance
-        console.log(['CONNECT',this.mqttServer, Number(this.mqttPort), this.clientId]);
-        localStorage.setItem('snipsmicrophone_enabled','true');
-        this.mqttClient = new Paho.MQTT.Client(this.mqttServer, Number(this.mqttPort), this.clientId);
-        // set callback handlers
-        this.mqttClient.onConnectionLost = this.onConnectionLost;
-        this.mqttClient.onMessageArrived = this.onMessageArrived;
-
-        // connect the client
-        this.mqttClient.connect({onSuccess:this.onConnect});
-       if (start) { 
-         setTimeout(function() {
-            that.startRecording();
-        },500);  
-       }  
+    resetConfig() {
+        let newConfig = this.getDefaultConfig.bind(this)();        
+        this.setState({'config':newConfig});
+        localStorage.setItem('snipsmicrophone_config',JSON.stringify(newConfig));
     };
     
+    getDefaultConfig() {
+        //console.log(['GDC',this.state]);
+        return  {
+            inputvolume:'70',
+            outputvolume:'70',
+            voicevolume:'70',
+            ttsvoice: 'default', //this.state.voices && this.state.voices.length > 0 ? this.state.voices[0].name :
+            voicerate:'50',
+            voicepitch:'50',
+            remotecontrol:'local',
+            hotword:'browser:oklamp',
+            silencedetection:'yes',
+            silencedetectionsensitivity:'50',
+            enabletts:'yes',
+            enableaudio:'yes',
+            enablenotifications:'yes'
+        };
+    };
+    
+    /**
+     * Garbage collect mqtt and voice recorders.
+     */
     deactivate() {
         console.log(['deactivate',this.mqttClient]);
         localStorage.setItem('snipsmicrophone_enabled','false');
@@ -133,23 +140,98 @@ export default class SnipsMicrophone extends Component {
             this.mqttClient.disconnect();
             delete this.mqttClient;
         }
+        this.setState({connected:false,recording:false});
     };
 
-    // called when the client connects
+    
+    /**
+     * Connect to mqtt, start the recorder and optionally start listening
+     * Triggered by microphone click or hotword
+     */
+    activate(start = true) {
+        let that = this;
+        localStorage.setItem('snipsmicrophone_enabled','true');
+        this.mqttConnect.bind(this)(start); 
+        if (start) {
+            setTimeout(function() {
+                that.startRecording();
+            },500);  
+        }
+    };
+    
+    /**
+     * Connect to mqtt server
+    */
+    mqttConnect() {
+        let that = this;
+        this.mqttClient = new Paho.MQTT.Client(this.mqttServer, Number(this.mqttPort), this.clientId);
+        this.mqttClient.onConnectionLost = this.onConnectionLost;
+        this.mqttClient.onMessageArrived = this.onMessageArrived;
+        this.mqttClient.connect({onSuccess:this.onConnect});
+    };
+        
+    /**
+     * Subscribe to to mqtt channels then start recorder
+     */
     onConnect() {
-        console.log('connected');
-        this.setState({'activated':true});
+      this.setState({'connected':true});
+      this.failCount = 0;
       this.mqttClient.subscribe("hermes/dialogueManager/#",{});
       this.mqttClient.subscribe("hermes/intent/#",{});
       this.mqttClient.subscribe("hermes/tts/#",{});
       this.mqttClient.subscribe("hermes/audioServer/"+this.siteId+"/#",{});
       this.mqttClient.subscribe("hermes/hotword/#",{});
       this.mqttClient.subscribe("hermes/asr/#",{});
-      
       this.startRecorder();
     }
+ 
+    /**
+     * When the client loses its connection, reconnect after 5s
+     */ 
+    onConnectionLost(responseObject) {
+        let that = this;
+        this.setState({'connected':false,'activated':false});
+        if (responseObject.errorCode !== 0) {
+            console.log("onConnectionLost:"+responseObject.errorMessage);
+            let timeout=1000;
+            if (this.failCount > 5) {
+                timeout=10000;
+            }
+            this.failCount++;
+            setTimeout(function() {
+              that.mqttClient.connect({onSuccess:that.onConnect});  
+            },timeout)
+        }
+    }
     
-    /** WAV encoding functions */
+    /**
+     * Bind silence recognition events to set speaking state
+     */ 
+    bindSpeakingEvents(e) {
+        let that = this;
+        var options = {};
+        options.threshold = 10 * Math.log(this.state.config.silencesensitivity/100);
+        // bind speaking events care of hark
+        if (this.state.config.silencedetection !== "no") {
+            this.speechEvents = hark(e, options);
+            this.speechEvents.on('speaking', function() {
+              if (this.speakingTimeout) clearTimeout(this.speakingTimeout);
+              that.setState({speaking:true});
+            });
+            
+            this.speechEvents.on('stopped_speaking', function() {
+              if (this.speakingTimeout) clearTimeout(this.speakingTimeout);
+              this.speakingTimeout = setTimeout(function() {
+                  that.setState({speaking:false});
+              },1000);
+              
+            });            
+        }
+    };
+
+    /**
+     * Access the microphone and start streaming mqtt packets
+     */ 
     startRecorder() {
         let that = this;
         if (!navigator.getUserMedia)
@@ -160,30 +242,15 @@ export default class SnipsMicrophone extends Component {
           navigator.getUserMedia({audio:true}, success, function(e) {
             alert('Error capturing audio.');
           });
+          //this.startVUMeter();
         } else alert('getUserMedia not supported in this browser.');
 
         function success(e) {
-            var options = {};
-            console.log('start speech events');
-            var speechEvents = hark(e, options);
-
-            speechEvents.on('speaking', function() {
-              console.log('speaking');
-              if (this.speakingTimeout) clearTimeout(this.speakingTimeout);
-              that.setState({speaking:true});
-            });
-
-            speechEvents.on('stopped_speaking', function() {
-              console.log('stopped_speaking');
-              if (this.speakingTimeout) clearTimeout(this.speakingTimeout);
-              this.speakingTimeout = setTimeout(function() {
-                  that.setState({speaking:false});
-              },1000);
-              
-            });
+            that.setState({'activated':true});
+            that.bindSpeakingEvents.bind(that)(e);
+            // start media streaming mqtt
           let audioContext = window.AudioContext || window.webkitAudioContext;
           that.context = new audioContext();
-          console.log('CREATE CONTEXT',that.context);
           let audioInput = that.context.createMediaStreamSource(e);
           var bufferSize = 256;
           let recorder = that.context.createScriptProcessor(bufferSize, 1, 1);
@@ -192,32 +259,267 @@ export default class SnipsMicrophone extends Component {
             if(!that.recording || !that.state.speaking) return;
             var left = e.inputBuffer.getChannelData(0);
             that.sendAudioBuffer(e.inputBuffer,that.context.sampleRate); 
+            console.log(['send audio',buffer,that.audioBuffer]);
+            that.audioBuffer.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+            that.recordingLength += bufferSize;
           }
 
           audioInput.connect(recorder)
           recorder.connect(that.context.destination); 
-          let message = new Paho.MQTT.Message(JSON.stringify({siteId:that.siteId}));
-          message.destinationName = "hermes/hotword/toggleOn";
-          try {
-              that.mqttClient.send(message);
-          } catch (e) {
-              console.log(e);
-              // not connected
-          }
+          that.sendHotwordToggleOn.bind(that)(that.siteId);
+        }
+    };
+    /**
+     * Synthesise speech from text and send to to audio output
+     */ 
+    speakAloud(text) {
+        console.log(['SPEAK',text]);
+        let voice = this.state.config.ttsvoice ? this.state.config.ttsvoice : 'default';
+        if (voice === "default") {
+            // js generated fallback
+            speak(text);
+        } else {
+            // Create a new instance of SpeechSynthesisUtterance.
+            var msg = new SpeechSynthesisUtterance();
+            msg.text = text;
+            msg.volume = parseFloat(this.state.config.value);
+            msg.rate = parseFloat(rateInput.value);
+            msg.pitch = parseFloat(pitchInput.value);
+            msg.voice = voice;
+            window.speechSynthesis.speak(msg);
+        }
+    }
+    
+    initSpeechSynthesis() {
+        let that = this;
+        if ('speechSynthesis' in window) {
+
+            // Fetch the list of voices and populate the voice options.
+            function loadVoices() {
+              // Fetch the available voices.
+                var voices = speechSynthesis.getVoices();
+              
+              // Loop through each of the voices
+                let voiceOptions=[];
+                voices.forEach(function(voice, i) {
+                // Create a new option element.
+                console.log(voice);
+                    voiceOptions.push({'name':voice.name,label:voice.name});
+                });
+                voiceOptions.push({'name':'default',label:'Browser Generated'});
+                that.setState({voices:voiceOptions});
+                console.log(['VOICES a',voiceOptions]);
+            }
+
+            // Execute loadVoices.
+            loadVoices();
+
+            // Chrome loads voices asynchronously.
+            window.speechSynthesis.onvoiceschanged = function(e) {
+              loadVoices();
+            };
+            
+        } else {
+            let voiceOptions=[];
+            voiceOptions.push({'name':'default',label:'Browser Generated'});
+            that.setState({voices:voiceOptions});
+            console.log(['VOICES b',voiceOptions]);
+        }
+        console.log(['LOADE VOICES',this.state.voices]);
+    };
+
+        
+    /**
+     * Send Mqtt message to toggle on hotword
+     * Used to forcibly initialise the local hotword server.
+     */ 
+    sendHotwordToggleOn(siteId) {
+        let that = this;
+        if (this.state.connected) {
+            let message = new Paho.MQTT.Message(JSON.stringify({siteId:siteId}));
+            message.destinationName = "hermes/hotword/toggleOn";
+            that.mqttClient.send(message);
+            
+        }
+    };
+    /**
+     * Send Mqtt message to fake hotword detection
+     */ 
+    sendHotwordDetected(hotwordId,siteId) {
+        let that = this;
+        if (this.state.connected) {
+            let message = new Paho.MQTT.Message(JSON.stringify({siteId:siteId,modelId:hotwordId,modelType:'universal'}));
+            message.destinationName = "hermes/hotword/"+hotwordId+"/detected";
+            this.mqttClient.send(message);
+        }
+    }
+    /**
+     * Send Mqtt message to indicate that tts has finished
+     */     
+    sendSayFinished(id,sessionId) {
+        let that = this;
+        if (this.state.connected) {
+            let message = new Paho.MQTT.Message(JSON.stringify({id:id,sessionId:sessionId}));
+            message.destinationName = "hermes/tts/sayFinished";
+            this.mqttClient.send(message);   
+        }
+    };
+    
+    /**
+     * Send Mqtt message to indicate audioserver playback has finished
+     */ 
+    sendPlayFinished(siteId,sessionId) {
+        let that = this;
+        if (this.state.connected) {
+            let message = new Paho.MQTT.Message(JSON.stringify({siteId:siteId,id:sessionId}));
+            message.destinationName = "hermes/audioServer/"+this.siteId+"/playFinished";
+            this.mqttClient.send(message); 
         }
     };
 
-    // called when the client loses its connection, reconnect after 5s
-    onConnectionLost(responseObject) {
-        let that = this;
-      if (responseObject.errorCode !== 0) {
-        console.log("onConnectionLost:"+responseObject.errorMessage);
-        console.log(responseObject);
-        setTimeout(function() {
-          that.mqttClient.connect({onSuccess:that.onConnect});  
-        },5000)
+    /**
+     * Send Mqtt message to end the session immediately
+     */ 
+     sendEndSession(sessionId) {
+         let that = this;
+        if (this.state.connected) {
+            let message = new Paho.MQTT.Message(JSON.stringify({sessionId:sessionId}));
+            message.destinationName = "hermes/dialogueManager/endSession";
+            this.mqttClient.send(message);
+        }
+    };
+
+    /**
+     * Handle mqtt messages
+     * By topic
+     *   - asr
+     *      - hermes/asr/<>/textCaptured
+     *      - hermes/asr/startListening
+     *      - hermes/asr/stopListening
+     *   - audioserver
+     *      - hermes/audioserver/playBytes
+     *   - hotword
+     *      - hermes/hotword/toggleOff
+     *      - hermes/hotword/toggleOff
+     *   - tts
+     *      - hermes/tts/say
+     *   - dialogueManager
+     *     - hermes/dialogueManager/sessionStarted
+     *     - hermes/dialogueManager/sessionEnded
+     * TODO
+     *   - intent - app server with debounce
+     */ 
+   onMessageArrived(message) {
+        let parts = message.destinationName ? message.destinationName.split("/") : [];
+        let mainTopic = parts.slice(0,-1).join("/");
+        var audio = message.payloadBytes;
+        let payload = {};
+        try {
+          payload = JSON.parse(message.payloadString);  
+        } catch (e) {
+        }
+        if (this.debug) {
+          console.log(['MESSAGE',message.destinationName,this.sessionId,mainTopic,audio.length,payload,message]);
+        }
+        if (parts[0] === "hermes" && parts[1] === "asr"  && parts[2] === "textCaptured" ) {
+            this.logAsr(this.sessionId,payload.text) 
+            this.flashState('lastTranscript',payload.text);
+        } else if (parts[0] === "hermes" && parts[1] === "intent" ) {
+            this.flashState('lastIntent', parts[2] + ":" + JSON.stringify(payload.slots));
+            this.logIntent(this.sessionId,{intent:parts[2] ,slots: payload.slots}) 
+        } else if (parts[0] === "hermes" && parts[1] === "tts"  && parts[2] === "say") {
+           if (payload.siteId && payload.siteId === this.siteId) {
+               this.logTts(this.sessionId,payload.text) 
+               this.flashState('lastTts',payload.text);
+               this.speakAloud.bind(this)(payload.text);
+               this.sendSayFinished.bind(this)(payload.id,payload.sessionId);
+           }
+        } else if (parts[0] === "hermes" && parts[1] === "audioServer"  && parts[2] === this.siteId && parts[3] === "playBytes") {
+            this.playSound(audio);
+            let newSessionId = parts.length  > 0 ? parts[parts.length-1] : '';
+            if (parts.length > 3 && parts[4] && parts[4].length > 0) newSessionId = parts[4];
+            this.sendPlayFinished.bind(this)(this.siteId,newSessionId);      
+            
+        } else if (message.destinationName === "hermes/dialogueManager/sessionStarted") {
+             this.sessionId=payload.sessionId;
+        } else if (message.destinationName === "hermes/dialogueManager/sessionEnded") {
+           this.recording = false;
+           this.setState({recording : false});
+        } else if (message.destinationName === "hermes/asr/startListening") {
+            this.audioBuffer = [];
+            this.recordingLength = 0;
+            this.recording = true;
+            this.setState({recording : true});
+        } else if (message.destinationName === "hermes/asr/stopListening") {
+             var finalBuffer = this.flattenArray(this.audioBuffer, this.recordingLength);
+             console.log(['STOP LISTENING',finalBuffer]);
+             this.logAudio(this.sessionId,finalBuffer) 
+        
+            this.recording = false;
+            this.setState({recording : false});
+        } else if (!this.props.disableHotword && message.destinationName === "hermes/hotword/toggleOn" ) {
+              this.startHotword.bind(this)(payload.siteId);
+        } else if (!this.props.disableHotword && message.destinationName == "hermes/hotword/toggleOff"  ) {
+             if (payload.siteId === this.siteId ) {
+                 this.stopHotword.bind(this)();
+            }
+        }
+    };
+    
+    /**
+     * Pause the hotword manager
+     */ 
+    stopHotword() {
+        this.hotwordManager.pauseProcessing();
+    };
+    
+    /**
+     * Create or continue the hotword manager
+     */ 
+    startHotword(siteId) {
+      console.log(['start hotword',siteId,this.siteId]);
+      if (siteId === this.siteId ) {
+          if (this.hotwordManager === null) {
+              this.hotwordManager =  new PicovoiceAudioManager();
+              let singleSensitivity = this.state.config.hotwordsensitivity ? this.state.config.hotwordsensitivity/100 : 0.5;
+              let sensitivities=new Float32Array([singleSensitivity]);
+              this.hotwordManager.start(Porcupine.create(Object.values(this.keywordIDs), sensitivities), this.hotwordCallback, function(e) {
+                console.log(['hotword error',e]);
+              });
+          } else {
+              this.hotwordManager.continueProcessing();
+          }
       }
+    };
+
+    /**
+     * Enable streaming of the audio input stream
+     */ 
+    startRecording = function() {
+     //   console.log('START');
+        this.recording = true;
+        this.audioBuffer = [];
+        this.recordingLength = 0;
+            
+      this.setState({speaking:true,recording : true,lastIntent:'',lastTts:'',lastTranscript:'',showMessage:false});
+      this.sendHotwordDetected.bind(this)(this.hotwordId,this.siteId);
     }
+
+    stopRecording = function() {
+       // console.log('STOP');
+       var finalBuffer = this.flattenArray(this.audioBuffer, this.recordingLength);
+        console.log(['STOP REC',finalBuffer]);
+        this.logAudio(this.sessionId,finalBuffer) 
+        this.recording = false;
+        this.setState({recording : false});
+        this.sendEndSession.bind(this)(this.sessionId);
+      
+    }
+    
+    
+    
+
+
     
     playSound(bytes) {
         var buffer = new Uint8Array( bytes.length );
@@ -255,98 +557,16 @@ export default class SnipsMicrophone extends Component {
         if (e == 0) {
             this.startRecording();
         }
-      // console.log('HOTWORD CALLBACK',e);
-    };
+     };
 
-    // called when a message arrives
-    onMessageArrived(message) {
-        let parts = message.destinationName ? message.destinationName.split("/") : [];
-        console.log('CONTEXT',this.context);
-          
-        let mainTopic = parts.slice(0,-1).join("/");
-        var audio = message.payloadBytes;
-        let payload = {};
-        try {
-          payload = JSON.parse(message.payloadString);  
-        } catch (e) {
-        }
-        if (this.debug) {
-            console.log(['PARTS',parts]);
-          console.log(['MESSAGE',message.destinationName,this.sessionId,mainTopic,audio.length,payload,message]);
-        }
-        if (parts[0] === "hermes" && parts[1] === "asr"  && parts[2] === "textCaptured" ) {
-            //this.setState({lastTranscript : payload.text});
-            this.flashState('lastTranscript',payload.text);
-        } else if (parts[0] === "hermes" && parts[1] === "intent" ) {
-            this.flashState('lastIntent', parts[2] + ":" + JSON.stringify(payload.slots));
-            //this.setState({lastIntent : parts[3] + ":" + JSON.stringify(payload.slots)});
-        } else if (parts[0] === "hermes" && parts[1] === "tts"  && parts[2] === "say") {
-           if (payload.siteId && payload.siteId === this.siteId) {
-               this.flashState('lastTts',payload.text);
-               //this.setState({lastTts : payload.text});
-               var msg = new window.SpeechSynthesisUtterance(payload.text);
-               if (payload.lang) {
-                    msg.lang = payload.lang;
-               }
-               console.log('SPEAKNOW',msg,window.speechSynthesis);
-               window.speechSynthesis.speak(msg);
-                //mainTopic == "hermes/audioServer/"+this.siteId+"/playBytes"
-                console.log(['tts']);
-                // send finished
-                let message = new Paho.MQTT.Message(JSON.stringify({id:payload.id,sessionId:payload.sessionId}));
-                message.destinationName = "hermes/tts/sayFinished";
-                this.mqttClient.send(message);                      
-           }
-        } else if (parts[0] === "hermes" && parts[1] === "audioServer"  && parts[2] === this.siteId && parts[3] === "playBytes") {
-            //mainTopic == "hermes/audioServer/"+this.siteId+"/playBytes"
-            console.log(['playbytes',audio]);
-            this.playSound(audio);
-            let newSessionId = parts.length  > 0 ? parts[parts.length-1] : '';
-            if (parts.length > 3 && parts[4] && parts[4].length > 0) newSessionId = parts[4];
-            let message = new Paho.MQTT.Message(JSON.stringify({siteId:this.siteId,id:newSessionId}));
-            message.destinationName = "hermes/audioServer/"+this.siteId+"/playFinished";
-            this.mqttClient.send(message);       
-        } else if (message.destinationName === "hermes/dialogueManager/sessionStarted") {
-             this.sessionId=payload.sessionId;
-        } else if (message.destinationName === "hermes/dialogueManager/sessionEnded") {
-           this.recording = false;
-           this.setState({recording : false});
-        } else if (message.destinationName === "hermes/asr/startListening") {
-            this.recording = true;
-            this.setState({recording : true});
-        } else if (message.destinationName === "hermes/asr/stopListening") {
-            this.recording = false;
-            this.setState({recording : false});
-        } else if (!this.props.disableHotword && message.destinationName === "hermes/hotword/toggleOn" ) {
-              console.log(['start hotword',payload.siteId,this.siteId]);
-              if (payload.siteId === this.siteId ) {
-                  if (this.hotwordManager === null) {
-                      this.hotwordManager =  new PicovoiceAudioManager();
-                      this.hotwordManager.start(Porcupine.create(Object.values(this.keywordIDs), this.sensitivities), this.hotwordCallback, function(e) {
-                        console.log(['hotword error',e]);
-                      });
-                  } else {
-                      this.hotwordManager.continueProcessing();
-                  }
-              }
-              
-        } else if (!this.props.disableHotword && message.destinationName == "hermes/hotword/toggleOff"  ) {
-             console.log(['stop hotword',payload.siteId,this.siteId]);
-             if (payload.siteId === this.siteId ) {
-                console.log('stop hotword');
-                this.hotwordManager.pauseProcessing();
-                //delete this.hotwordManager;
-            }
-        }
-    };
     
-     //audioManager = new PicovoiceAudioManager();
-        //audioManager.start(Porcupine.create(Object.values(keywordIDs), sensitivities), processCallback, audioManagerErrorCallback);
-    //audioManager.stop();
+    
+    /** WAV encoding functions */
 
+ 
     sendAudioBuffer(buffer,sampleRate) {
-        //console.log('send buffer',this.context);
-        let that = this;
+         let that = this;
+         //this.audioBuffer
         if (buffer) {
            this.reSample(buffer,16000,function(result) {
                let wav = that.audioBufferToWav(result) ; //new WaveFile().fromScratch(1,16000,"16",result);
@@ -358,7 +578,34 @@ export default class SnipsMicrophone extends Component {
         
     };
 
-
+    /** 
+     * WAV encoding functions 
+     */
+     
+     
+    convertFloat32ToInt16(buffer) {
+      let l = buffer.length;
+      let buf = new Int16Array(l);
+      while (l--) {
+        buf[l] = Math.min(1, buffer[l])*0x7FFF;
+      }
+      return buf.buffer;
+    } 
+     
+    flattenArray(inChannelBuffer, recordingLength) {
+        let channelBuffer = this.convertFloat32ToInt16(inChannelBuffer);
+        
+        var result = new Float32Array(recordingLength);
+        var offset = 0;
+        for (var i = 0; i < channelBuffer.length; i++) {
+            var buffer = channelBuffer[i];
+            result.set(buffer, offset);
+            offset += buffer.length;
+        }
+        return result;
+    } 
+     
+     
     reSample(audioBuffer, targetSampleRate, onComplete,sampleRateContext) {
         let sampleRate =  !isNaN(sampleRateContext) ? sampleRateContext : 44100;
         var channel = audioBuffer && audioBuffer.numberOfChannels ? audioBuffer.numberOfChannels : 1;
@@ -376,7 +623,7 @@ export default class SnipsMicrophone extends Component {
         })
     }
     
-    /** WAV encoding functions */
+    
     audioBufferToWav (buffer, opt) {
       opt = opt || {}
 
@@ -472,12 +719,11 @@ export default class SnipsMicrophone extends Component {
     }
 
 
-/**
- CSS SPEECH BUBBLE LAYOUT
- * from https://github.com/LeaVerou/bubbly/blob/gh-pages/bubbly.js
-*/ 
-
-
+    
+    /**
+     * CSS SPEECH BUBBLE LAYOUT
+     * from https://github.com/LeaVerou/bubbly/blob/gh-pages/bubbly.js
+    */ 
     bubbleCSS(settings) {
         let selector='.microphone-speechbubble'
         var props = {}, propsBefore = {};
@@ -538,7 +784,10 @@ export default class SnipsMicrophone extends Component {
 
 
 
-
+    /** 
+     * Functions to enable and disable configuration screen 
+     * by default using a debounce to implement click and hold to enable config
+     **/
     showConfig(e) {
         let that = this;
          this.configTimeout = setTimeout(function() {
@@ -562,7 +811,93 @@ export default class SnipsMicrophone extends Component {
     }; 
 
 
+    configurationChange(e) {
+        console.log(['configurationChange',this,e,e.target.value,e.target.id]);
+        let config = this.state.config;
+        config[e.target.id] = e.target.value;
+        this.setState(config);
+        // set silence threshhold directly
+        if (e.target.id === "silencesensitivity" && this.speechEvents) {
+            this.speechEvents.setThreshold(10 * Math.log(this.state.config.silencesensitivity/100));
+        }
+        localStorage.setItem('snipsmicrophone_config',JSON.stringify(config));
+    };
+    
+    newLog(sessionId) {
+        return  {timestamp : new Date().getTime(), siteId:this.siteId,sessionId:sessionId,hotwordId:this.hotwordId,asr:[],intents:[],audio:[],tts:[]};
+    };
+    
+    startLogEntry(sessionId) {
+        let logs = this.state.logs;
+        let newLog = this.newLog.bind(this)(sessionId);
+        logs[sessionId] = newLog;
+        this.setState({logs:logs});
+        console.log(['start LOG',newLog]);
+        return newLog;
+    };
+    
+    currentLogEntry(sessionId,logs) {
+        if (sessionId && sessionId.length) {
+            if (logs && logs.hasOwnProperty(sessionId)) {
+                console.log(['CURRENT LOG',sessionId,logs[sessionId]]);
+                return logs[sessionId]
+            // create first log entry
+            } else  {
+                console.log(['new LOG',sessionId]);
+                return this.startLogEntry(sessionId); 
+            }            
+        } else {
+            console.log(['INVALID sessionId for log:',sessionId]);
+        }
+        return logs[0];
+    };
+    
+    logAsr(sessionId,text) {
+        let logs = this.state.logs;
+        let currentLog = this.currentLogEntry.bind(this)(sessionId,logs);
+        currentLog.asr.push(text);
+        console.log(['start LOG asr',text,sessionId]);
+        this.setState({logs:logs});
+        
+    };
+    
+    logIntent(sessionId,intent) {
+        let logs = this.state.logs;
+        let currentLog = this.currentLogEntry.bind(this)(sessionId,logs);
+        currentLog.intents.push(intent);
+        console.log(['start LOG intent',intent,sessionId]);
+        this.setState({logs:logs});
+        
+    };
+    
+    logTts(sessionId,text) {
+        let logs = this.state.logs;
+        let currentLog = this.currentLogEntry.bind(this)(sessionId,logs);
+        currentLog.tts.push(intent);
+        console.log(['start LOG tts',text,sessionId]);
+        this.setState({logs:logs});
+        
+    };
+    
+    logAudio(sessionId,audio) {
+        let that = this;
+        console.log(['start LOG audio',sessionId]);
+        //let logs = this.state.logs;
+        //this.reSample(audio,16000,function(result) {
+            //let wav = that.audioBufferToWav(result) ; //new WaveFile().fromScratch(1,16000,"16",result);
+            //let currentLog = that.currentLogEntry.bind(that)(sessionId,logs);
+            //currentLog.audio.push(intent);
+            //that.setState({logs:logs});
+        
+        //});
+           
+    };
+    
+    
+    
+    
   render() {
+      let that = this;
     const {
       text
     } = this.props
@@ -608,6 +943,7 @@ export default class SnipsMicrophone extends Component {
     
     let status = 0;
     if (this.state.activated) status = 1;
+    if (this.state.connected) status = 2;
     if (this.state.recording) status = 3;
     //if (this.state.sending) status = 3;
    // console.log(status);
@@ -615,19 +951,19 @@ export default class SnipsMicrophone extends Component {
     let borderWidth = 2;
     if (status==3) {
         borderColor = (this.state.speaking) ? 'darkgreen' : (this.props.borderColor ? this.props.borderColor : 'green');
-        buttonStyle.backgroundColor = this.props.backgroundColor ? this.props.backgroundColor : 'lightgreen';
-        if (this.state.speaking) borderWidth = 3;
-    } else if (status==2) {
-        borderColor = (this.state.speaking) ? 'darkorange' : (this.props.borderColor ? this.props.borderColor : 'orange')
-        buttonStyle.backgroundColor = this.props.backgroundColor ? this.props.backgroundColor : 'lightorange';
+        buttonStyle.backgroundColor = 'lightgreen';
         if (this.state.speaking) borderWidth = 3;
     } else if (status==1) {
+        borderColor = (this.state.speaking) ? 'darkorange' : (this.props.borderColor ? this.props.borderColor : 'orange')
+        buttonStyle.backgroundColor = 'lightorange';
+        if (this.state.speaking) borderWidth = 3;
+    } else if (status==2) {
         borderColor = (this.state.speaking) ? 'orangered' : (this.props.borderColor ? this.props.borderColor : 'red');
-        buttonStyle.backgroundColor = this.props.backgroundColor ? this.props.backgroundColor : 'pink';
+        buttonStyle.backgroundColor = 'pink';
         if (this.state.speaking) borderWidth = 3;
     } else {
         borderColor = this.props.borderColor ? this.props.borderColor : 'black';
-        buttonStyle.backgroundColor = this.props.backgroundColor ? this.props.backgroundColor : 'lightgrey';
+        buttonStyle.backgroundColor =  'lightgrey';
     }
     if (!buttonStyle.padding) buttonStyle.padding = '0.5em';
     if (!buttonStyle.margin) buttonStyle.margin = '0.5em';
@@ -636,33 +972,179 @@ export default class SnipsMicrophone extends Component {
     buttonStyle.border = borderWidth + 'px solid '+borderColor;
     if (!buttonStyle.borderRadius) buttonStyle.borderRadius = '100px';
     
-    let micOnIcon = <svg style={buttonStyle}  aria-hidden="true" data-prefix="fas" data-icon="microphone" className="svg-inline--fa fa-microphone fa-w-11" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 512"><path fill="currentColor" d="M176 352c53.02 0 96-42.98 96-96V96c0-53.02-42.98-96-96-96S80 42.98 80 96v160c0 53.02 42.98 96 96 96zm160-160h-16c-8.84 0-16 7.16-16 16v48c0 74.8-64.49 134.82-140.79 127.38C96.71 376.89 48 317.11 48 250.3V208c0-8.84-7.16-16-16-16H16c-8.84 0-16 7.16-16 16v40.16c0 89.64 63.97 169.55 152 181.69V464H96c-8.84 0-16 7.16-16 16v16c0 8.84 7.16 16 16 16h160c8.84 0 16-7.16 16-16v-16c0-8.84-7.16-16-16-16h-56v-33.77C285.71 418.47 352 344.9 352 256v-48c0-8.84-7.16-16-16-16z"></path></svg>
-
-    let micOffIcon = <svg style={buttonStyle}  aria-hidden="true" data-prefix="fas" data-icon="microphone-slash" className="svg-inline--fa fa-microphone-slash fa-w-20" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentColor" d="M633.82 458.1l-157.8-121.96C488.61 312.13 496 285.01 496 256v-48c0-8.84-7.16-16-16-16h-16c-8.84 0-16 7.16-16 16v48c0 17.92-3.96 34.8-10.72 50.2l-26.55-20.52c3.1-9.4 5.28-19.22 5.28-29.67V96c0-53.02-42.98-96-96-96s-96 42.98-96 96v45.36L45.47 3.37C38.49-2.05 28.43-.8 23.01 6.18L3.37 31.45C-2.05 38.42-.8 48.47 6.18 53.9l588.36 454.73c6.98 5.43 17.03 4.17 22.46-2.81l19.64-25.27c5.41-6.97 4.16-17.02-2.82-22.45zM400 464h-56v-33.77c11.66-1.6 22.85-4.54 33.67-8.31l-50.11-38.73c-6.71.4-13.41.87-20.35.2-55.85-5.45-98.74-48.63-111.18-101.85L144 241.31v6.85c0 89.64 63.97 169.55 152 181.69V464h-56c-8.84 0-16 7.16-16 16v16c0 8.84 7.16 16 16 16h160c8.84 0 16-7.16 16-16v-16c0-8.84-7.16-16-16-16z"></path></svg>
-
     
-    let warning='';
-    if (this.state.speaking) warning='eek'
+    let micOffIcon =  <svg style={buttonStyle}  aria-hidden="true" data-prefix="fas" data-icon="microphone" className="svg-inline--fa fa-microphone fa-w-11" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 512"><path fill="currentColor" d="M176 352c53.02 0 96-42.98 96-96V96c0-53.02-42.98-96-96-96S80 42.98 80 96v160c0 53.02 42.98 96 96 96zm160-160h-16c-8.84 0-16 7.16-16 16v48c0 74.8-64.49 134.82-140.79 127.38C96.71 376.89 48 317.11 48 250.3V208c0-8.84-7.16-16-16-16H16c-8.84 0-16 7.16-16 16v40.16c0 89.64 63.97 169.55 152 181.69V464H96c-8.84 0-16 7.16-16 16v16c0 8.84 7.16 16 16 16h160c8.84 0 16-7.16 16-16v-16c0-8.84-7.16-16-16-16h-56v-33.77C285.71 418.47 352 344.9 352 256v-48c0-8.84-7.16-16-16-16z"></path></svg>
+
+    let micOnIcon = <svg style={buttonStyle}  aria-hidden="true" data-prefix="fas" data-icon="microphone-slash" className="svg-inline--fa fa-microphone-slash fa-w-20" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path fill="currentColor" d="M633.82 458.1l-157.8-121.96C488.61 312.13 496 285.01 496 256v-48c0-8.84-7.16-16-16-16h-16c-8.84 0-16 7.16-16 16v48c0 17.92-3.96 34.8-10.72 50.2l-26.55-20.52c3.1-9.4 5.28-19.22 5.28-29.67V96c0-53.02-42.98-96-96-96s-96 42.98-96 96v45.36L45.47 3.37C38.49-2.05 28.43-.8 23.01 6.18L3.37 31.45C-2.05 38.42-.8 48.47 6.18 53.9l588.36 454.73c6.98 5.43 17.03 4.17 22.46-2.81l19.64-25.27c5.41-6.97 4.16-17.02-2.82-22.45zM400 464h-56v-33.77c11.66-1.6 22.85-4.54 33.67-8.31l-50.11-38.73c-6.71.4-13.41.87-20.35.2-55.85-5.45-98.74-48.63-111.18-101.85L144 241.31v6.85c0 89.64 63.97 169.55 152 181.69V464h-56c-8.84 0-16 7.16-16 16v16c0 8.84 7.16 16 16 16h160c8.84 0 16-7.16 16-16v-16c0-8.84-7.16-16-16-16z"></path></svg>
+    
+    let resetIcon = 
+<svg aria-hidden="true" style={{height:'1.1em'}}  role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M500.333 0h-47.411c-6.853 0-12.314 5.729-11.986 12.574l3.966 82.759C399.416 41.899 331.672 8 256.001 8 119.34 8 7.899 119.526 8 256.187 8.101 393.068 119.096 504 256 504c63.926 0 122.202-24.187 166.178-63.908 5.113-4.618 5.354-12.561.482-17.433l-33.971-33.971c-4.466-4.466-11.64-4.717-16.38-.543C341.308 415.448 300.606 432 256 432c-97.267 0-176-78.716-176-176 0-97.267 78.716-176 176-176 60.892 0 114.506 30.858 146.099 77.8l-101.525-4.865c-6.845-.328-12.574 5.133-12.574 11.986v47.411c0 6.627 5.373 12 12 12h200.333c6.627 0 12-5.373 12-12V12c0-6.627-5.373-12-12-12z"></path></svg>
+    
+    let stopIcon2=
+<svg aria-hidden="true" style={{height:'1.4em'}}  role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M440.5 88.5l-52 52L415 167c9.4 9.4 9.4 24.6 0 33.9l-17.4 17.4c11.8 26.1 18.4 55.1 18.4 85.6 0 114.9-93.1 208-208 208S0 418.9 0 304 93.1 96 208 96c30.5 0 59.5 6.6 85.6 18.4L311 97c9.4-9.4 24.6-9.4 33.9 0l26.5 26.5 52-52 17.1 17zM500 60h-24c-6.6 0-12 5.4-12 12s5.4 12 12 12h24c6.6 0 12-5.4 12-12s-5.4-12-12-12zM440 0c-6.6 0-12 5.4-12 12v24c0 6.6 5.4 12 12 12s12-5.4 12-12V12c0-6.6-5.4-12-12-12zm33.9 55l17-17c4.7-4.7 4.7-12.3 0-17-4.7-4.7-12.3-4.7-17 0l-17 17c-4.7 4.7-4.7 12.3 0 17 4.8 4.7 12.4 4.7 17 0zm-67.8 0c4.7 4.7 12.3 4.7 17 0 4.7-4.7 4.7-12.3 0-17l-17-17c-4.7-4.7-12.3-4.7-17 0-4.7 4.7-4.7 12.3 0 17l17 17zm67.8 34c-4.7-4.7-12.3-4.7-17 0-4.7 4.7-4.7 12.3 0 17l17 17c4.7 4.7 12.3 4.7 17 0 4.7-4.7 4.7-12.3 0-17l-17-17zM112 272c0-35.3 28.7-64 64-64 8.8 0 16-7.2 16-16s-7.2-16-16-16c-52.9 0-96 43.1-96 96 0 8.8 7.2 16 16 16s16-7.2 16-16z"></path></svg>   
+
+    let logItems = Object.keys(this.state.logs).map(function(sessionId,key) {
+        let sessionLog = that.state.logs[sessionId];
+        let speechItems = sessionLog.asr.map(function(transcript,ikey) {
+            let slotValues = [];
+            if (sessionLog.intents[ikey]) slotValues = sessionLog.intents[ikey].slots.map(function(slot,skey) {
+                return <li>{slot.slotName.split('_').join(' ')} {slot.value.value}</li>
+            });
+            return <div>
+            <div style={{marginBottom:'1em',fontWeight:'bold'}}>{transcript}</div>
+            <div>
+                <span>{sessionLog.intents[ikey] && sessionLog.intents[ikey].intent}</span>
+                {slotValues && <ul>{slotValues}</ul>}
+            </div>
+            <div><i>{sessionLog.tts[ikey]}</i></div>
+            <span>{sessionLog.audio[ikey] && sessionLog.audio[ikey].length}</span>
+            <div ><hr style={{height:'1px', width:'100%'}}/></div>
+            
+            </div>
+        });
+        
+        return <div >
+            <div ><hr style={{height:'5px', width:'100%'}}/></div>
+            <div >{speechItems}</div>
+        </div>
+    });
+
+    let voiceOptions = this.state.voices && this.state.voices.map(function(voice) {
+        return <option value={voice.name}>{voice.label}</option>
+    });
+    
+  
+    let inputStyle={marginBottom:'0.5em',fontSize:'0.9em'};
+    let config = this.state.config;
     return (
-      <div onTouchStart={this.showConfig}  onTouchEnd={this.clearConfigTimer}   onMouseDown={this.showConfig} onMouseUp={this.clearConfigTimer} onContextMenu={this.showConfigNow} >
-      {warning}
-       {this.state.showConfig && <div style={{width:'90%' ,border: '2px solid black',borderRadius:'10px'}}>
-           <button style={{float:'right'}} onClick={this.hideConfig}>X</button>
-           <h1>Microphone Configuration</h1>
-           <button onClick={this.deactivate}>Disable</button>
+      <div  >
+       {this.state.showConfig && <div style={{minHeight:'25em' ,margin:'2em',padding:'1em',width:'90%' ,border: '2px solid black',borderRadius:'10px',backgroundColor:'white'}}>
+           <button style={{float:'right',fontSize:'1.3em'}} onClick={this.hideConfig}>X</button>
+           
+           <div style={{float:'left',marginRight:'2em'}} >
+                {(status >= 2) && <span  onClick={this.deactivate}><button style={{fontSize:'1.5em'}}> {stopIcon2} Disable </button></span>} 
+                </div>
+           
+           <h1 >Microphone Configuration</h1>
+           <canvas style={{float:'right'}} id="vucanvas" width="150" height="300"></canvas>
+           <form style={{fontSize:'1.8em'}}>
+                
+                <div className='form-group' >
+                    <b style={{marginBottom:'0.8em'}} >Volume&nbsp;&nbsp;&nbsp;</b>
+                </div> 
+                
+                <div className='form-group' >
+                    <label htmlFor="inputvolume" >Microphone </label>
+                    <input type="range" id="inputvolume" value={config.inputvolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'    },inputStyle)}  ></input>
+                </div> 
+                                
+                <div className='form-group' >
+                    <label htmlFor="outputvolume" >Output </label>
+                    <input type="range" id="outputvolume" value={config.outputvolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'},inputStyle)}  ></input>
+                </div> 
+                <div className='form-group' >
+                    <label htmlFor="voicevolume" >Voice </label>
+                    <input type="range" id="voicevolume" value={config.voicevolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'},inputStyle)}  ></input>
+                </div> 
+                   <div className='form-group' >
+                    <hr style={{width:'100%'}}/ >
+                </div>
+                 <div className='form-group' >
+                    <label htmlFor="remotecontrol" >Remote Control </label>
+                    <select style={inputStyle} id="remotecontrol" value={config.remotecontrol} onChange={this.configurationChange.bind(this)}  ><option value='local' >Local</option><option value='bedroom' >Bedroom Pi</option><option value='lounge' >Lounge Pi</option></select>
+                </div> 
+                <div className='form-group' >
+                    <hr style={{width:'100%'}}/ >
+                </div>
+                <div className='form-group' >
+                    <label htmlFor="ttsvoice" >Voice </label>
+                    <select style={inputStyle}  id="ttsvoice" value={config.ttsvoice} onChange={this.configurationChange.bind(this)}   >{voiceOptions}</select>
+                </div> 
+                <div className='form-group' >
+                    <label htmlFor="voicerate" >Rate </label>
+                    <input type="range" id="voicerate" value={config.voicerate} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'},inputStyle)}  ></input>
+                </div> 
+                <div className='form-group' >
+                    <label htmlFor="voicepitch" >Pitch </label>
+                    <input type="range" id="voicepitch" value={config.voicepitch} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'},inputStyle)}  ></input>
+                </div> 
+               
+                
+                <div className='form-group' >
+                    <hr style={{width:'100%'}}/ >
+                </div>
+                                
+                <div className='form-group' >
+                    <label htmlFor="hotword" >Hotword </label>
+                    <select style={inputStyle} id="hotword" value={config.hotword} onChange={this.configurationChange.bind(this)}  ><option value="browser:oklamp" >OK Lamp (Browser)</option><option value="server:heysnips" >Hey Snips (Server)</option><option value="disabled" >Disabled</option></select>
+                </div> 
+                <div className='form-group' >
+                    <label htmlFor="hotwordsensitivity" >Sensitivity </label>
+                    <input type="range" id="hotwordsensitivity" value={config.hotwordsensitivity} onChange={this.configurationChange.bind(this)}  style={Object.assign({width:'80%'},inputStyle)}  ></input>
+                </div> 
+                 <div className='form-group' >
+                    <hr style={{width:'100%'}}/ >
+                </div>
+                                
+                <div className='form-group' >
+                    <label htmlFor="silencedetection" >Silence Detection </label>
+                    <select style={inputStyle} id="silencedetection"  value={config.silencedetection} onChange={this.configurationChange.bind(this)} ><option value="yes" >Enabled</option><option value="no">Disabled</option></select>
+                </div> 
+                <div className='form-group' >
+                    <label htmlFor="silencesensitivity" >Silence Sensitivity </label>
+                    <input type="range" id="silencesensitivity" value={config.silencesensitivity} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'},inputStyle)}  ></input>
+                </div> 
+                
+                 <div className='form-group' >
+                    <hr style={{width:'100%'}}/ >
+                </div>
+                <div className='form-group' >
+                    <b style={{marginBottom:'0.8em'}}>Notifications&nbsp;&nbsp;&nbsp;</b>
+                </div> 
+                
+                <div className='form-inline' >
+                    <label htmlFor="enabletts" > Voice </label>
+                    <select style={inputStyle} id="enabletts" value={config.enabletts} onChange={this.configurationChange.bind(this)}  ><option value="yes" >Yes</option><option value="no" >No</option></select>
+                    <label htmlFor="enableaudio" > Audio </label>
+                    <select style={inputStyle}  id="enableaudio" value={config.enableaudio} onChange={this.configurationChange.bind(this)} ><option value="yes" >Yes</option><option value="no" >No</option></select>
+                    <label htmlFor="enablenotifications" > Screen </label>
+                    <select style={inputStyle}  id="enablenotifications" value={config.enablenotifications} onChange={this.configurationChange.bind(this)}  ><option value="yes" >Yes</option><option value="no" >No</option></select>
+                </div> 
+
+                 <div className='form-group' >
+                    <hr style={{width:'100%'}}/ >
+                    <span  onClick={this.resetConfig}><button style={{fontSize:'1em'}}> {resetIcon} Reset Configuration</button></span>
+                    <hr style={{width:'100%'}}/ >
+                </div>
+                <div className='form-group' >
+                    <b>Logs&nbsp;&nbsp;&nbsp;</b>
+                    {logItems}
+                </div> 
+                
+                
+                <div className='form-group' >
+                    <br/>
+                    <br/><br/>
+                </div> 
+                
+                
+                
+           </form>
+            
+            
         </div>}
        {!this.state.showConfig && <div>
         {(!this.state.activated) && <span  onClick={this.activate}>{micOnIcon}</span>} 
-        {(this.state.activated && this.state.recording) && <span  onClick={this.stopRecording}>{micOffIcon}</span>} 
-        {(this.state.activated && !this.state.recording) && <span  onClick={this.startRecording}>{micOnIcon}</span>} 
+        {(this.state.activated && this.state.recording) && <span onTouchStart={this.showConfig}  onTouchEnd={this.clearConfigTimer}   onMouseDown={this.showConfig} onMouseUp={this.clearConfigTimer} onContextMenu={this.showConfigNow} onClick={this.stopRecording}>{micOffIcon}</span>} 
+        {(this.state.activated && !this.state.recording) && <span onTouchStart={this.showConfig}  onTouchEnd={this.clearConfigTimer}   onMouseDown={this.showConfig} onMouseUp={this.clearConfigTimer} onContextMenu={this.showConfigNow} onClick={this.startRecording}>{micOnIcon}</span>} 
         {(this.state.showMessage ) && <div style={{padding:'1em', borderRadius:'20px',backgroundColor:'skyblue',margin:'5%',width:'90%',top:'1.7em',color:'black',border:'2px solid blue'}} >
                 {this.state.lastTranscript && <div style={{fontStyle:'italic'}}>{this.state.lastTranscript}</div>}
                 {this.state.lastIntent && <div>{this.state.lastIntent}</div>}
                 {this.state.lastTts && <div>{this.state.lastTts}</div>}
-            </div>}
+            </div>} 
    
         </div>} 
-        
+        <div id="audio"></div>
         
       </div>
     )
@@ -673,3 +1155,53 @@ export default class SnipsMicrophone extends Component {
              //this.bubbleCSS(speechBubbleSettings)].join('\n')
           //}}>
         //</style>
+//startVUMeter() {
+        //let that = this;
+        //if (!navigator.getUserMedia)
+            //navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
+        //navigator.mozGetUserMedia || navigator.msGetUserMedia;
+        //navigator.getUserMedia({
+          //audio: true
+        //},
+        //function(stream) {
+          //audioContext = new AudioContext();
+          //analyser = audioContext.createAnalyser();
+          //microphone = audioContext.createMediaStreamSource(stream);
+          //javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+          //analyser.smoothingTimeConstant = 0.8;
+          //analyser.fftSize = 1024;
+
+          //microphone.connect(analyser);
+          //analyser.connect(javascriptNode);
+          //javascriptNode.connect(audioContext.destination);
+
+          //canvasContext = $("#canvas")[0].getContext("2d");
+
+          //javascriptNode.onaudioprocess = function() {
+              //var array = new Uint8Array(analyser.frequencyBinCount);
+              //analyser.getByteFrequencyData(array);
+              //var values = 0;
+
+              //var length = array.length;
+              //for (var i = 0; i < length; i++) {
+                //values += (array[i]);
+              //}
+
+              //var average = values / length;
+
+    ////          console.log(Math.round(average - 40));
+
+              //canvasContext.clearRect(0, 0, 150, 300);
+              //canvasContext.fillStyle = '#BadA55';
+              //canvasContext.fillRect(0, 300 - average, 150, 300);
+              //canvasContext.fillStyle = '#262626';
+              //canvasContext.font = "48px impact";
+              //canvasContext.fillText(Math.round(average - 40), -2, 300);
+
+            //} // end fn stream
+        //},
+        //function(err) {
+          //console.log("The following error occured: " + err.name)
+        //});
+    //};

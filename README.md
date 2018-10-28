@@ -4,11 +4,47 @@
 
 ## Overview
 
-This project is a work in progress. The documentation is in places, ahead of the function but it does build and run on a x86_64 Linux Desktop.
+This project is home to a number of open source projects related to the Snips voice platform.
 
-This repository is a docker-compose suite integrating [Snips AI](http://snips.ai)  and [RASA AI](http://rasa.ai) and [Kaldi](https://github.com/alumae/kaldi-gstreamer-server) and [Meeka@home](http://meekamusic.com) to create a 100% open source implementation of the [Hermes MQTT protocol](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#hermes-protocol) used by Snips. 
+- <b>[snips-webbrowser-audioserver](./snips-webbrowser-audioserver/README.md) </b> - React component (and vanillajs lib) to add a microphone button to a web page that streams mqtt audio to Snips. Implements hotword,audioserver and tts components of the Snips mqtt hermes protocol.
+- <b>snips-scripts</b>  - alternative python based 100% open source  implementations of all elements of the [Hermes MQTT protocol](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#hermes-protocol) used by Snips.
+- <b>multi architecture (arm/i386) docker images</b> for 
+    - snips
+    - pulseaudio
+    - nodejs
+    - python with rasa
+- <b>example docker-compose.yml configuration suites</b> making it easy to run snips with mqtt components from multiple platforms.
 
-## Features
+
+
+## Quickstart
+
+Install docker
+```
+curl -fsSL https://get.docker.com -o get-docker.sh
+$ sudo sh get-docker.sh
+apt-get install docker-compose
+```
+
+Run the example
+```
+git clone https://github.com/syntithenai/opensnips.git
+docker-compose up &
+
+```
+Open http://localhost:3000/ in your browser to see the microphone demo.
+
+
+## Web Browser Audioserver
+
+![microphone ](snips-webbrowser-audioserver/snips-webbrowser-audioserver-microphone.png  "microphone ")
+
+![microphone configuration](./snips-webbrowser-audioserver/snipsmicrophone_configuration.png  "microphone configuration")
+
+
+
+## Snips Scripts Features
+
 
 The repository developed to allow running the Hermes protocol on a Linux laptop or server. Most of the services will work fine on a Raspberry Pi but some hacks(temporary swap file) are required for building some services.
 
@@ -50,38 +86,15 @@ __The repository includes:__
     - examples for the audio server using sound devices directly or pulseaudio server on the host
     - configuration for all services as environment variables
  
-
-## Quick Start
-
-To get started 
-
-!! You will need at least 16G of storage space to install and run the suite.
-
-### Docker
-- [Install docker](https://www.google.com.au/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0ahUKEwiPkYafmt3XAhUKJZQKHU3DBO4QFggoMAA&url=https%3A%2F%2Fdocs.docker.com%2Fengine%2Finstallation%2F&usg=AOvVaw3LbZ234MXDYJLII4P-TXAZ)
-
-
-
-### To run
-- ```pip install docker-compose```
-- ```git clone https://github.com/syntithenai/opensnips.git```
-- ```cd opensnips```
-- using sound directly on the host without 
-- ```pasuspender -- docker-compose up```
-- OR using pulseaudio (see docker-compose.yml)
-- ```docker-compose up```
-- Try saying "play some pop music" or "play the next track" and you should hear a reply.
-
-
 ### Configuration
 See docker-compose.yml in the root of the project for configuration options.
 
 
 ## Architecture/Platform Support
 
-The Dockerfiles build on x86_64(Linux desktop/server).
+The Dockerfiles build on x86_64(Linux desktop/server) and arm (Raspberry pi).
 
-Support for raspberry pi on arm is pending but mostly there.
+Support for pulseaudio on raspberry pi/arm is pending but mostly there.
 
 It is apparently possible to install pulseaudio on MS Windows and MacOSX which should allow the suite to be used with Docker on other platforms than Linux.
 
@@ -560,3 +573,4 @@ hermes/dialogue/capture_slot
   
 
 
+[](snips-webbrowser-audioserver/README.md) [audioserver](./snips-webbrowser-audioserver/README.md) 
