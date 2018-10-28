@@ -37,6 +37,8 @@ Open http://localhost:3000/ in your browser to see the microphone demo.
 
 ## Web Browser Audioserver
 
+[More info](./snips-webbrowser-audioserver/README.md)
+
 ![microphone ](snips-webbrowser-audioserver/snips-webbrowser-audioserver-microphone.png  "microphone ")
 
 ![microphone configuration](./snips-webbrowser-audioserver/snipsmicrophone_configuration.png  "microphone configuration")

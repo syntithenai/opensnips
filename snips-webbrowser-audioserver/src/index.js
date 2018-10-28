@@ -1079,7 +1079,7 @@ export default class SnipsMicrophone extends Component {
                     <select style={inputStyle} id="hotword" value={config.hotword} onChange={this.configurationChange.bind(this)}  ><option value="browser:oklamp" >OK Lamp (Browser)</option><option value="server:heysnips" >Hey Snips (Server)</option><option value="disabled" >Disabled</option></select>
                 </div> 
                 <div className='form-group' >
-                    <label htmlFor="hotwordsensitivity" >Sensitivity </label>
+                    <label htmlFor="hotwordsensitivity" >Hotword Sensitivity </label>
                     <input type="range" id="hotwordsensitivity" value={config.hotwordsensitivity} onChange={this.configurationChange.bind(this)}  style={Object.assign({width:'80%'},inputStyle)}  ></input>
                 </div> 
                  <div className='form-group' >
