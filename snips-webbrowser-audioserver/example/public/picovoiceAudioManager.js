@@ -58,7 +58,7 @@ var PicovoiceAudioManager = (function() {
     };
 
     this.start = function(picovoiceEngine, picovoiceProcessCallback, errorCallback) {
-        console.log('pvam start');
+       // console.log('pvam start');
         if (!navigator.getUserMedia) {
             errorCallback("this browser does not support audio capture");
         }
@@ -71,16 +71,16 @@ var PicovoiceAudioManager = (function() {
     };
 
     this.stop = function() {
-        console.log('pvam stop');
+      //  console.log('pvam stop');
         isProcessing = false;
         inputAudioBuffer = [];
     };
     this.continueProcessing = function() {
-        console.log('pvam continue');
+      //  console.log('pvam continue');
         isProcessing = true;
      };
     this.pauseProcessing = function() {
-        console.log('pvam pause');
+    //    console.log('pvam pause');
         isProcessing = false;
     };
 });

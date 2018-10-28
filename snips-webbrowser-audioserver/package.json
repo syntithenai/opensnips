@@ -1,10 +1,10 @@
 {
   "name": "snips-webbrowser-audioserver",
   "version": "1.0.0",
-  "description": "snips audioserver implementation in a browser with micropohone component for react",
+  "description": "The package provides a SnipsMicrophone Component to stream microphone pcm data to snips via mqtt. Implements audioserver, hotword and tts elements of the Snips hermes mqtt protocol over mqtt and websockets.",
   "author": "syntithenai",
   "license": "MIT",
-  "repository": "syntithenai/snips-webbrowser-audioserver",
+  "repository": "https://github.com/syntithenai/opensnips",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "jsnext:main": "dist/index.es.js",
@@ -16,7 +16,7 @@
     "test": "cross-env CI=1 react-scripts test --env=jsdom",
     "test:watch": "react-scripts test --env=jsdom",
     "build": "rollup -c",
-    "start": "npm link && concurrently --kill-others-on-fail \"rollup -c -w\"   \"cd example && npm link snips-webbrowser-audioserver && npm start\"",
+    "start": "npm link && concurrently --kill-others-on-fail \"rollup -c -w\"   \" cd example && npm link snips-webbrowser-audioserver && npm start\"",
     "prepare": "npm run build",
     "predeploy": "cd example && npm install && npm run build",
     "deploy": "gh-pages -d example/build"
