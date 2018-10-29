@@ -13,6 +13,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import Resources from './resources'
+import AudioMeter from './AudioMeter.react'
 let hark = require('hark');
 
 export default class SnipsMicrophone extends Component {
@@ -123,7 +124,7 @@ export default class SnipsMicrophone extends Component {
             remotecontrol:'local',
             hotword:'browser:oklamp',
             silencedetection:'yes',
-            silencedetectionsensitivity:'50',
+            silencedetectionsensitivity:'5',
             enabletts:'yes',
             enableaudio:'yes',
             enablenotifications:'yes'
@@ -273,20 +274,34 @@ export default class SnipsMicrophone extends Component {
      * Synthesise speech from text and send to to audio output
      */ 
     speakAloud(text) {
-        console.log(['SPEAK',text]);
-        let voice = this.state.config.ttsvoice ? this.state.config.ttsvoice : 'default';
-        if (voice === "default") {
-            // js generated fallback
-            speak(text);
-        } else {
-            // Create a new instance of SpeechSynthesisUtterance.
-            var msg = new SpeechSynthesisUtterance();
-            msg.text = text;
-            msg.volume = parseFloat(this.state.config.value);
-            msg.rate = parseFloat(rateInput.value);
-            msg.pitch = parseFloat(pitchInput.value);
-            msg.voice = voice;
-            window.speechSynthesis.speak(msg);
+        if (this.state.config.enablevoice !== "no") {
+            let voice = this.state.config.ttsvoice ? this.state.config.ttsvoice : 'default';
+            console.log(['SPEAK',voice,text,this.state.config.ttsvoice,this.state.config.voicevolume,this.state.config.voicerate,this.state.config.voicepitch]);
+            
+            if (voice === "default") {
+                // js generated fallback
+                speak(text,{
+                    amplitude : !isNaN(parseFloat(this.state.config.voicevolume)) ? parseFloat(this.state.config.voicevolume) : 70,
+                    pitch: !isNaN(parseFloat(this.state.config.voicepitch)) ? parseFloat(this.state.config.voicepitch) : 50,
+                    speed : !isNaN(parseFloat(this.state.config.voicerate)) ? parseFloat(this.state.config.voicerate) * 2.2 : 175
+                });
+            } else {
+                // Create a new instance of SpeechSynthesisUtterance.
+                var msg = new SpeechSynthesisUtterance();
+                msg.text = text;
+                msg.volume = !isNaN(parseFloat(this.state.config.voicevolume)) ? parseFloat(this.state.config.voicevolume) : 50;
+                msg.rate = !isNaN(parseFloat(this.state.config.voicerate)) ? parseFloat(this.state.config.voicerate)/100 : 50/100;
+                msg.pitch = !isNaN(parseFloat(this.state.config.voicepitch)) ? parseFloat(this.state.config.voicepitch) : 50;
+                var voices = speechSynthesis.getVoices();
+      
+              // Loop through each of the voices.
+                voices.forEach(function(voiceItem, i) {
+                    if (voiceItem.name === voice)
+                    msg.voice = voiceItem;
+                    window.speechSynthesis.speak(msg);
+                });
+            }
+            
         }
     }
     
@@ -388,6 +403,19 @@ export default class SnipsMicrophone extends Component {
             this.mqttClient.send(message);
         }
     };
+    
+    /**
+     * Send Mqtt message to end the session immediately
+     */ 
+     sendTestSay(e) {
+         e.preventDefault();
+         let that = this;
+        if (this.state.connected) {
+            let message = new Paho.MQTT.Message(JSON.stringify({siteId:this.siteId,text:'This is a test to hear how I speak.'}));
+            message.destinationName = "hermes/tts/say";
+            this.mqttClient.send(message);
+        }
+    };
 
     /**
      * Handle mqtt messages
@@ -451,9 +479,8 @@ export default class SnipsMicrophone extends Component {
             this.recording = true;
             this.setState({recording : true});
         } else if (message.destinationName === "hermes/asr/stopListening") {
-             var finalBuffer = this.flattenArray(this.audioBuffer, this.recordingLength);
-             console.log(['STOP LISTENING',finalBuffer]);
-             this.logAudio(this.sessionId,finalBuffer) 
+             console.log(['STOP LISTENING']);
+             this.logAudio(this.sessionId,this.audioBuffer) 
         
             this.recording = false;
             this.setState({recording : false});
@@ -502,37 +529,35 @@ export default class SnipsMicrophone extends Component {
         this.recordingLength = 0;
             
       this.setState({speaking:true,recording : true,lastIntent:'',lastTts:'',lastTranscript:'',showMessage:false});
+      // ask snips to start listening to our audio stream
+      
       this.sendHotwordDetected.bind(this)(this.hotwordId,this.siteId);
     }
 
     stopRecording = function() {
        // console.log('STOP');
-       var finalBuffer = this.flattenArray(this.audioBuffer, this.recordingLength);
-        console.log(['STOP REC',finalBuffer]);
-        this.logAudio(this.sessionId,finalBuffer) 
+        console.log(['STOP REC']);
+        this.logAudio(this.sessionId,this.audioBuffer) 
         this.recording = false;
         this.setState({recording : false});
         this.sendEndSession.bind(this)(this.sessionId);
       
     }
     
-    
-    
-
-
-    
     playSound(bytes) {
-        var buffer = new Uint8Array( bytes.length );
-        buffer.set( new Uint8Array(bytes), 0 );
-        let audioContext = window.AudioContext || window.webkitAudioContext;
-        let context = new audioContext();
-         
-        context.decodeAudioData(buffer.buffer, function(audioBuffer) {
-            var source = context.createBufferSource();
-            source.buffer = audioBuffer;
-            source.connect( context.destination );
-            source.start(0);
-        });
+        if (this.state.config.enableaudio !== "no") {
+            var buffer = new Uint8Array( bytes.length );
+            buffer.set( new Uint8Array(bytes), 0 );
+            let audioContext = window.AudioContext || window.webkitAudioContext;
+            let context = new audioContext();
+             
+            context.decodeAudioData(buffer.buffer, function(audioBuffer) {
+                var source = context.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect( context.destination );
+                source.start(0);
+            });            
+        }
     }
     
    flashState(key,value) {
@@ -871,19 +896,25 @@ export default class SnipsMicrophone extends Component {
     };
     
     logTts(sessionId,text) {
-        let logs = this.state.logs;
-        let currentLog = this.currentLogEntry.bind(this)(sessionId,logs);
-        currentLog.tts.push(intent);
-        console.log(['start LOG tts',text,sessionId]);
-        this.setState({logs:logs});
+        if (sessionId && sessionId.length) {
+            let logs = this.state.logs;
+            let currentLog = this.currentLogEntry.bind(this)(sessionId,logs);
+            currentLog.tts.push(text);
+            console.log(['start LOG tts',text,sessionId]);
+            this.setState({logs:logs});            
+        }
         
     };
     
     logAudio(sessionId,audio) {
         let that = this;
         console.log(['start LOG audio',sessionId]);
-        //let logs = this.state.logs;
+        let logs = this.state.logs;
+        var finalBuffer = this.flattenArray(audio, this.recordingLength);
+        // audio to audioBuffer
+        
         //this.reSample(audio,16000,function(result) {
+            //console.log(['resampled LOG audio',result]);
             //let wav = that.audioBufferToWav(result) ; //new WaveFile().fromScratch(1,16000,"16",result);
             //let currentLog = that.currentLogEntry.bind(that)(sessionId,logs);
             //currentLog.audio.push(intent);
@@ -1013,52 +1044,64 @@ export default class SnipsMicrophone extends Component {
         return <option value={voice.name}>{voice.label}</option>
     });
     
+    let ro = this.props.remoteOptions ? this.props.remoteOptions : []
+    let remoteOptions = ro.map(function(remoteSite) {
+        return <option value={remoteSite.name}>{remoteSite.label}</option>
+    });
+    remoteOptions.unshift(<option value="local">Local</option>);
+    
   
     let inputStyle={marginBottom:'0.5em',fontSize:'0.9em'};
     let config = this.state.config;
     return (
       <div  >
        {this.state.showConfig && <div style={{minHeight:'25em' ,margin:'2em',padding:'1em',width:'90%' ,border: '2px solid black',borderRadius:'10px',backgroundColor:'white'}}>
-           <button style={{float:'right',fontSize:'1.3em'}} onClick={this.hideConfig}>X</button>
+           <button style={{float:'right',fontSize:'1.6em',fontWeight:'bold',border: '2px solid black',borderRadius:'50px'}} onClick={this.hideConfig}>X</button>
            
            <div style={{float:'left',marginRight:'2em'}} >
-                {(status >= 2) && <span  onClick={this.deactivate}><button style={{fontSize:'1.5em'}}> {stopIcon2} Disable </button></span>} 
+                {(status >= 2) && <span  onClick={this.deactivate}><button className='btn btn-danger' style={{fontSize:'1.5em'}}> {stopIcon2} Disable </button></span>} 
                 </div>
            
            <h1 >Microphone Configuration</h1>
-           <canvas style={{float:'right'}} id="vucanvas" width="150" height="300"></canvas>
+            
            <form style={{fontSize:'1.8em'}}>
                 
-                <div className='form-group' >
-                    <b style={{marginBottom:'0.8em'}} >Volume&nbsp;&nbsp;&nbsp;</b>
-                </div> 
-                
-                <div className='form-group' >
-                    <label htmlFor="inputvolume" >Microphone </label>
-                    <input type="range" id="inputvolume" value={config.inputvolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'    },inputStyle)}  ></input>
-                </div> 
-                                
-                <div className='form-group' >
-                    <label htmlFor="outputvolume" >Output </label>
-                    <input type="range" id="outputvolume" value={config.outputvolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'},inputStyle)}  ></input>
-                </div> 
-                <div className='form-group' >
-                    <label htmlFor="voicevolume" >Voice </label>
-                    <input type="range" id="voicevolume" value={config.voicevolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'},inputStyle)}  ></input>
-                </div> 
+                <div style={{float:'right'}} >
+                <AudioMeter  style={{float:'right',marginRight:"2em",height:'200',width:'50',dtooLoudColor:"#FF9800",scolor:'#889bd8',border:'1px solid black',backgroundColor:'lightgrey'}} />
+                </div>
+                <div style={{float:'left', width:'80%'}}>
+                    <div className='form-group' >
+                        <b style={{marginBottom:'0.8em'}} >Volume&nbsp;&nbsp;&nbsp;</b>
+                    </div> 
+                    
+                    <div className='form-group' >
+                        <label htmlFor="inputvolume" >Microphone </label>
+                        <input type="range" id="inputvolume" value={config.inputvolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'    },inputStyle)}  ></input>
+                    </div> 
+                                    
+                    <div className='form-group' >
+                        <label htmlFor="outputvolume" >Output </label>
+                        <input type="range" id="outputvolume" value={config.outputvolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'},inputStyle)}  ></input>
+                    </div> 
+                    <div className='form-group' >
+                        <label htmlFor="voicevolume" >Voice </label>
+                        <input type="range" id="voicevolume" value={config.voicevolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'},inputStyle)}  ></input>
+                    </div> 
+                </div>
                    <div className='form-group' >
                     <hr style={{width:'100%'}}/ >
                 </div>
                  <div className='form-group' >
                     <label htmlFor="remotecontrol" >Remote Control </label>
-                    <select style={inputStyle} id="remotecontrol" value={config.remotecontrol} onChange={this.configurationChange.bind(this)}  ><option value='local' >Local</option><option value='bedroom' >Bedroom Pi</option><option value='lounge' >Lounge Pi</option></select>
+                    <select style={inputStyle} id="remotecontrol" value={config.remotecontrol} onChange={this.configurationChange.bind(this)}  >{remoteOptions}</select>
                 </div> 
                 <div className='form-group' >
                     <hr style={{width:'100%'}}/ >
                 </div>
-                <div className='form-group' >
+                <div className='form-inline' >
                     <label htmlFor="ttsvoice" >Voice </label>
                     <select style={inputStyle}  id="ttsvoice" value={config.ttsvoice} onChange={this.configurationChange.bind(this)}   >{voiceOptions}</select>
+                    &nbsp;&nbsp;&nbsp;<button className='btn btn-success' style={{fontSize:'1em'}} onClick={this.sendTestSay.bind(this)}>Test</button>
                 </div> 
                 <div className='form-group' >
                     <label htmlFor="voicerate" >Rate </label>
@@ -1087,6 +1130,7 @@ export default class SnipsMicrophone extends Component {
                 </div>
                                 
                 <div className='form-group' >
+                    {this.state.speaking && <span style={{float:'right'}}>Speaking</span>}
                     <label htmlFor="silencedetection" >Silence Detection </label>
                     <select style={inputStyle} id="silencedetection"  value={config.silencedetection} onChange={this.configurationChange.bind(this)} ><option value="yes" >Enabled</option><option value="no">Disabled</option></select>
                 </div> 
@@ -1113,7 +1157,7 @@ export default class SnipsMicrophone extends Component {
 
                  <div className='form-group' >
                     <hr style={{width:'100%'}}/ >
-                    <span  onClick={this.resetConfig}><button style={{fontSize:'1em'}}> {resetIcon} Reset Configuration</button></span>
+                    <span  onClick={this.resetConfig}><button className='btn btn-danger' style={{fontSize:'1em'}}> {resetIcon} Reset Configuration</button></span>
                     <hr style={{width:'100%'}}/ >
                 </div>
                 <div className='form-group' >
@@ -1133,7 +1177,7 @@ export default class SnipsMicrophone extends Component {
             
             
         </div>}
-       {!this.state.showConfig && <div>
+       {!this.state.showConfig && this.state.config.enablenotifications !== "no" && <div>
         {(!this.state.activated) && <span  onClick={this.activate}>{micOnIcon}</span>} 
         {(this.state.activated && this.state.recording) && <span onTouchStart={this.showConfig}  onTouchEnd={this.clearConfigTimer}   onMouseDown={this.showConfig} onMouseUp={this.clearConfigTimer} onContextMenu={this.showConfigNow} onClick={this.stopRecording}>{micOffIcon}</span>} 
         {(this.state.activated && !this.state.recording) && <span onTouchStart={this.showConfig}  onTouchEnd={this.clearConfigTimer}   onMouseDown={this.showConfig} onMouseUp={this.clearConfigTimer} onContextMenu={this.showConfigNow} onClick={this.startRecording}>{micOnIcon}</span>} 
@@ -1150,58 +1194,4 @@ export default class SnipsMicrophone extends Component {
     )
   }
 }
-  //<style dangerouslySetInnerHTML={{
-          //__html: [
-             //this.bubbleCSS(speechBubbleSettings)].join('\n')
-          //}}>
-        //</style>
-//startVUMeter() {
-        //let that = this;
-        //if (!navigator.getUserMedia)
-            //navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
-        //navigator.mozGetUserMedia || navigator.msGetUserMedia;
-        //navigator.getUserMedia({
-          //audio: true
-        //},
-        //function(stream) {
-          //audioContext = new AudioContext();
-          //analyser = audioContext.createAnalyser();
-          //microphone = audioContext.createMediaStreamSource(stream);
-          //javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
-
-          //analyser.smoothingTimeConstant = 0.8;
-          //analyser.fftSize = 1024;
-
-          //microphone.connect(analyser);
-          //analyser.connect(javascriptNode);
-          //javascriptNode.connect(audioContext.destination);
-
-          //canvasContext = $("#canvas")[0].getContext("2d");
-
-          //javascriptNode.onaudioprocess = function() {
-              //var array = new Uint8Array(analyser.frequencyBinCount);
-              //analyser.getByteFrequencyData(array);
-              //var values = 0;
-
-              //var length = array.length;
-              //for (var i = 0; i < length; i++) {
-                //values += (array[i]);
-              //}
-
-              //var average = values / length;
-
-    ////          console.log(Math.round(average - 40));
-
-              //canvasContext.clearRect(0, 0, 150, 300);
-              //canvasContext.fillStyle = '#BadA55';
-              //canvasContext.fillRect(0, 300 - average, 150, 300);
-              //canvasContext.fillStyle = '#262626';
-              //canvasContext.font = "48px impact";
-              //canvasContext.fillText(Math.round(average - 40), -2, 300);
-
-            //} // end fn stream
-        //},
-        //function(err) {
-          //console.log("The following error occured: " + err.name)
-        //});
-    //};
+ 

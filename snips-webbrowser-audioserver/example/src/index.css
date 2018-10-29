@@ -11,3 +11,18 @@ body {
   left: 45%;
   text-align: center;
 }
+.btn {
+    border: 1px solid black;
+    border-radius: 10px;
+    padding: 0.3em;
+    box-shadow: 2px 4px #888888;
+}
+
+.btn-danger {
+    background-color:lightpink;
+    border: 1px solid red;
+}
+.btn-success {
+    background-color:lightgreen;
+    border: 1px solid green;
+}
