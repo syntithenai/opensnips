@@ -14,6 +14,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import Resources from './resources'
 import AudioMeter from './AudioMeter.react'
+import SnipsLogger from './SnipsLogger'
 let hark = require('hark');
 
 export default class SnipsMicrophone extends Component {
@@ -30,6 +31,7 @@ export default class SnipsMicrophone extends Component {
         this.hotwordId = this.props.hotwordId ? this.props.hotwordId : 'default';
         this.sessionId = "";
         this.context = null;
+        this.inputGainNodes = [];
         this.messageTimeout = null;
         this.mqttClient = null;
         this.speakingTimeout = null;
@@ -106,7 +108,8 @@ export default class SnipsMicrophone extends Component {
         
     }
     
-    resetConfig() {
+    resetConfig(e) {
+        e.preventDefault();
         let newConfig = this.getDefaultConfig.bind(this)();        
         this.setState({'config':newConfig});
         localStorage.setItem('snipsmicrophone_config',JSON.stringify(newConfig));
@@ -124,7 +127,7 @@ export default class SnipsMicrophone extends Component {
             remotecontrol:'local',
             hotword:'browser:oklamp',
             silencedetection:'yes',
-            silencedetectionsensitivity:'5',
+            silencedetectionsensitivity:'90',
             enabletts:'yes',
             enableaudio:'yes',
             enablenotifications:'yes'
@@ -208,32 +211,67 @@ export default class SnipsMicrophone extends Component {
     /**
      * Bind silence recognition events to set speaking state
      */ 
-    bindSpeakingEvents(e) {
+    bindSpeakingEvents(audioContext,e) {
+        console.log(['bindSpeakingEvents'])
         let that = this;
-        var options = {};
-        options.threshold = 10 * Math.log(this.state.config.silencesensitivity/100);
+        var options = {audioContext:audioContext};
+        options.threshhold = this.getThreshholdFromVolume(this.state.config.silencesensitivity);
         // bind speaking events care of hark
-        if (this.state.config.silencedetection !== "no") {
             this.speechEvents = hark(e, options);
             this.speechEvents.on('speaking', function() {
-              if (this.speakingTimeout) clearTimeout(this.speakingTimeout);
-              that.setState({speaking:true});
+              if (that.state.config.silencedetection !== "no") {
+                  console.log('speaking');
+                  if (that.speakingTimeout) clearTimeout(that.speakingTimeout);
+                  that.setState({speaking:true});
+                }
             });
             
             this.speechEvents.on('stopped_speaking', function() {
-              if (this.speakingTimeout) clearTimeout(this.speakingTimeout);
-              this.speakingTimeout = setTimeout(function() {
-                  that.setState({speaking:false});
-              },1000);
+                if (that.state.config.silencedetection !== "no") {
+                  if (that.speakingTimeout) clearTimeout(that.speakingTimeout);
+                  that.speakingTimeout = setTimeout(function() {
+                      console.log('stop speaking');
+                      that.setState({speaking:false});
+                  },1000);
+                }
               
             });            
+        
+    };
+
+    getThreshholdFromVolume(volume) {
+        return 10 * Math.log((101 - volume )/800);
+    };
+
+    configurationChange(e) {
+        let that = this;
+        console.log(['configurationChange',this,e,e.target.value,e.target.id]);
+        let config = this.state.config;
+        config[e.target.id] = e.target.value;
+        this.setState(config);
+        // set silence threshhold directly
+        if (e.target.id === "silencesensitivity" && this.speechEvents) {
+            this.speechEvents.setThreshold(this.getThreshholdFromVolume(this.state.config.silencesensitivity));
+        } else if (e.target.id === "inputvolume" ) {
+            // update all input gain nodes
+            this.inputGainNodes.map(function(node) {
+                console.log(['set gain',node,that.state.config.inputvolume/100]);
+                node.gain.value = that.state.config.inputvolume/100;
+            });
+            
         }
+        localStorage.setItem('snipsmicrophone_config',JSON.stringify(config));
+    };
+    
+    addInputGainNode(node) {
+        this.inputGainNodes.push(node);
     };
 
     /**
      * Access the microphone and start streaming mqtt packets
      */ 
     startRecorder() {
+        console.log('START RECORDER');
         let that = this;
         if (!navigator.getUserMedia)
             navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
@@ -243,31 +281,40 @@ export default class SnipsMicrophone extends Component {
           navigator.getUserMedia({audio:true}, success, function(e) {
             alert('Error capturing audio.');
           });
-          //this.startVUMeter();
         } else alert('getUserMedia not supported in this browser.');
 
         function success(e) {
+           console.log('STARTING');
+           let audioContext = window.AudioContext || window.webkitAudioContext;
+           let context = new audioContext();
             that.setState({'activated':true});
-            that.bindSpeakingEvents.bind(that)(e);
+           
+            that.bindSpeakingEvents.bind(that)(context,e);
             // start media streaming mqtt
-          let audioContext = window.AudioContext || window.webkitAudioContext;
-          that.context = new audioContext();
-          let audioInput = that.context.createMediaStreamSource(e);
+           console.log(['SET CONTEXT',context]);
+          
+          let gainNode = context.createGain();
+          // initial set volume
+          gainNode.gain.value = 0.9; // that.state.config.inputvolume > 0 ? that.state.config.inputvolume/100 : 0.5;
+          let audioInput = context.createMediaStreamSource(e);
           var bufferSize = 256;
-          let recorder = that.context.createScriptProcessor(bufferSize, 1, 1);
+          let recorder = context.createScriptProcessor(bufferSize, 1, 1);
 
           recorder.onaudioprocess = function(e){
             if(!that.recording || !that.state.speaking) return;
             var left = e.inputBuffer.getChannelData(0);
-            that.sendAudioBuffer(e.inputBuffer,that.context.sampleRate); 
-            console.log(['send audio',buffer,that.audioBuffer]);
+            that.sendAudioBuffer(e.inputBuffer,context.sampleRate); 
+           // console.log(['send audio',buffer,that.audioBuffer]);
             that.audioBuffer.push(new Float32Array(e.inputBuffer.getChannelData(0)));
             that.recordingLength += bufferSize;
           }
-
-          audioInput.connect(recorder)
-          recorder.connect(that.context.destination); 
-          that.sendHotwordToggleOn.bind(that)(that.siteId);
+            that.addInputGainNode(gainNode) ;
+            audioInput.connect(gainNode)
+            gainNode.connect(recorder);
+            //audioInput.connect(recorder)
+            // TODO, is this required?
+            recorder.connect(context.destination); 
+            //that.sendHotwordToggleOn.bind(that)(that.siteId);
         }
     };
     /**
@@ -368,6 +415,18 @@ export default class SnipsMicrophone extends Component {
             this.mqttClient.send(message);
         }
     }
+    
+    /**
+     * Send Mqtt message to start a voice session
+     */     
+    sendStartSession(siteId) {
+        let that = this;
+        if (this.state.connected) {
+            let message = new Paho.MQTT.Message(JSON.stringify({siteId:siteId,init:{type:'action',canBeEnqueued:true,sendIntentNotRecognized:true}}));
+            message.destinationName = "hermes/dialogueManager/startSession";
+            this.mqttClient.send(message);   
+        }
+    };
     /**
      * Send Mqtt message to indicate that tts has finished
      */     
@@ -395,11 +454,17 @@ export default class SnipsMicrophone extends Component {
     /**
      * Send Mqtt message to end the session immediately
      */ 
-     sendEndSession(sessionId) {
+     sendEndSession(siteId,sessionId) {
          let that = this;
         if (this.state.connected) {
             let message = new Paho.MQTT.Message(JSON.stringify({sessionId:sessionId}));
             message.destinationName = "hermes/dialogueManager/endSession";
+            this.mqttClient.send(message);
+            message = new Paho.MQTT.Message(JSON.stringify({siteId:siteId}));
+            message.destinationName = "hermes/asr/toggleOff";
+            this.mqttClient.send(message);
+            message = new Paho.MQTT.Message(JSON.stringify({siteId:siteId}));
+            message.destinationName = "hermes/hotword/toggleOn";
             this.mqttClient.send(message);
         }
     };
@@ -447,7 +512,7 @@ export default class SnipsMicrophone extends Component {
         } catch (e) {
         }
         if (this.debug) {
-          console.log(['MESSAGE',message.destinationName,this.sessionId,mainTopic,audio.length,payload,message]);
+         // console.log(['MESSAGE',message.destinationName,this.sessionId,mainTopic,audio.length,payload,message]);
         }
         if (parts[0] === "hermes" && parts[1] === "asr"  && parts[2] === "textCaptured" ) {
             this.logAsr(this.sessionId,payload.text) 
@@ -497,7 +562,7 @@ export default class SnipsMicrophone extends Component {
      * Pause the hotword manager
      */ 
     stopHotword() {
-        this.hotwordManager.pauseProcessing();
+        if (this.hotwordManager) this.hotwordManager.pauseProcessing();
     };
     
     /**
@@ -514,7 +579,7 @@ export default class SnipsMicrophone extends Component {
                 console.log(['hotword error',e]);
               });
           } else {
-              this.hotwordManager.continueProcessing();
+              if(this.hotwordManager) this.hotwordManager.continueProcessing();
           }
       }
     };
@@ -531,7 +596,7 @@ export default class SnipsMicrophone extends Component {
       this.setState({speaking:true,recording : true,lastIntent:'',lastTts:'',lastTranscript:'',showMessage:false});
       // ask snips to start listening to our audio stream
       
-      this.sendHotwordDetected.bind(this)(this.hotwordId,this.siteId);
+      this.sendStartSession.bind(this)(this.siteId);
     }
 
     stopRecording = function() {
@@ -540,21 +605,26 @@ export default class SnipsMicrophone extends Component {
         this.logAudio(this.sessionId,this.audioBuffer) 
         this.recording = false;
         this.setState({recording : false});
-        this.sendEndSession.bind(this)(this.sessionId);
+        this.sendEndSession.bind(this)(this.siteId,this.sessionId);
       
     }
     
     playSound(bytes) {
+        
         if (this.state.config.enableaudio !== "no") {
             var buffer = new Uint8Array( bytes.length );
             buffer.set( new Uint8Array(bytes), 0 );
             let audioContext = window.AudioContext || window.webkitAudioContext;
             let context = new audioContext();
-             
+            let gainNode = context.createGain();
+            // initial set volume
+            gainNode.gain.value = this.state.config.outputvolume > 0 ? this.state.config.outputvolume/100 : 0.5;
+          
             context.decodeAudioData(buffer.buffer, function(audioBuffer) {
                 var source = context.createBufferSource();
                 source.buffer = audioBuffer;
-                source.connect( context.destination );
+                source.connect(gainNode);
+                gainNode.connect( context.destination );
                 source.start(0);
             });            
         }
@@ -597,7 +667,8 @@ export default class SnipsMicrophone extends Component {
                let wav = that.audioBufferToWav(result) ; //new WaveFile().fromScratch(1,16000,"16",result);
                 let message = new Paho.MQTT.Message(wav);
                 message.destinationName = "hermes/audioServer/"+that.siteId+"/audioFrame";
-                that.mqttClient.send(message);            
+                that.mqttClient.send(message);  
+                console.log('send audio');          
             },sampleRate);
         }
         
@@ -835,18 +906,6 @@ export default class SnipsMicrophone extends Component {
         this.setState({showConfig:false});
     }; 
 
-
-    configurationChange(e) {
-        console.log(['configurationChange',this,e,e.target.value,e.target.id]);
-        let config = this.state.config;
-        config[e.target.id] = e.target.value;
-        this.setState(config);
-        // set silence threshhold directly
-        if (e.target.id === "silencesensitivity" && this.speechEvents) {
-            this.speechEvents.setThreshold(10 * Math.log(this.state.config.silencesensitivity/100));
-        }
-        localStorage.setItem('snipsmicrophone_config',JSON.stringify(config));
-    };
     
     newLog(sessionId) {
         return  {timestamp : new Date().getTime(), siteId:this.siteId,sessionId:sessionId,hotwordId:this.hotwordId,asr:[],intents:[],audio:[],tts:[]};
@@ -862,9 +921,10 @@ export default class SnipsMicrophone extends Component {
     };
     
     currentLogEntry(sessionId,logs) {
+        console.log(['get LOG',sessionId]);
         if (sessionId && sessionId.length) {
             if (logs && logs.hasOwnProperty(sessionId)) {
-                console.log(['CURRENT LOG',sessionId,logs[sessionId]]);
+                console.log(['CURRENT LOG',sessionId,logs[sessionId],logs]);
                 return logs[sessionId]
             // create first log entry
             } else  {
@@ -908,20 +968,23 @@ export default class SnipsMicrophone extends Component {
     
     logAudio(sessionId,audio) {
         let that = this;
-        console.log(['start LOG audio',sessionId]);
-        let logs = this.state.logs;
-        var finalBuffer = this.flattenArray(audio, this.recordingLength);
-        // audio to audioBuffer
-        
-        //this.reSample(audio,16000,function(result) {
-            //console.log(['resampled LOG audio',result]);
-            //let wav = that.audioBufferToWav(result) ; //new WaveFile().fromScratch(1,16000,"16",result);
-            //let currentLog = that.currentLogEntry.bind(that)(sessionId,logs);
-            //currentLog.audio.push(intent);
-            //that.setState({logs:logs});
-        
-        //});
-           
+        if (false && sessionId && sessionId.length > 0 && audio && audio.length > 0) {
+            console.log(['start LOG audio',sessionId,audio]);
+            let logs = this.state.logs;
+            var finalBuffer = this.flattenArray(audio, this.recordingLength);
+            var format =  1
+            var bitDepth = format === 16
+            // audio to audioBuffer
+            let wav = this.encodeWAV (finalBuffer, format, 16000, 1, bitDepth) 
+            //this.reSample(audio,16000,function(result) {
+                //console.log(['resampled LOG audio',result]);
+                //let wav = that.audioBufferToWav(result) ; //new WaveFile().fromScratch(1,16000,"16",result);
+            let currentLog = that.currentLogEntry.bind(that)(sessionId,logs);
+            console.log(['LOGged AUDIO',wav,currentLog]);
+            if (currentLog && currentLog.audio) currentLog.audio.push(wav);
+            that.setState({logs:logs});
+            audio = [];
+        }
     };
     
     
@@ -1019,43 +1082,43 @@ export default class SnipsMicrophone extends Component {
         let speechItems = sessionLog.asr.map(function(transcript,ikey) {
             let slotValues = [];
             if (sessionLog.intents[ikey]) slotValues = sessionLog.intents[ikey].slots.map(function(slot,skey) {
-                return <li>{slot.slotName.split('_').join(' ')} {slot.value.value}</li>
+                return <li key={skey}>{slot.slotName.split('_').join(' ')} {slot.value.value}</li>
             });
-            return <div>
+            return <div key={ikey}>
             <div style={{marginBottom:'1em',fontWeight:'bold'}}>{transcript}</div>
             <div>
                 <span>{sessionLog.intents[ikey] && sessionLog.intents[ikey].intent}</span>
                 {slotValues && <ul>{slotValues}</ul>}
             </div>
             <div><i>{sessionLog.tts[ikey]}</i></div>
-            <span>{sessionLog.audio[ikey] && sessionLog.audio[ikey].length}</span>
+            <span>AUDIO {ikey}  {sessionLog.audio[ikey] && sessionLog.audio[ikey].length}</span>
             <div ><hr style={{height:'1px', width:'100%'}}/></div>
             
             </div>
         });
         
-        return <div >
+        return <div key={key} >
             <div ><hr style={{height:'5px', width:'100%'}}/></div>
             <div >{speechItems}</div>
         </div>
     });
 
     let voiceOptions = this.state.voices && this.state.voices.map(function(voice) {
-        return <option value={voice.name}>{voice.label}</option>
+        return <option key={voice.name} value={voice.name}>{voice.label}</option>
     });
     
     let ro = this.props.remoteOptions ? this.props.remoteOptions : []
     let remoteOptions = ro.map(function(remoteSite) {
-        return <option value={remoteSite.name}>{remoteSite.label}</option>
+        return <option key={remoteSite.name} value={remoteSite.name}>{remoteSite.label}</option>
     });
-    remoteOptions.unshift(<option value="local">Local</option>);
+    remoteOptions.unshift(<option key="local" value="local">Local</option>);
     
   
     let inputStyle={marginBottom:'0.5em',fontSize:'0.9em'};
     let config = this.state.config;
     return (
       <div  >
-       {this.state.showConfig && <div style={{minHeight:'25em' ,margin:'2em',padding:'1em',width:'90%' ,border: '2px solid black',borderRadius:'10px',backgroundColor:'white'}}>
+       {this.state.showConfig && <div style={{minHeight:'25em' ,margin:'2em',marginTop:'10em',padding:'1em',width:'90%' ,border: '2px solid black',borderRadius:'10px',backgroundColor:'white'}}>
            <button style={{float:'right',fontSize:'1.6em',fontWeight:'bold',border: '2px solid black',borderRadius:'50px'}} onClick={this.hideConfig}>X</button>
            
            <div style={{float:'left',marginRight:'2em'}} >
@@ -1067,7 +1130,7 @@ export default class SnipsMicrophone extends Component {
            <form style={{fontSize:'1.8em'}}>
                 
                 <div style={{float:'right'}} >
-                <AudioMeter  style={{float:'right',marginRight:"2em",height:'200',width:'50',dtooLoudColor:"#FF9800",scolor:'#889bd8',border:'1px solid black',backgroundColor:'lightgrey'}} />
+                <AudioMeter  inputvolume={this.state.config.inputvolume} addInputGainNode={this.addInputGainNode.bind(this)}  source={this.source}  style={{float:'right',marginRight:"2em",height:'200',width:'50',dtooLoudColor:"#FF9800",scolor:'#889bd8',border:'1px solid black',backgroundColor:'lightgrey'}} />
                 </div>
                 <div style={{float:'left', width:'80%'}}>
                     <div className='form-group' >
@@ -1076,7 +1139,7 @@ export default class SnipsMicrophone extends Component {
                     
                     <div className='form-group' >
                         <label htmlFor="inputvolume" >Microphone </label>
-                        <input type="range" id="inputvolume" value={config.inputvolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'    },inputStyle)}  ></input>
+                        <input type="range" id="inputvolume" value={config.inputvolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'    },inputStyle)} min="0" max="150" ></input>
                     </div> 
                                     
                     <div className='form-group' >
@@ -1095,6 +1158,52 @@ export default class SnipsMicrophone extends Component {
                     <label htmlFor="remotecontrol" >Remote Control </label>
                     <select style={inputStyle} id="remotecontrol" value={config.remotecontrol} onChange={this.configurationChange.bind(this)}  >{remoteOptions}</select>
                 </div> 
+                
+                <div className='form-group' >
+                    <hr style={{width:'100%'}}/ >
+                </div>
+                                
+                <div className='form-group' >
+                    {this.state.speaking && <span style={{float:'right'}}>Speaking</span>}
+                    <label htmlFor="silencedetection" >Silence Detection </label>
+                    <select style={inputStyle} id="silencedetection"  value={config.silencedetection} onChange={this.configurationChange.bind(this)} ><option value="yes" >Enabled</option><option value="no">Disabled</option></select>
+                </div> 
+                <div className='form-group' >
+                    <label htmlFor="silencesensitivity" >Silence Sensitivity </label>
+                    <input type="range" id="silencesensitivity" value={config.silencesensitivity} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'},inputStyle)} min="50" max="100" ></input>
+                </div> 
+                
+                
+                <div className='form-group' >
+                    <hr style={{width:'100%'}}/ >
+                </div>
+                                
+                <div className='form-group' >
+                    <label htmlFor="hotword" >Hotword </label>
+                    <select style={inputStyle} id="hotword" value={config.hotword} onChange={this.configurationChange.bind(this)}  ><option value="browser:oklamp" >OK Lamp (Browser)</option><option value="server:heysnips" >Hey Snips (Server)</option><option value="disabled" >Disabled</option></select>
+                </div> 
+                <div className='form-group' >
+                    <label htmlFor="hotwordsensitivity" >Hotword Sensitivity </label>
+                    <input type="range" id="hotwordsensitivity" value={config.hotwordsensitivity} onChange={this.configurationChange.bind(this)}  style={Object.assign({width:'80%'},inputStyle)}  ></input>
+                </div> 
+                 
+                 <div className='form-group' >
+                    <hr style={{width:'100%'}}/ >
+                </div>
+                <div className='form-group' >
+                    <b style={{marginBottom:'0.8em'}}>Notifications&nbsp;&nbsp;&nbsp;</b>
+                </div> 
+                
+                <div className='form-inline' >
+                    <label htmlFor="enabletts" > Voice </label>
+                    <select style={inputStyle} id="enabletts" value={config.enabletts} onChange={this.configurationChange.bind(this)}  ><option value="yes" >Yes</option><option value="no" >No</option></select>
+                    <label htmlFor="enableaudio" > Audio </label>
+                    <select style={inputStyle}  id="enableaudio" value={config.enableaudio} onChange={this.configurationChange.bind(this)} ><option value="yes" >Yes</option><option value="no" >No</option></select>
+                    <label htmlFor="enablenotifications" > Screen </label>
+                    <select style={inputStyle}  id="enablenotifications" value={config.enablenotifications} onChange={this.configurationChange.bind(this)}  ><option value="yes" >Yes</option><option value="no" >No</option></select>
+                </div> 
+               
+               
                 <div className='form-group' >
                     <hr style={{width:'100%'}}/ >
                 </div>
@@ -1112,49 +1221,7 @@ export default class SnipsMicrophone extends Component {
                     <input type="range" id="voicepitch" value={config.voicepitch} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'},inputStyle)}  ></input>
                 </div> 
                
-                
-                <div className='form-group' >
-                    <hr style={{width:'100%'}}/ >
-                </div>
-                                
-                <div className='form-group' >
-                    <label htmlFor="hotword" >Hotword </label>
-                    <select style={inputStyle} id="hotword" value={config.hotword} onChange={this.configurationChange.bind(this)}  ><option value="browser:oklamp" >OK Lamp (Browser)</option><option value="server:heysnips" >Hey Snips (Server)</option><option value="disabled" >Disabled</option></select>
-                </div> 
-                <div className='form-group' >
-                    <label htmlFor="hotwordsensitivity" >Hotword Sensitivity </label>
-                    <input type="range" id="hotwordsensitivity" value={config.hotwordsensitivity} onChange={this.configurationChange.bind(this)}  style={Object.assign({width:'80%'},inputStyle)}  ></input>
-                </div> 
-                 <div className='form-group' >
-                    <hr style={{width:'100%'}}/ >
-                </div>
-                                
-                <div className='form-group' >
-                    {this.state.speaking && <span style={{float:'right'}}>Speaking</span>}
-                    <label htmlFor="silencedetection" >Silence Detection </label>
-                    <select style={inputStyle} id="silencedetection"  value={config.silencedetection} onChange={this.configurationChange.bind(this)} ><option value="yes" >Enabled</option><option value="no">Disabled</option></select>
-                </div> 
-                <div className='form-group' >
-                    <label htmlFor="silencesensitivity" >Silence Sensitivity </label>
-                    <input type="range" id="silencesensitivity" value={config.silencesensitivity} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'},inputStyle)}  ></input>
-                </div> 
-                
-                 <div className='form-group' >
-                    <hr style={{width:'100%'}}/ >
-                </div>
-                <div className='form-group' >
-                    <b style={{marginBottom:'0.8em'}}>Notifications&nbsp;&nbsp;&nbsp;</b>
-                </div> 
-                
-                <div className='form-inline' >
-                    <label htmlFor="enabletts" > Voice </label>
-                    <select style={inputStyle} id="enabletts" value={config.enabletts} onChange={this.configurationChange.bind(this)}  ><option value="yes" >Yes</option><option value="no" >No</option></select>
-                    <label htmlFor="enableaudio" > Audio </label>
-                    <select style={inputStyle}  id="enableaudio" value={config.enableaudio} onChange={this.configurationChange.bind(this)} ><option value="yes" >Yes</option><option value="no" >No</option></select>
-                    <label htmlFor="enablenotifications" > Screen </label>
-                    <select style={inputStyle}  id="enablenotifications" value={config.enablenotifications} onChange={this.configurationChange.bind(this)}  ><option value="yes" >Yes</option><option value="no" >No</option></select>
-                </div> 
-
+               
                  <div className='form-group' >
                     <hr style={{width:'100%'}}/ >
                     <span  onClick={this.resetConfig}><button className='btn btn-danger' style={{fontSize:'1em'}}> {resetIcon} Reset Configuration</button></span>
@@ -1177,7 +1244,7 @@ export default class SnipsMicrophone extends Component {
             
             
         </div>}
-       {!this.state.showConfig && this.state.config.enablenotifications !== "no" && <div>
+       {this.state.config.enablenotifications !== "no" && <div>
         {(!this.state.activated) && <span  onClick={this.activate}>{micOnIcon}</span>} 
         {(this.state.activated && this.state.recording) && <span onTouchStart={this.showConfig}  onTouchEnd={this.clearConfigTimer}   onMouseDown={this.showConfig} onMouseUp={this.clearConfigTimer} onContextMenu={this.showConfigNow} onClick={this.stopRecording}>{micOffIcon}</span>} 
         {(this.state.activated && !this.state.recording) && <span onTouchStart={this.showConfig}  onTouchEnd={this.clearConfigTimer}   onMouseDown={this.showConfig} onMouseUp={this.clearConfigTimer} onContextMenu={this.showConfigNow} onClick={this.startRecording}>{micOnIcon}</span>} 
@@ -1189,7 +1256,7 @@ export default class SnipsMicrophone extends Component {
    
         </div>} 
         <div id="audio"></div>
-        
+        <SnipsLogger dmqttServer='mosquitto' />
       </div>
     )
   }

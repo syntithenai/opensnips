@@ -74,14 +74,18 @@ export default class AudioMeter extends Component {
                 var audioCtx = new AudioContext();
                 var source = audioCtx.createMediaStreamSource(stream);
                 var processor = audioCtx.createScriptProcessor(256);
-
+                let gainNode = audioCtx.createGain();
+                gainNode.gain.value = this.props.inputvolume > 0 ? this.props.inputvolume/100 : 0.5;
+                console.log(['IV',this.props.inputvolume]);
                 this.averaging = 0.95;
                 this.canvasCtx = this.refs.canvas.getContext('2d');
                 this.canvasCtx.fillStyle = this.props.style.color ? this.props.style.color  : '#00FF48';
 
                 processor.onaudioprocess = process;
                 processor.connect(audioCtx.destination);
-                source.connect(processor);
+                gainNode.connect(processor);
+                source.connect(gainNode);
+                this.props.addInputGainNode(gainNode);
             }.bind(this)
         ).catch(function(err){
                 console.log('Error occurred while initalizing audio input: ' +  err.toString());

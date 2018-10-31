@@ -1,6 +1,6 @@
 {
   "name": "snips-webbrowser-audioserver",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "The package provides a SnipsMicrophone Component to stream microphone pcm data to snips via mqtt. Implements audioserver, hotword and tts elements of the Snips hermes mqtt protocol over mqtt and websockets.",
   "author": "syntithenai",
   "license": "MIT",
@@ -60,6 +60,7 @@
     "dist"
   ],
   "dependencies": {
+    "crunker": "^0.2.0",
     "getusermedia": "^2.0.1",
     "hark": "^1.2.3",
     "paho-mqtt": "^1.0.4"

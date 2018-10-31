@@ -31,3 +31,8 @@ https://codepen.io/wvr/pen/WrNgJp
 https://codepen.io/matt-west/pen/wGzuJ
 
 https://snips.ai/
+
+# crunker join wav files
+https://github.com/jackedgson/crunker
+
+# mosquitto authentication
