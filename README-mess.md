@@ -36,3 +36,7 @@ https://snips.ai/
 https://github.com/jackedgson/crunker
 
 # mosquitto authentication
+https://github.com/jpmens/mosquitto-auth-plug
+
+# javascript copy paste
+https://www.lucidchart.com/techblog/2014/12/02/definitive-guide-copying-pasting-javascript/

@@ -84,13 +84,13 @@ export default class SnipsMicrophone extends Component {
      */ 
     componentDidMount() {
         this.initSpeechSynthesis.bind(this)();
-        let configString = localStorage.getItem('snipsmicrophone_config');
+        let configString = localStorage.getItem(this.appendUserId('snipsmicrophone_config',this.props.user));
         let config = null;
         try {
             config = JSON.parse(configString)
         } catch(e) {
         }
-        console.log(['LOAD CONFIG',config,configString]);
+        //console.log(['LOAD CONFIG',config,configString]);
         if (config) {
             // load config
             this.setState({'config':config});
@@ -99,10 +99,10 @@ export default class SnipsMicrophone extends Component {
             let newConfig = this.getDefaultConfig.bind(this)();
             
             this.setState({'config':newConfig});
-            localStorage.setItem('snipsmicrophone_config',JSON.stringify(newConfig));
+            localStorage.setItem(this.appendUserId('snipsmicrophone_config',this.props.user),JSON.stringify(newConfig));
         }
         // if previously activated, restore microphone
-        if (localStorage.getItem('snipsmicrophone_enabled') === 'true') {
+        if (localStorage.getItem(this.appendUserId('snipsmicrophone_enabled',this.props.user)) === 'true') {
             this.activate(false);
         }
         
@@ -112,7 +112,7 @@ export default class SnipsMicrophone extends Component {
         e.preventDefault();
         let newConfig = this.getDefaultConfig.bind(this)();        
         this.setState({'config':newConfig});
-        localStorage.setItem('snipsmicrophone_config',JSON.stringify(newConfig));
+        localStorage.setItem(this.appendUserId('snipsmicrophone_config',this.props.user),JSON.stringify(newConfig));
     };
     
     getDefaultConfig() {
@@ -134,12 +134,20 @@ export default class SnipsMicrophone extends Component {
         };
     };
     
+    appendUserId(text,user) {
+        if (user && user._id) {
+            return text+"_"+user._id;
+        } else {
+            return text;
+        }
+    };
+    
     /**
      * Garbage collect mqtt and voice recorders.
      */
     deactivate() {
-        console.log(['deactivate',this.mqttClient]);
-        localStorage.setItem('snipsmicrophone_enabled','false');
+        //console.log(['deactivate',this.mqttClient]);
+        localStorage.setItem(this.appendUserId('snipsmicrophone_enabled',this.props.user),'false');
         if (this.mqttClient) {
             this.mqttClient.disconnect();
             delete this.mqttClient;
@@ -154,7 +162,7 @@ export default class SnipsMicrophone extends Component {
      */
     activate(start = true) {
         let that = this;
-        localStorage.setItem('snipsmicrophone_enabled','true');
+        localStorage.setItem(this.appendUserId('snipsmicrophone_enabled',this.props.user),'true');
         this.mqttConnect.bind(this)(start); 
         if (start) {
             setTimeout(function() {
@@ -212,7 +220,7 @@ export default class SnipsMicrophone extends Component {
      * Bind silence recognition events to set speaking state
      */ 
     bindSpeakingEvents(audioContext,e) {
-        console.log(['bindSpeakingEvents'])
+       // console.log(['bindSpeakingEvents'])
         let that = this;
         var options = {audioContext:audioContext};
         options.threshhold = this.getThreshholdFromVolume(this.state.config.silencesensitivity);
@@ -220,7 +228,7 @@ export default class SnipsMicrophone extends Component {
             this.speechEvents = hark(e, options);
             this.speechEvents.on('speaking', function() {
               if (that.state.config.silencedetection !== "no") {
-                  console.log('speaking');
+                  //console.log('speaking');
                   if (that.speakingTimeout) clearTimeout(that.speakingTimeout);
                   that.setState({speaking:true});
                 }
@@ -230,7 +238,7 @@ export default class SnipsMicrophone extends Component {
                 if (that.state.config.silencedetection !== "no") {
                   if (that.speakingTimeout) clearTimeout(that.speakingTimeout);
                   that.speakingTimeout = setTimeout(function() {
-                      console.log('stop speaking');
+                     // console.log('stop speaking');
                       that.setState({speaking:false});
                   },1000);
                 }
@@ -245,7 +253,7 @@ export default class SnipsMicrophone extends Component {
 
     configurationChange(e) {
         let that = this;
-        console.log(['configurationChange',this,e,e.target.value,e.target.id]);
+        //console.log(['configurationChange',this,e,e.target.value,e.target.id]);
         let config = this.state.config;
         config[e.target.id] = e.target.value;
         this.setState(config);
@@ -255,12 +263,12 @@ export default class SnipsMicrophone extends Component {
         } else if (e.target.id === "inputvolume" ) {
             // update all input gain nodes
             this.inputGainNodes.map(function(node) {
-                console.log(['set gain',node,that.state.config.inputvolume/100]);
+                //console.log(['set gain',node,that.state.config.inputvolume/100]);
                 node.gain.value = that.state.config.inputvolume/100;
             });
             
         }
-        localStorage.setItem('snipsmicrophone_config',JSON.stringify(config));
+        localStorage.setItem(this.appendUserId('snipsmicrophone_config',this.props.user),JSON.stringify(config));
     };
     
     addInputGainNode(node) {
@@ -271,7 +279,7 @@ export default class SnipsMicrophone extends Component {
      * Access the microphone and start streaming mqtt packets
      */ 
     startRecorder() {
-        console.log('START RECORDER');
+        //console.log('START RECORDER');
         let that = this;
         if (!navigator.getUserMedia)
             navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
@@ -284,14 +292,14 @@ export default class SnipsMicrophone extends Component {
         } else alert('getUserMedia not supported in this browser.');
 
         function success(e) {
-           console.log('STARTING');
+          // console.log('STARTING');
            let audioContext = window.AudioContext || window.webkitAudioContext;
            let context = new audioContext();
             that.setState({'activated':true});
            
             that.bindSpeakingEvents.bind(that)(context,e);
             // start media streaming mqtt
-           console.log(['SET CONTEXT',context]);
+           //console.log(['SET CONTEXT',context]);
           
           let gainNode = context.createGain();
           // initial set volume
@@ -365,12 +373,12 @@ export default class SnipsMicrophone extends Component {
                 let voiceOptions=[];
                 voices.forEach(function(voice, i) {
                 // Create a new option element.
-                console.log(voice);
+                //console.log(voice);
                     voiceOptions.push({'name':voice.name,label:voice.name});
                 });
                 voiceOptions.push({'name':'default',label:'Browser Generated'});
                 that.setState({voices:voiceOptions});
-                console.log(['VOICES a',voiceOptions]);
+                //console.log(['VOICES a',voiceOptions]);
             }
 
             // Execute loadVoices.
@@ -385,9 +393,9 @@ export default class SnipsMicrophone extends Component {
             let voiceOptions=[];
             voiceOptions.push({'name':'default',label:'Browser Generated'});
             that.setState({voices:voiceOptions});
-            console.log(['VOICES b',voiceOptions]);
+            //console.log(['VOICES b',voiceOptions]);
         }
-        console.log(['LOADE VOICES',this.state.voices]);
+        //console.log(['LOADE VOICES',this.state.voices]);
     };
 
         
@@ -544,7 +552,7 @@ export default class SnipsMicrophone extends Component {
             this.recording = true;
             this.setState({recording : true});
         } else if (message.destinationName === "hermes/asr/stopListening") {
-             console.log(['STOP LISTENING']);
+             //console.log(['STOP LISTENING']);
              this.logAudio(this.sessionId,this.audioBuffer) 
         
             this.recording = false;
@@ -569,7 +577,7 @@ export default class SnipsMicrophone extends Component {
      * Create or continue the hotword manager
      */ 
     startHotword(siteId) {
-      console.log(['start hotword',siteId,this.siteId]);
+      //console.log(['start hotword',siteId,this.siteId]);
       if (siteId === this.siteId ) {
           if (this.hotwordManager === null) {
               this.hotwordManager =  new PicovoiceAudioManager();
@@ -601,7 +609,7 @@ export default class SnipsMicrophone extends Component {
 
     stopRecording = function() {
        // console.log('STOP');
-        console.log(['STOP REC']);
+       // console.log(['STOP REC']);
         this.logAudio(this.sessionId,this.audioBuffer) 
         this.recording = false;
         this.setState({recording : false});
@@ -887,7 +895,7 @@ export default class SnipsMicrophone extends Component {
     showConfig(e) {
         let that = this;
          this.configTimeout = setTimeout(function() {
-             console.log('show now');
+            // console.log('show now');
             that.setState({showConfig:true});
         },1000);
     }; 
@@ -916,19 +924,19 @@ export default class SnipsMicrophone extends Component {
         let newLog = this.newLog.bind(this)(sessionId);
         logs[sessionId] = newLog;
         this.setState({logs:logs});
-        console.log(['start LOG',newLog]);
+       // console.log(['start LOG',newLog]);
         return newLog;
     };
     
     currentLogEntry(sessionId,logs) {
-        console.log(['get LOG',sessionId]);
+        //console.log(['get LOG',sessionId]);
         if (sessionId && sessionId.length) {
             if (logs && logs.hasOwnProperty(sessionId)) {
                 console.log(['CURRENT LOG',sessionId,logs[sessionId],logs]);
-                return logs[sessionId]
+              //  return logs[sessionId]
             // create first log entry
             } else  {
-                console.log(['new LOG',sessionId]);
+                //console.log(['new LOG',sessionId]);
                 return this.startLogEntry(sessionId); 
             }            
         } else {
@@ -941,7 +949,7 @@ export default class SnipsMicrophone extends Component {
         let logs = this.state.logs;
         let currentLog = this.currentLogEntry.bind(this)(sessionId,logs);
         currentLog.asr.push(text);
-        console.log(['start LOG asr',text,sessionId]);
+       // console.log(['start LOG asr',text,sessionId]);
         this.setState({logs:logs});
         
     };
@@ -950,7 +958,7 @@ export default class SnipsMicrophone extends Component {
         let logs = this.state.logs;
         let currentLog = this.currentLogEntry.bind(this)(sessionId,logs);
         currentLog.intents.push(intent);
-        console.log(['start LOG intent',intent,sessionId]);
+        //console.log(['start LOG intent',intent,sessionId]);
         this.setState({logs:logs});
         
     };
@@ -960,7 +968,7 @@ export default class SnipsMicrophone extends Component {
             let logs = this.state.logs;
             let currentLog = this.currentLogEntry.bind(this)(sessionId,logs);
             currentLog.tts.push(text);
-            console.log(['start LOG tts',text,sessionId]);
+           // console.log(['start LOG tts',text,sessionId]);
             this.setState({logs:logs});            
         }
         
@@ -969,7 +977,7 @@ export default class SnipsMicrophone extends Component {
     logAudio(sessionId,audio) {
         let that = this;
         if (false && sessionId && sessionId.length > 0 && audio && audio.length > 0) {
-            console.log(['start LOG audio',sessionId,audio]);
+            //console.log(['start LOG audio',sessionId,audio]);
             let logs = this.state.logs;
             var finalBuffer = this.flattenArray(audio, this.recordingLength);
             var format =  1
@@ -980,7 +988,7 @@ export default class SnipsMicrophone extends Component {
                 //console.log(['resampled LOG audio',result]);
                 //let wav = that.audioBufferToWav(result) ; //new WaveFile().fromScratch(1,16000,"16",result);
             let currentLog = that.currentLogEntry.bind(that)(sessionId,logs);
-            console.log(['LOGged AUDIO',wav,currentLog]);
+           // console.log(['LOGged AUDIO',wav,currentLog]);
             if (currentLog && currentLog.audio) currentLog.audio.push(wav);
             that.setState({logs:logs});
             audio = [];
@@ -1256,7 +1264,7 @@ export default class SnipsMicrophone extends Component {
    
         </div>} 
         <div id="audio"></div>
-        <SnipsLogger dmqttServer='mosquitto' />
+        <SnipsLogger dmqttServer='mosquitto'  eventCallbackFunctions = {this.props.eventCallbackFunctions}/>
       </div>
     )
   }

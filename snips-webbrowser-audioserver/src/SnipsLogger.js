@@ -12,7 +12,7 @@ export default class SnipsLogger extends Component {
     constructor(props) {
         super(props);
         this.eventFunctions = eventFunctions;
-    
+        
         this.failCount = 0;
         this.mqttClient = null;
         this.clientId = this.props.clientId ? this.props.clientId :  'client'+parseInt(Math.random()*100000000,10);
@@ -36,6 +36,65 @@ export default class SnipsLogger extends Component {
      }   
         
 
+    
+
+   /**
+     * Connect to mqtt server
+    */
+    mqttConnect() {
+        let server = this.props.mqttServer && this.props.mqttServer.length > 0 ? this.props.mqttServer : 'localhost';
+        let port = this.props.mqttPort && this.props.mqttPort > 0 ? parseInt(this.props.mqttPort,10) : 9001
+        console.log('LOGGER CONNECT',server,port,this.clientId);
+        this.mqttClient = new Paho.MQTT.Client(server,port, this.clientId);
+        this.mqttClient.onConnectionLost = this.onConnectionLost.bind(this);
+        this.mqttClient.onMessageArrived = this.onMessageArrived.bind(this);
+        this.mqttClient.connect({onSuccess:this.onConnect.bind(this)});
+    };
+        
+    /**
+     * Subscribe to to mqtt channels then start recorder
+     */
+    onConnect() {
+        let that = this;
+        console.log(['LOGGER CONNECTED',this.eventFunctions]);
+      //this.setState({'connected':true});
+      this.failCount = 0;
+      that.mqttClient.subscribe('#',{});
+      
+      //this.startRecorder();
+    }
+ 
+    /**
+     * When the client loses its connection, reconnect after 5s
+     */ 
+    onConnectionLost(responseObject) {
+        console.log('LOGGER DISCONNECTED');
+        let that = this;
+        //this.setState({'connected':false,'activated':false});
+        if (responseObject.errorCode !== 0) {
+            console.log("onConnectionLost:"+responseObject.errorMessage);
+            let timeout=1000;
+            if (this.failCount > 5) {
+                timeout=10000;
+            }
+            this.failCount++;
+            setTimeout(function() {
+              that.mqttClient.connect({onSuccess:that.onConnect});  
+            },timeout)
+        }
+
+    };
+    
+    cleanSlots(slots) { 
+        let final={};
+        if (slots) {
+            slots.map(function(slot) {
+                final[slot.slotName] = {type:slot.value.kind,value:slot.value.value}
+            });
+        }
+        return final;
+    };
+    
     /**
      * Get or create an audio buffer for the siteId
      */
@@ -75,6 +134,7 @@ export default class SnipsLogger extends Component {
     };
     
     logAudioBuffer(payload) {
+        return;
         let that = this;
         let siteId = payload.siteId;
         // save to sites/sessions
@@ -85,7 +145,7 @@ export default class SnipsLogger extends Component {
         let promises = [];
         this.getAudioBuffer(siteId).map(function(bytes,key) {
             let p = new Promise(function(resolve,reject) {
-                console.log(['HANDLE BUFFER',bytes.length]);
+                console.log(['HANDLE BUFFER',bytes]);
                 var buffer = new Uint8Array( bytes.length );
                 if (bytes.length > 0) {
                     buffer.set( new Uint8Array(bytes), 0 );
@@ -147,15 +207,23 @@ export default class SnipsLogger extends Component {
      *  Lookup session, use callback to make changes and restore session to state
      */
     updateSession(payload,callback) {
-        if (payload && callback) {
-            let session = this.getSession(payload.siteId,payload.sessionId);
-            console.log(['LOGGER UDPATE SESSION',session,payload]);
+        let sessionId = payload && payload.sessionId && payload.sessionId.length > 0 ? payload.sessionId : null;
+        let siteId = payload && payload.siteId && payload.siteId.length > 0 ? payload.siteId : null;
+        let session = this.getSession(siteId,sessionId);
+            
+        //console.log(['update session',sessionId,siteId,session,payload,callback]);
+        //if (payload) {
+          //  console.log(['LOGGER UDPATE SESSION',session,payload]);
             if (session) {
-                session = callback(session);
-                console.log(['LOGGER UDPATED SESSION',payload.siteId,payload.sessionId,session]);
-                this.saveSession(payload.siteId,payload.sessionId,session);
-            }            
-        }
+                callback(session).then(function(session) {
+          //          console.log(['LOGGER UDPATED SESSION',payload.siteId,payload.sessionId,session]);
+                    this.saveSession(payload.siteId,payload.sessionId,session);                    
+                });
+            } 
+            //else {
+                //throw 'NO FIND SESSION '+JSON.stringify(payload) + JSON.stringify(this.state.sites);
+            //}
+       // }
     };
    
 
@@ -165,7 +233,7 @@ export default class SnipsLogger extends Component {
      * If session does not already exist, create it.
      */
     getSession(siteIdIn,sessionId) {
-        console.log(['LOGGER START GET SESSION',siteIdIn,sessionId]);
+        //console.log(['LOGGER START GET SESSION',siteIdIn,sessionId,JSON.stringify(this.state.sites)]);
         // ensure sessionId
         //let sessionId =  sessionIdIn && sessionIdIn.length > 0 ? sessionIdIn : 'unknownSession';
         if (sessionId && sessionId.length > 0){
@@ -174,11 +242,11 @@ export default class SnipsLogger extends Component {
             if (!siteIdIn ||siteIdIn.length === 0) {
                 siteId = this.state.sessions[sessionId];
             }        
-           console.log(['LOGGER START GET forced params',siteId,sessionId]);
+          // console.log(['LOGGER START GET forced params',siteId,sessionId,JSON.stringify(this.state.sites)]);
             if (siteId && siteId.length>0) {
                 // lookup session by siteId and sessionId
-                if (this.state.sites && this.state.sites.hasOwnProperty(siteId) && this.state.sites[siteId].hasOwnProperty(sessionId)) {
-                    console.log('GOT EXISTING SESSION');
+                if (this.state.sites && this.state.sites.hasOwnProperty(siteId) && this.state.sites[siteId].hasOwnProperty(sessionId) && this.state.sites[siteId][sessionId]) {
+                   console.log('GOT EXISTING SESSION',this.state.sites[siteId][sessionId]);
                     return this.state.sites[siteId][sessionId];
                 } else {
                     console.log('CREATE NEW SESSION');
@@ -210,65 +278,9 @@ export default class SnipsLogger extends Component {
         }
     };
 
-
-   /**
-     * Connect to mqtt server
-    */
-    mqttConnect() {
-        let server = this.props.mqttServer && this.props.mqttServer.length > 0 ? this.props.mqttServer : 'localhost';
-        let port = this.props.mqttPort && this.props.mqttPort > 0 ? parseInt(this.props.mqttPort,10) : 9001
-        console.log('LOGGER CONNECT',server,port,this.clientId);
-        this.mqttClient = new Paho.MQTT.Client(server,port, this.clientId);
-        this.mqttClient.onConnectionLost = this.onConnectionLost.bind(this);
-        this.mqttClient.onMessageArrived = this.onMessageArrived.bind(this);
-        this.mqttClient.connect({onSuccess:this.onConnect.bind(this)});
-    };
-        
-    /**
-     * Subscribe to to mqtt channels then start recorder
-     */
-    onConnect() {
-        let that = this;
-        console.log(['LOGGER CONNECTED',this.eventFunctions]);
-      //this.setState({'connected':true});
-      this.failCount = 0;
-      that.mqttClient.subscribe('#',{});
-      
-      //this.startRecorder();
-    }
- 
-    /**
-     * When the client loses its connection, reconnect after 5s
-     */ 
-    onConnectionLost(responseObject) {
-        console.log('LOGGER DISCONNECTED');
-        let that = this;
-        //this.setState({'connected':false,'activated':false});
-        if (responseObject.errorCode !== 0) {
-            console.log("onConnectionLost:"+responseObject.errorMessage);
-            let timeout=1000;
-            if (this.failCount > 5) {
-                timeout=10000;
-            }
-            this.failCount++;
-            setTimeout(function() {
-              that.mqttClient.connect({onSuccess:that.onConnect});  
-            },timeout)
-        }
-
-    };
-    
-    cleanSlots(slots) { 
-        let final={};
-        if (slots) {
-            slots.map(function(slot) {
-                final[slot.slotName] = {type:slot.value.kind,value:slot.value.value}
-            });
-        }
-        return final;
-    };
     
     onMessageArrived(message) {
+        let that = this;
         let parts = message.destinationName ? message.destinationName.split("/") : [];
         if (parts.length > 0 && parts[0] === "hermes") {
             if (parts.length > 1 &&  parts[1] === "audioServer") {
@@ -291,28 +303,43 @@ export default class SnipsLogger extends Component {
                 
                 
             } else {
-                //let mainTopic = parts.slice(0,-1).join("/");
                 let payload = {};
                 try {
                   payload = JSON.parse(message.payloadString);  
                 } catch (e) {
                 }
-                console.log(['LOGGER PRE MESSAGE',message.destinationName,message,JSON.stringify(this.state.sites)]);
-                //console.log(['ALOGGER sMESSAGE',message.destinationName,parts]);
+                //console.log(['LOGGER PRE MESSAGE',message.destinationName,message,JSON.stringify(this.state.sites)]);
+               
                 // special case for hotword parameter in url
+                let functionKey = message.destinationName;
                 if (parts.length > 3 && parts[0] === "hermes" && parts[1] === "hotword" && parts[3] === "detected") {
-                    //console.log(['EVENT FN HOTWORD DETECTED']);
-                    this.eventFunctions['hermes/hotword/#/detected'].bind(this)(payload);
+                    functionKey = 'hermes/hotword/#/detected'
                 // special case for intent parameter in hermes/intent
                 } else if (parts.length > 1 && parts[0] === "hermes" && parts[1] === "intent") {
-                    this.eventFunctions['hermes/intent/#'].bind(this)(payload);
-                } else {
-                    console.log(['EVENT FN HOTWORD try ',message.destinationName ]);
-                    if (this.eventFunctions.hasOwnProperty(message.destinationName)) {
-                        console.log(['EVENT FN HOTWORD DETECT ',message.destinationName,this.eventFunctions[message.destinationName]]);
-                        this.eventFunctions[message.destinationName].bind(this)(payload);
-                    }
+                    functionKey = 'hermes/intent/#';
+                    
                 }
+                
+                if (this.eventFunctions.hasOwnProperty(functionKey)) {
+                    //console.log(['AAA:: EVENT FN HOTWORD DETECT ',functionKey,this.eventFunctions[functionKey]]);
+                    let p = that.eventFunctions[functionKey].bind(that)(payload);
+                    //console.log(['AAA::EVENT FN HOTWORD callback ',functionKey,p]);
+                    //if (p && typeof p.then === "function") 
+                    p.then(function(session) {
+                       // console.log(['AAA::RESOLVED INTERNAL PROMISE',functionKey,session,that.props.eventCallbackFunctions]);
+                        
+                        if (that.props.eventCallbackFunctions && that.props.eventCallbackFunctions.hasOwnProperty(functionKey) &&  that.props.eventCallbackFunctions[functionKey]) {
+                         //   console.log(['AAA::RUN CALLBACK ',that.props.eventCallbackFunctions[functionKey]]);
+                            that.props.eventCallbackFunctions[functionKey].bind(that)(payload,session);
+                           // console.log(['AAA::RAN CALLBACK ',that.props.eventCallbackFunctions[functionKey]]);
+                        }
+                    }).catch(function(e) {
+                        console.log(e);
+                    });
+                } else {
+                   // console.log(['AAA:: NO FUNCTION',functionKey]);
+                }
+                    
                 let messages = this.state.messages;
                 messages.push({payload: <div style={{backgroundColor:'lightgrey'}}><hr/><div style={{backgroundColor:'lightblue'}}>{JSON.stringify(payload)}</div><hr/><div style={{backgroundColor:'lightgreen'}}>{JSON.stringify(this.state.sites)}</div><hr/></div>  ,text:message.destinationName});
                 // + ' ' + JSON.stringify(payload)
@@ -331,7 +358,7 @@ export default class SnipsLogger extends Component {
         } else {
             showLogMessages[key] = true;
         }
-        console.log(['TOGGLE',showLogMessages]);
+       // console.log(['TOGGLE',showLogMessages]);
         this.setState({showLogMessages:showLogMessages});
     };
     
@@ -354,19 +381,13 @@ export default class SnipsLogger extends Component {
         if (session.intents && session.asr && session.intents.length < session.asr.length) sessionStatus=5;
         if (session.intents && session.asr && session.intents.length === session.asr.length) sessionStatus=6;
         if (session.ended) sessionStatus=7;
-        
-        this.setState({sessionStatus:sessionStatus});
+        let statusTexts=['starting','hotword','listening','queued','started','transcribed','interpreted','ended'];
+        let statusText= statusTexts[sessionStatus];
+        this.setState({sessionStatus:sessionStatus,statusText:statusText});
     }; 
     
     render() {
         let that = this;
-        let logs = this.state.messages.map(function(val,key) {
-            return <div key={key} >
-                <button onClick={(e) => that.toggleMessageExpansion(e,key)} >+</button> 
-                 &nbsp;&nbsp;{val.text}
-                {that.isLogMessageExpanded(key) && <div>{val.payload}</div>}
-            </div>
-        });
         let sitesRendered = Object.keys(this.state.sites).map(function(siteKeyIn) {
             let siteKey = siteKeyIn && siteKeyIn.length > 0 ? siteKeyIn : 'unknownSite';
             let site = that.state.sites[siteKey];
@@ -379,10 +400,20 @@ export default class SnipsLogger extends Component {
             let sessionsRendered = sessions.map(function(session,sessionLoopKey) {
                 //let session = that.state.sites[siteKey][sessionKey];
                 if (session) {
+                    //let logs = that.state.messages.map(function(val,key) {
+                        //if (val.sessionId == session.sessionId) {
+                            //return <div key={key} >
+                                //<button onClick={(e) => that.toggleMessageExpansion(e,key)} >+</button> 
+                                 //&nbsp;&nbsp;{val.text}
+                                //{that.isLogMessageExpanded(key) && <div>{val.payload}</div>}
+                            //</div>                            
+                        //}
+                    //});
+                    
                     let sessionStatus = that.state.sessionStatus;
                     //let statusColors=['lightgrey','lightblue','lightgreen','lightorange','lightgreen','lightred'];
                     let statusTexts=['starting','hotword','listening','queued','started','transcribed','interpreted','ended'];
-                    let statusText= statusTexts[sessionStatus];
+                    let statusText= that.state.statusText;
                     //let statusColor= statusColors[sessionStatus];
                     let sessionClass = 'session-'+statusText;
                     let sessionStyle = {margin:'1em', padding:'1em', border: '2px solid black',borderRadius:'10px'};
@@ -395,27 +426,29 @@ export default class SnipsLogger extends Component {
                             return <li key={skey}>{slot.slotName.split('_').join(' ')} {slot.value.value}</li>
                         });
                         return <div key={ikey}>
+                        {session.audio && session.audio.length > ikey && session.audio[ikey]  && session.audio[ikey].length > 0 && <audio src={session.audio[ikey]} controls={true} style={{float:'right'}}/>}
                         <div style={{marginBottom:'1em',fontWeight:'bold'}}>
                             {transcript.text} 
-                            {session.audio && session.audio.length > ikey && session.audio[ikey]  && session.audio[ikey].length > 0 && <audio src={session.audio[ikey]} controls={true} style={{float:'right'}}/>}
                         </div>
+                        <div ><hr style={{height:'1px', width:'100%'}}/></div>
                         <div>
-                            
                             {slotValues && <ul>{slotValues}</ul>}
                         </div>
+                        <div ><hr style={{height:'1px', width:'100%'}}/></div>
                         <div><i>{session.tts && session.tts.length > ikey && session.tts[ikey] && session.tts[ikey].text}</i></div>
                        
-                        <div ><hr style={{height:'1px', width:'100%'}}/></div>
                         
                         </div>
                     });
                     //<span>{session.intents && session.intents.length > ikey && session.intents[ikey] && JSON.stringify(session.intents[ikey])}</span>
                     if (session.started) {
                             return <div className={sessionClass} style={sessionStyle}  key={sessionLoopKey} >
-                        <h4>{session.sessionId} {statusText} </h4>
+                        <h4>{session.sessionId} {that.state.statusText} </h4>
                         <div >{sessionItems}</div>
                         </div>
-                    }                     
+                    }   
+                    //<div >{logs}</div>
+                                          
                 }
             });
             let activityStyle={padding:'0.2em',borderRadius:'5px',float:'right',marginRight:'4em'};
@@ -428,16 +461,13 @@ export default class SnipsLogger extends Component {
         });
         //
         return <b>
-        
+        <br/><br/><br/><br/><br/><br/><br/>
          <hr/>
          {sitesRendered}
         <br/>
         <hr/>
         <h4>Sites</h4>
          {JSON.stringify(this.state.sites)}
-        <hr/>
-         <h4>Logs</h4>
-        {logs}
         
         </b>;
     }

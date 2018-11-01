@@ -4,6 +4,49 @@
 
 [![NPM](https://img.shields.io/npm/v/snips-webbrowser-audioserver.svg)](https://www.npmjs.com/package/snips-webbrowser-audioserver) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
+
+
+## TODO
+
+### Microphone
+
+- server hotword
+- recording duration timeout
+- bubble style
+- user support (key localStorage)
+- docs
+- ??? voiceId
+
+### Log
+- reverse sort log
+- logs in session blocks
+- intent handlers
+- filter by siteId
+- site connect to audio - listen, send
+- audio logging
+
+- 
+
+- extend logger to replace opensnips with nodejs
+* props.disableDefaultListeners 
+* methods suitable for nodejs and browser 
+  - SnipsAudioServer
+  - SnipsTtsServer
+  - SnipsHotwordServer
+  - SnipsDialogueServer
+  - SnipsAsrServer (with kaldi)
+  - SnipsNluServer (with rasa)
+  - SnipsAppServer
+  - SnipsRasaCoreAppServere
+  - SnipsTrainingServer (with kaldi/rasa)
+        - start with slot values
+        - rasa intents
+        - rasa core
+  
+
+
+
+
 ## About
 
 This package provides a React component that shows a microphone and streams audio over mqtt in a dialog suitable for the [Snips Voice Platform](https://snips.ai) making it easy to develop web applications that behave as satellites in the Snips ecosystem.
@@ -25,6 +68,16 @@ Features
 
 ![microphone configuration](./snipsmicrophone_configuration.png  "microphone configuration")
 
+
+## Quickstart
+
+!! Ensure the snips voice services are running on localhost
+
+Run the example
+git clone https://github.com/syntithenai/opensnips.git
+cd snips-webbrowser-audioserver
+npm install
+npm start
 
 
 ## Install
