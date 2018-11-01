@@ -16,7 +16,7 @@ export default class SnipsLogger extends Component {
         this.failCount = 0;
         this.mqttClient = null;
         this.clientId = this.props.clientId ? this.props.clientId :  'client'+parseInt(Math.random()*100000000,10);
-        this.state={sites:{},messages:[],session:{},audioListening:{},hotwordListening:{},showLogMessages:{}};
+        this.state={sites:{},messages:[],session:{},audioListening:{},hotwordListening:{},showLogMessages:{},sessionStatus:{},sessionStatusText:{}};
         //messages:[],sessions:{},intents:[],asr:[],tts:{'unknownSession':[]}};
         this.audioBuffers={};
         // state
@@ -36,7 +36,10 @@ export default class SnipsLogger extends Component {
      }   
         
 
-    
+    componentDidMount() {
+        // console.log('LOGGER MOUNT');
+         this.mqttConnect.bind(this)() ;
+    };    
 
    /**
      * Connect to mqtt server
@@ -198,10 +201,7 @@ export default class SnipsLogger extends Component {
         })
     }
      
-    componentDidMount() {
-        // console.log('LOGGER MOUNT');
-         this.mqttConnect.bind(this)() ;
-    };
+
     
     /*
      *  Lookup session, use callback to make changes and restore session to state
@@ -246,10 +246,10 @@ export default class SnipsLogger extends Component {
             if (siteId && siteId.length>0) {
                 // lookup session by siteId and sessionId
                 if (this.state.sites && this.state.sites.hasOwnProperty(siteId) && this.state.sites[siteId].hasOwnProperty(sessionId) && this.state.sites[siteId][sessionId]) {
-                   console.log('GOT EXISTING SESSION',this.state.sites[siteId][sessionId]);
+                  // console.log('GOT EXISTING SESSION',this.state.sites[siteId][sessionId]);
                     return this.state.sites[siteId][sessionId];
                 } else {
-                    console.log('CREATE NEW SESSION');
+                    //console.log('CREATE NEW SESSION');
                     // fallback, create a new session
                     let sites = this.state.sites ? this.state.sites : {};
                     let sessions = this.state.sessions ? this.state.sessions : {};
@@ -309,44 +309,47 @@ export default class SnipsLogger extends Component {
                 } catch (e) {
                 }
                 //console.log(['LOGGER PRE MESSAGE',message.destinationName,message,JSON.stringify(this.state.sites)]);
-               
-                // special case for hotword parameter in url
-                let functionKey = message.destinationName;
-                if (parts.length > 3 && parts[0] === "hermes" && parts[1] === "hotword" && parts[3] === "detected") {
-                    functionKey = 'hermes/hotword/#/detected'
-                // special case for intent parameter in hermes/intent
-                } else if (parts.length > 1 && parts[0] === "hermes" && parts[1] === "intent") {
-                    functionKey = 'hermes/intent/#';
-                    
-                }
                 
-                if (this.eventFunctions.hasOwnProperty(functionKey)) {
-                    //console.log(['AAA:: EVENT FN HOTWORD DETECT ',functionKey,this.eventFunctions[functionKey]]);
-                    let p = that.eventFunctions[functionKey].bind(that)(payload);
-                    //console.log(['AAA::EVENT FN HOTWORD callback ',functionKey,p]);
-                    //if (p && typeof p.then === "function") 
-                    p.then(function(session) {
-                       // console.log(['AAA::RESOLVED INTERNAL PROMISE',functionKey,session,that.props.eventCallbackFunctions]);
+               // limit by siteId prop ??
+              // if (!this.props.siteId || (this.props.siteId && payload.siteId == this.props.siteId)) {
+                    // special case for hotword parameter in url
+                    let functionKey = message.destinationName;
+                    if (parts.length > 3 && parts[0] === "hermes" && parts[1] === "hotword" && parts[3] === "detected") {
+                        functionKey = 'hermes/hotword/#/detected'
+                    // special case for intent parameter in hermes/intent
+                    } else if (parts.length > 1 && parts[0] === "hermes" && parts[1] === "intent") {
+                        functionKey = 'hermes/intent/#';
                         
-                        if (that.props.eventCallbackFunctions && that.props.eventCallbackFunctions.hasOwnProperty(functionKey) &&  that.props.eventCallbackFunctions[functionKey]) {
-                         //   console.log(['AAA::RUN CALLBACK ',that.props.eventCallbackFunctions[functionKey]]);
-                            that.props.eventCallbackFunctions[functionKey].bind(that)(payload,session);
-                           // console.log(['AAA::RAN CALLBACK ',that.props.eventCallbackFunctions[functionKey]]);
-                        }
-                    }).catch(function(e) {
-                        console.log(e);
-                    });
-                } else {
-                   // console.log(['AAA:: NO FUNCTION',functionKey]);
-                }
+                    }
                     
-                let messages = this.state.messages;
-                messages.push({payload: <div style={{backgroundColor:'lightgrey'}}><hr/><div style={{backgroundColor:'lightblue'}}>{JSON.stringify(payload)}</div><hr/><div style={{backgroundColor:'lightgreen'}}>{JSON.stringify(this.state.sites)}</div><hr/></div>  ,text:message.destinationName});
-                // + ' ' + JSON.stringify(payload)
-                this.setState({messages:messages});
-                
-                console.log(['LOGGER MESSAGE',message.destinationName,message,JSON.stringify(this.state.sites)]);
-                        //,this.sessionId,mainTopic,audio.length,payload,message
+                    if (this.eventFunctions.hasOwnProperty(functionKey)) {
+                        //console.log(['AAA:: EVENT FN HOTWORD DETECT ',functionKey,this.eventFunctions[functionKey]]);
+                        let p = that.eventFunctions[functionKey].bind(that)(payload);
+                        //console.log(['AAA::EVENT FN HOTWORD callback ',functionKey,p]);
+                        //if (p && typeof p.then === "function") 
+                        p.then(function(session) {
+                           // console.log(['AAA::RESOLVED INTERNAL PROMISE',functionKey,session,that.props.eventCallbackFunctions]);
+                            
+                            if (that.props.eventCallbackFunctions && that.props.eventCallbackFunctions.hasOwnProperty(functionKey) &&  that.props.eventCallbackFunctions[functionKey]) {
+                             //   console.log(['AAA::RUN CALLBACK ',that.props.eventCallbackFunctions[functionKey]]);
+                                that.props.eventCallbackFunctions[functionKey].bind(that)(payload,session);
+                               // console.log(['AAA::RAN CALLBACK ',that.props.eventCallbackFunctions[functionKey]]);
+                            }
+                        }).catch(function(e) {
+                            console.log(e);
+                        });
+                    } else {
+                       // console.log(['AAA:: NO FUNCTION',functionKey]);
+                    }
+                        
+                    let messages = this.state.messages;
+                    messages.push({sessionId:payload.sessionId,payload: <div style={{backgroundColor:'lightgrey'}}><hr/><div style={{backgroundColor:'lightblue'}}>{JSON.stringify(payload)}</div><hr/><div style={{backgroundColor:'lightgreen'}}>{JSON.stringify(this.state.sites)}</div><hr/></div>  ,text:message.destinationName});
+                    // + ' ' + JSON.stringify(payload)
+                    this.setState({messages:messages});
+                    
+                    console.log(['LOGGER MESSAGE',message.destinationName,message,JSON.stringify(this.state.sites)]);
+                            //,this.sessionId,mainTopic,audio.length,payload,message                   
+               //}
             } 
         }
     };
@@ -383,7 +386,12 @@ export default class SnipsLogger extends Component {
         if (session.ended) sessionStatus=7;
         let statusTexts=['starting','hotword','listening','queued','started','transcribed','interpreted','ended'];
         let statusText= statusTexts[sessionStatus];
-        this.setState({sessionStatus:sessionStatus,statusText:statusText});
+        let allSessionsStatus = that.state.sessionStatus;
+        let allSessionsStatusText = that.state.sessionStatusText;
+        allSessionsStatus[sessionKey] = sessionStatus;
+        allSessionsStatusText[sessionKey] = statusText;
+      //  console.log(['UPDATE SESSION STATUS',{sessionStatus:allSessionsStatus,sessionStatusText:allSessionsStatusText}]);
+        that.setState({sessionStatus:allSessionsStatus,sessionStatusText:allSessionsStatusText});
     }; 
     
     render() {
@@ -393,27 +401,30 @@ export default class SnipsLogger extends Component {
             let site = that.state.sites[siteKey];
             let sessions = Object.values(site);
             sessions.sort(function(a,b) {
-                if (a.starttimestamp < b.starttimestamp) return -1;
-                else return 1;
+                if (a.starttimestamp < b.starttimestamp) return 1;
+                else return -1;
             });
-            
-            let sessionsRendered = sessions.map(function(session,sessionLoopKey) {
+            if (!that.props.siteId || (that.props.siteId && siteKey == that.props.siteId)) {
+                let sessionsRendered = sessions.map(function(session,sessionLoopKey) {
                 //let session = that.state.sites[siteKey][sessionKey];
-                if (session) {
-                    //let logs = that.state.messages.map(function(val,key) {
-                        //if (val.sessionId == session.sessionId) {
-                            //return <div key={key} >
-                                //<button onClick={(e) => that.toggleMessageExpansion(e,key)} >+</button> 
-                                 //&nbsp;&nbsp;{val.text}
-                                //{that.isLogMessageExpanded(key) && <div>{val.payload}</div>}
-                            //</div>                            
-                        //}
-                    //});
+                //if () {
+                if (session)  {
+                  //  console.log(['RENDER LOGS',that.state.messages]);
+                    let logs = that.state.messages.map(function(val,key) {
+                    //    console.log(['LOG',val,key,session.sessionId,val.sessionId]);
+                        if (val.sessionId == session.sessionId) {
+                            return <div key={key} >
+                                <button onClick={(e) => that.toggleMessageExpansion(e,key)} >+</button> 
+                                 &nbsp;&nbsp;{val.text}
+                                {that.isLogMessageExpanded(key) && <div>{val.payload}</div>}
+                            </div>                            
+                        }
+                    });
                     
-                    let sessionStatus = that.state.sessionStatus;
+                    let sessionStatus = that.state.sessionStatus[session.sessionId];
                     //let statusColors=['lightgrey','lightblue','lightgreen','lightorange','lightgreen','lightred'];
                     let statusTexts=['starting','hotword','listening','queued','started','transcribed','interpreted','ended'];
-                    let statusText= that.state.statusText;
+                    let statusText= that.state.sessionStatusText[session.sessionId];
                     //let statusColor= statusColors[sessionStatus];
                     let sessionClass = 'session-'+statusText;
                     let sessionStyle = {margin:'1em', padding:'1em', border: '2px solid black',borderRadius:'10px'};
@@ -441,13 +452,14 @@ export default class SnipsLogger extends Component {
                         </div>
                     });
                     //<span>{session.intents && session.intents.length > ikey && session.intents[ikey] && JSON.stringify(session.intents[ikey])}</span>
-                    if (session.started) {
+                    if (session.started && session.sessionId) {
                             return <div className={sessionClass} style={sessionStyle}  key={sessionLoopKey} >
-                        <h4>{session.sessionId} {that.state.statusText} </h4>
+                        <h4>{session.sessionId} {that.state.sessionStatusText[session.sessionId]} </h4>
                         <div >{sessionItems}</div>
+                        <div >{logs}</div>
                         </div>
                     }   
-                    //<div >{logs}</div>
+                    //
                                           
                 }
             });
@@ -458,6 +470,8 @@ export default class SnipsLogger extends Component {
                 {that.state.audioListening[siteKey] && <b style={Object.assign({backgroundColor:'lightgreen',border:'1px solid green'},activityStyle)}>Listening</b>}
                 <div>{sessionsRendered}</div>
             </div>
+            }
+
         });
         //
         return <b>

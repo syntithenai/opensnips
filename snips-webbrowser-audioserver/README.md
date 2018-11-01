@@ -11,18 +11,22 @@
 ### Microphone
 
 - server hotword
-- recording duration timeout
+- recording duration timeout + other timeout
+    - intent -> endSession
+    - stopListening -> textCaptured
+    - textCaptured -> eventParsed
+    - 
 - bubble style
 - user support (key localStorage)
 - docs
 - ??? voiceId
 
 ### Log
-- reverse sort log
-- logs in session blocks
-- intent handlers
-- filter by siteId
-- site connect to audio - listen, send
+- reverse sort log DONE
+- logs in session blocks DONE
+- filter by siteId DONE
+- intent handlers DONE
+- ? site connect to audio - listen, send
 - audio logging
 
 - 
@@ -37,7 +41,7 @@
   - SnipsAsrServer (with kaldi)
   - SnipsNluServer (with rasa)
   - SnipsAppServer
-  - SnipsRasaCoreAppServere
+  - SnipsRasaCoreAppServer
   - SnipsTrainingServer (with kaldi/rasa)
         - start with slot values
         - rasa intents

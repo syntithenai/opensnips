@@ -14,7 +14,6 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import Resources from './resources'
 import AudioMeter from './AudioMeter.react'
-import SnipsLogger from './SnipsLogger'
 let hark = require('hark');
 
 export default class SnipsMicrophone extends Component {
@@ -239,7 +238,7 @@ export default class SnipsMicrophone extends Component {
                   if (that.speakingTimeout) clearTimeout(that.speakingTimeout);
                   that.speakingTimeout = setTimeout(function() {
                      // console.log('stop speaking');
-                      that.setState({speaking:false});
+                     // that.setState({speaking:false});
                   },1000);
                 }
               
@@ -462,18 +461,18 @@ export default class SnipsMicrophone extends Component {
     /**
      * Send Mqtt message to end the session immediately
      */ 
-     sendEndSession(siteId,sessionId) {
+     sendEndSession(sessionId) {
          let that = this;
         if (this.state.connected) {
             let message = new Paho.MQTT.Message(JSON.stringify({sessionId:sessionId}));
             message.destinationName = "hermes/dialogueManager/endSession";
             this.mqttClient.send(message);
-            message = new Paho.MQTT.Message(JSON.stringify({siteId:siteId}));
-            message.destinationName = "hermes/asr/toggleOff";
-            this.mqttClient.send(message);
-            message = new Paho.MQTT.Message(JSON.stringify({siteId:siteId}));
-            message.destinationName = "hermes/hotword/toggleOn";
-            this.mqttClient.send(message);
+            //message = new Paho.MQTT.Message(JSON.stringify({siteId:siteId}));
+            //message.destinationName = "hermes/asr/toggleOff";
+            //this.mqttClient.send(message);
+            //message = new Paho.MQTT.Message(JSON.stringify({siteId:siteId}));
+            //message.destinationName = "hermes/hotword/toggleOn";
+            //this.mqttClient.send(message);
         }
     };
     
@@ -613,7 +612,7 @@ export default class SnipsMicrophone extends Component {
         this.logAudio(this.sessionId,this.audioBuffer) 
         this.recording = false;
         this.setState({recording : false});
-        this.sendEndSession.bind(this)(this.siteId,this.sessionId);
+        this.sendEndSession.bind(this)(this.sessionId);
       
     }
     
@@ -933,7 +932,7 @@ export default class SnipsMicrophone extends Component {
         if (sessionId && sessionId.length) {
             if (logs && logs.hasOwnProperty(sessionId)) {
                 console.log(['CURRENT LOG',sessionId,logs[sessionId],logs]);
-              //  return logs[sessionId]
+                return logs[sessionId]
             // create first log entry
             } else  {
                 //console.log(['new LOG',sessionId]);
@@ -948,6 +947,7 @@ export default class SnipsMicrophone extends Component {
     logAsr(sessionId,text) {
         let logs = this.state.logs;
         let currentLog = this.currentLogEntry.bind(this)(sessionId,logs);
+        if (!currentLog.asr) currentLog.asr=[];
         currentLog.asr.push(text);
        // console.log(['start LOG asr',text,sessionId]);
         this.setState({logs:logs});
@@ -957,6 +957,10 @@ export default class SnipsMicrophone extends Component {
     logIntent(sessionId,intent) {
         let logs = this.state.logs;
         let currentLog = this.currentLogEntry.bind(this)(sessionId,logs);
+        if (!currentLog) {
+            
+        } 
+        if (!currentLog.intents) currentLog.intents=[];
         currentLog.intents.push(intent);
         //console.log(['start LOG intent',intent,sessionId]);
         this.setState({logs:logs});
@@ -967,6 +971,7 @@ export default class SnipsMicrophone extends Component {
         if (sessionId && sessionId.length) {
             let logs = this.state.logs;
             let currentLog = this.currentLogEntry.bind(this)(sessionId,logs);
+            if (!currentLog.tts) currentLog.tts=[];
             currentLog.tts.push(text);
            // console.log(['start LOG tts',text,sessionId]);
             this.setState({logs:logs});            
@@ -1235,10 +1240,7 @@ export default class SnipsMicrophone extends Component {
                     <span  onClick={this.resetConfig}><button className='btn btn-danger' style={{fontSize:'1em'}}> {resetIcon} Reset Configuration</button></span>
                     <hr style={{width:'100%'}}/ >
                 </div>
-                <div className='form-group' >
-                    <b>Logs&nbsp;&nbsp;&nbsp;</b>
-                    {logItems}
-                </div> 
+              
                 
                 
                 <div className='form-group' >
@@ -1264,9 +1266,13 @@ export default class SnipsMicrophone extends Component {
    
         </div>} 
         <div id="audio"></div>
-        <SnipsLogger dmqttServer='mosquitto'  eventCallbackFunctions = {this.props.eventCallbackFunctions}/>
+      
       </div>
     )
   }
 }
  
+  //<div className='form-group' >
+                    //<b>Logs&nbsp;&nbsp;&nbsp;</b>
+                    //{logItems}
+                //</div> 
