@@ -32,7 +32,6 @@ RUN apt-get install openssl
 
 RUN apt-get install snips-platform-demo
 RUN apt-get install -y snips-asr-injection
-RUN apt-get install -y snips-asr-injection
 RUN apt-get install -y snips-makers-tts
 RUN apt-get install -y snips-skill-server
 

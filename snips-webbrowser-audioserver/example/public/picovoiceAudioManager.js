@@ -11,6 +11,7 @@ var PicovoiceAudioManager = (function() {
     let inputAudioBuffer = [];
 
     let process = function(inputAudioFrame) {
+        //console.log('PVM  process audio frmae');
         if (!isProcessing) {
             return;
         }
@@ -42,6 +43,7 @@ var PicovoiceAudioManager = (function() {
 
             inputAudioBuffer = inputAudioBuffer.slice(indexOut);
         }
+       // console.log('PVM  process audio frmae');
     };
 
     let getUserMediaSuccessCallback = function(stream) {
@@ -58,6 +60,7 @@ var PicovoiceAudioManager = (function() {
     };
 
     this.start = function(picovoiceEngine, picovoiceProcessCallback, errorCallback) {
+       // console.log('PVM START');
        // console.log('pvam start');
         if (!navigator.getUserMedia) {
             errorCallback("this browser does not support audio capture");
@@ -71,15 +74,18 @@ var PicovoiceAudioManager = (function() {
     };
 
     this.stop = function() {
+        //console.log('PVM START');
       //  console.log('pvam stop');
         isProcessing = false;
         inputAudioBuffer = [];
     };
     this.continueProcessing = function() {
+        //console.log('PVM CONTINUE');
       //  console.log('pvam continue');
         isProcessing = true;
      };
     this.pauseProcessing = function() {
+       // console.log('PVM PAUSE');
     //    console.log('pvam pause');
         isProcessing = false;
     };

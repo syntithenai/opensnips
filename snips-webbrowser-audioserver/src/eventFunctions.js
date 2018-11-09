@@ -8,13 +8,14 @@ let eventFunctions = {
                 hotwordListening[payload.siteId] = true;
                 that.setState({hotwordListening:hotwordListening});
                 that.updateSession(payload,function(session) {
-                    if (session) {
-                        session.hotword = true;
-                        session.hotwordDetected = false;
-                        that.updateSessionStatus(payload.siteId,session);
-                    }
-                    resolve(session);
-                });                
+                        if (session) {
+                            session.hotword = true;
+                            session.hotwordDetected = false;
+                            that.updateSessionStatus(payload.siteId,session);
+                        }
+                        return session;                        
+                });             
+                resolve();   
             });
         },
         'hermes/hotword/toggleOff':function(payload) {
@@ -28,8 +29,9 @@ let eventFunctions = {
                         session.hotword = false;
                         that.updateSessionStatus(payload.siteId,session);
                     }
-                    resolve(session) ;
+                    return session;
                 });
+                resolve() ;
             });
         },
         'hermes/hotword/#/detected':function(payload) {
@@ -40,8 +42,9 @@ let eventFunctions = {
                         session.hotwordDetected = true;
                         that.updateSessionStatus(payload.siteId,session);
                     }
-                    resolve(session) ;
+                    return session ;
                 });
+                resolve();
             });
         },
         
@@ -80,15 +83,17 @@ let eventFunctions = {
         /* TTS */
         'hermes/tts/say': function(payload) {
            let that = this;
+           console.log(['LOG TTS']);
            return new Promise(function(resolve,reject) {
                that.updateSession(payload,function(session) {
                     if (session) {
                         if (!session.tts) session.tts=[];
                         session.tts.push(payload);
                         that.updateSessionStatus(payload.siteId,session)
-                        resolve(session) ;                        
                     }
+                    return session;
                 });
+                resolve();
             });
         },
         
@@ -117,9 +122,10 @@ let eventFunctions = {
                 that.setState({audioListening:audioListening})
                 that.updateSession(payload,function(session) {
                     if (session && payload) that.updateSessionStatus(payload.siteId,session);
-                    resolve(session) ;
+                    return session;
                 })
-                console.log(['START ASR']);
+                resolve() ;
+               // console.log(['START ASR']);
             });
         },
         'hermes/asr/stopListening': function(payload) {
@@ -133,8 +139,9 @@ let eventFunctions = {
                         that.logAudioBuffer(payload);
                         that.updateSessionStatus(payload.siteId,session);                        
                     }
-                    resolve(session) ;
+                    return session ;
                 })
+                resolve() ;
                // console.log(['STOP ASR']);
             });
         },
@@ -147,8 +154,9 @@ let eventFunctions = {
                         if (!session.asr) session.asr=[];
                         session.asr.push(payload);
                     }
-                    resolve(session) ;
+                   return session ;
                 });
+                 resolve();
             });
         },
         
@@ -180,24 +188,33 @@ let eventFunctions = {
                     if (session) {
                         session.started = true;
                         session.queued = true;
+                        session.starttimestamp =  new Date().getTime()                      
                         session.sessionId = payload.sessionId;
-                        that.updateSessionStatus(payload.siteId,session)                        
+                        session.siteId = payload.siteId;
+                        that.updateSessionStatus(payload.siteId,session)  
+                        that.lastSessionId[payload.siteId] = payload.sessionId;
                     }
-                    resolve(session) ;
+                    return session;
                 });
+                resolve();
             });
         },
         'hermes/dialogueManager/sessionEnded': function(payload) {
             let that = this;
+           // console.log(['SESSION ENDED',payload]);
             return new Promise(function(resolve,reject) {
                 that.updateSession(payload,function(session) {
                     if (session) {
+                        if (session.termination && session.termination.reason && session.termination.reason === "nominal") {
+                            session.success = true;
+                        }
                         session.ended = true;
                         session.endtimestamp = new Date().getTime()
                         that.updateSessionStatus(payload.siteId,session)
                     }
-                    resolve(session) ;
+                    return session;
                 });
+                resolve();
             });
         },
         'hermes/dialogueManager/sessionQueued': function(payload) {
@@ -209,8 +226,9 @@ let eventFunctions = {
                         session.queuedtimestamp = new Date().getTime()
                         that.updateSessionStatus(payload.siteId,session)                        
                     }
-                    resolve(session) ;
+                    return session;
                 });
+                resolve();
             });
         },
         'hermes/intent/#':function(payload) {
@@ -222,8 +240,9 @@ let eventFunctions = {
                         session.intents.push(payload);
                         that.updateSessionStatus(payload.siteId,session)
                     }
-                    resolve(session) ;
+                    return session;
                 });
+                resolve();
             });
         }, 
         
@@ -239,7 +258,23 @@ let eventFunctions = {
             return new Promise(function(resolve,reject) {
                resolve();
             });
+        },
+        'hermes/audioServer/#/playBytes': function(payload) {
+            return new Promise(function(resolve,reject) {
+               resolve();
+            });
+        },
+        'hermes/audioServer/#/playFinished': function(payload) {
+            return new Promise(function(resolve,reject) {
+               resolve();
+            });
+        },
+        'hermes/audioServer/#/audioFrame': function(payload) {
+            return new Promise(function(resolve,reject) {
+               resolve();
+            });
         }
+
 }
 
 export default eventFunctions;

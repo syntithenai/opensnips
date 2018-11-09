@@ -44,14 +44,16 @@ services:
         #privileged: true
         image: syntithenai/snips
         build: ./docker-images/snips
-        environment: ['PULSE_SERVER=unix:/tmp/pulse-socket','PULSE_COOKIE=unix:/tmp/pulse-cookie']
-        #environment: ['PULSE_SERVER=192.168.1.100']
+        #environment: ['PULSE_SERVER=unix:/tmp/pulse-socket','PULSE_COOKIE=unix:/tmp/pulse-cookie']
+        # https://github.com/mviereck/x11docker/wiki/Container-sound:-ALSA-or-Pulseaudio
+        environment: ['PULSE_SERVER=192.168.1.100','PULSE_COOKIE=/tmp/pulse-cookie']
+        # export PULSE_COOKIE=/tmp/pulse-cookie; export PULSE_SERVER=192.168.1.100; pactl list
         volumes:
             #- /run/user/1000/pulse/native:/tmp/pulse-socket
             # in /etc/pulse/default.pa on the host maching 
             # CHANGE load-module module-native-protocol-unix  
             # TO  load-module module-native-protocol-unix  auth-anonymous=1 socket=/tmp/pulse-socket
-            - /tmp/pulse-socket:/tmp/pulse-socket
+            #- /tmp/pulse-socket:/tmp/pulse-socket
             - /home/stever/.config/pulse/cookie:/tmp/pulse-cookie
     
     # ===========================================================================================

@@ -61,7 +61,7 @@ export default class AudioMeter extends Component {
             if (this.state.volume > (this.props.volumeWarning > 0 ? this.props.volumeWarning : 0.25)) this.canvasCtx.fillStyle =  this.props.style.tooLoudColor ? this.props.style.tooLoudColor  : '#FF0000';
             else this.canvasCtx.fillStyle =  this.props.style.color ? this.props.style.color  : '#00FF48';
             this.canvasCtx.clearRect(0, 0, this.canvasCtx.canvas.width, this.canvasCtx.canvas.height);
-            this.canvasCtx.fillRect(0, this.canvasCtx.canvas.height * (1 - (this.state.volume * 2)), this.canvasCtx.canvas.width, this.canvasCtx.canvas.height);
+            this.canvasCtx.fillRect(0, this.canvasCtx.canvas.height * (1 - (this.state.volume * 4)), this.canvasCtx.canvas.width, this.canvasCtx.canvas.height);
 
         }.bind(this);
 
