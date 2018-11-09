@@ -42,6 +42,7 @@ services:
     snips:
         depends_on: ['mosquitto']
         #privileged: true
+        restart: always
         image: syntithenai/snips
         build: ./docker-images/snips
         #environment: ['PULSE_SERVER=unix:/tmp/pulse-socket','PULSE_COOKIE=unix:/tmp/pulse-cookie']
@@ -82,6 +83,7 @@ services:
     mosquitto:
         # see docker-images/manifest*.yml for multi arch config
         image: syntithenai/mosquitto
+        restart: always
         ports:
             - 1883:1883
             # websockets enabled (for browser clients)

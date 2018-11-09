@@ -38,8 +38,9 @@ export default class SnipsMqttServer {
      * Connect to mqtt server
     */
     mqttConnect() {
-        let server = this.props.mqttServer && this.props.mqttServer.length > 0 ? this.props.mqttServer : 'localhost';
         let port = this.props.mqttPort && this.props.mqttPort > 0 ? parseInt(this.props.mqttPort,10) : 9001
+        let server = this.props.mqttServer && this.props.mqttServer.length > 0 ? this.props.mqttServer :  window.location.hostname ;
+        
        // console.log([' SERVER CONNECT',server,port,this.clientId]);
         this.mqttClient = new Paho.MQTT.Client(server,port, this.clientId);
         this.mqttClient.onConnectionLost = this.onConnectionLost;
