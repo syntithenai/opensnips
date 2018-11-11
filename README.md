@@ -35,6 +35,11 @@ docker-compose up &
 ```
 Open http://localhost:3000/ in your browser to see the microphone demo.
 
+The opensnips repository includes a snips assistant for meekahome that supports the example AppServer intents.
+"what is the time"
+"what is the date"
+"search for <search_topic>"
+
 
 ## Web Browser Audioserver
 

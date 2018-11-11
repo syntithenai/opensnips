@@ -19,9 +19,9 @@ Features
 
 ## Screenshots
 
-![microphone ](./snips-webbrowser-audioserver-microphone.png  "microphone ")
+![microphone ](./snips-webbrowser-audioserver-microphone.png)
 
-![microphone configuration](./snipsmicrophone_configuration.png  "microphone configuration")
+![microphone configuration](./snipsmicrophone_configuration.png)
 
 
 ## Quickstart
