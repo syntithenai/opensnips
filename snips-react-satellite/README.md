@@ -29,11 +29,14 @@ Features
 !! Ensure the snips voice services are running on localhost
 
 Run the example
+
+```
 git clone https://github.com/syntithenai/opensnips.git
 cd snips-react-satellite
 npm install
 npm start
 
+```
 
 ## Install
 

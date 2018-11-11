@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
 
-import SnipsReactHotwordServer from 'snips-react-satellite'
-import SnipsReactMicrophone from 'snips-react-satellite'
-import SnipsReactTts from 'snips-react-satellite'
-import SnipsReactSpeaker from 'snips-react-satellite'
-import SnipsReactAppServer from 'snips-react-satellite'
+import SnipsReactHotwordServer from './SnipsReactHotwordServer'
+import SnipsReactMicrophone from './SnipsReactMicrophone'
+import SnipsReactTts from './SnipsReactTts'
+import SnipsReactSpeaker from './SnipsReactSpeaker'
+import SnipsReactAppServer from './SnipsReactAppServer'
+//import SnipsReactConfig from './SnipsReactConfig'
 
 
 export default class SnipsReactSatellite extends Component  {
@@ -13,7 +14,7 @@ export default class SnipsReactSatellite extends Component  {
         super(props);
         this.siteId = props.siteId ? props.siteId : 'browser_'+parseInt(Math.random()*100000000,10);
         
-        this.state.config={}
+        this.state = {config:{}}
         this.setLogData = this.setLogData.bind(this);
         this.logger = props.logger ? props.logger : new SnipsLogger({logAudio:false,setLogData:this.setLogData });
     }  
@@ -26,7 +27,7 @@ export default class SnipsReactSatellite extends Component  {
         this.setState({ state: this.state });
     };
 
-
+//<SnipsReactConfig logger={this.logger} siteId={this.siteId} config={this.props.config} />
     render() {
         let position=this.props.position ? this.props.position  : 'top left'
         return <div id ="snipssatellite" >
@@ -35,7 +36,7 @@ export default class SnipsReactSatellite extends Component  {
             <SnipsReactTts logger={this.logger} siteId={this.siteId}  config={this.props.config}/>
             <SnipsReactSpeaker logger={this.logger} siteId={this.siteId}  config={this.props.config}/>
             {this.props.intents && <SnipsReactAppServer logger={this.logger} intents={this.props.intents}  config={this.props.config} />}
-            <SnipsReactConfig logger={this.logger} siteId={this.siteId} config={this.props.config} />
+            
         </div>
     };
 

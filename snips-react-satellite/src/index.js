@@ -1,7 +1,6 @@
 export SnipsMqttServer from './SnipsMqttServer'
 export SnipsLogger from './SnipsLogger'
 
-export SnipsHotwordServer from './SnipsHotwordServer'
 
 export SnipsReactComponent from './SnipsReactComponent'
 
@@ -12,4 +11,4 @@ export SnipsReactHotwordServer from './SnipsReactHotwordServer'
 export SnipsReactTts from './SnipsReactTts'
 export SnipsReactLogger from './SnipsReactLogger'
 export SnipsReactFlatLogger from './SnipsReactFlatLogger'
-
+export SnipsReactSatellite from './SnipsReactSatellite'

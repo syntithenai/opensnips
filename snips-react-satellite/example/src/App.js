@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 
-import {SnipsReactSpeaker,SnipsReactMicrophone,SnipsReactAppServer,SnipsReactHotwordServer,SnipsLogger,SnipsReactLogger,SnipsReactFlatLogger,SnipsReactTts} from 'snips-react-satellite'
+import {SnipsReactSpeaker,SnipsReactMicrophone,SnipsReactAppServer,SnipsReactHotwordServer,SnipsLogger,SnipsReactLogger,SnipsReactFlatLogger,SnipsReactTts,SnipsReactSatellite} from 'snips-react-satellite'
 
 
 export default class App extends Component {
