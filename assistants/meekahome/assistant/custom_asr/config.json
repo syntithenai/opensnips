@@ -1,0 +1,131 @@
+{
+  "entityNameToFilename": {
+    "search_topic": "e_0.snips"
+  }, 
+  "injectionsEngine": {
+    "version": 2
+  }, 
+  "language": "en", 
+  "decoderConfig": {
+    "useFinalProbs": true, 
+    "latticeBeamSize": 4.0, 
+    "mbrConfig": {
+      "confidenceAdditionnalExponent": 1.0, 
+      "unkProba": 0.5, 
+      "unkThreshold": 0.3
+    }, 
+    "maxActive": 2500, 
+    "minActive": 200, 
+    "acousticScale": 0.83, 
+    "beamSize": 12.0
+  }, 
+  "cacheSizeDynamic": 536870912, 
+  "asrModel": {
+    "version": "0.1.0"
+  }, 
+  "asrLmAdaptation": {
+    "version": "0.16.2"
+  }, 
+  "endpointingRules": {
+    "rule3": {
+      "maxRelativeCost": 8.0, 
+      "minTrailingSilence": 1.0, 
+      "minUtteranceLength": 0.0, 
+      "mustContainNonsilence": true
+    }, 
+    "rule2": {
+      "maxRelativeCost": 5.5, 
+      "minTrailingSilence": 0.7, 
+      "minUtteranceLength": 0.0, 
+      "mustContainNonsilence": true
+    }, 
+    "rule1": {
+      "maxRelativeCost": 10000000000.0, 
+      "minTrailingSilence": 4.0, 
+      "minUtteranceLength": 0.0, 
+      "mustContainNonsilence": false
+    }, 
+    "rule5": {
+      "maxRelativeCost": 10000000000.0, 
+      "minTrailingSilence": 0.0, 
+      "minUtteranceLength": 10.0, 
+      "mustContainNonsilence": false
+    }, 
+    "rule4": {
+      "maxRelativeCost": 2.5, 
+      "minTrailingSilence": 0.5, 
+      "minUtteranceLength": 0.0, 
+      "mustContainNonsilence": true
+    }
+  }, 
+  "postprocessors": [
+    {
+      "Regex": {
+        "pattern": "`fbcc8bd8-981c-4d10-939b-1e93d63b3a97`START .[^`]*? `fbcc8bd8-981c-4d10-939b-1e93d63b3a97`DECOY`EMPTY `fbcc8bd8-981c-4d10-939b-1e93d63b3a97`END", 
+        "flags": "i", 
+        "replacement": "unknownword"
+      }
+    }, 
+    {
+      "Regex": {
+        "pattern": "`fbcc8bd8-981c-4d10-939b-1e93d63b3a97`START .[^`]*? `fbcc8bd8-981c-4d10-939b-1e93d63b3a97`DECOY`INSIDE .*? `fbcc8bd8-981c-4d10-939b-1e93d63b3a97`END`DECOY `fbcc8bd8-981c-4d10-939b-1e93d63b3a97`END", 
+        "flags": "i", 
+        "replacement": "unknownword"
+      }
+    }, 
+    {
+      "Regex": {
+        "pattern": "`fbcc8bd8-981c-4d10-939b-1e93d63b3a97`START`DECOY (.*?) `fbcc8bd8-981c-4d10-939b-1e93d63b3a97`END`DECOY", 
+        "flags": "i", 
+        "replacement": "unknownword"
+      }
+    }, 
+    {
+      "Regex": {
+        "pattern": "`fbcc8bd8-981c-4d10-939b-1e93d63b3a97`START (.*?) `fbcc8bd8-981c-4d10-939b-1e93d63b3a97`END", 
+        "flags": "i", 
+        "replacement": "$1"
+      }
+    }, 
+    {
+      "Regex": {
+        "pattern": "`fbcc8bd8-981c-4d10-939b-1e93d63b3a97`START ", 
+        "flags": "i", 
+        "replacement": ""
+      }
+    }, 
+    {
+      "Regex": {
+        "pattern": "`PATTERN`DECOY`START .*? `PATTERN`DECOY`END", 
+        "flags": "i", 
+        "replacement": "unknownword"
+      }
+    }
+  ], 
+  "asrEngine": {
+    "version": "0.1.0"
+  }, 
+  "entitiesFstMap": [
+    [
+      111, 
+      "__root__"
+    ], 
+    [
+      112, 
+      "e_0.snips"
+    ]
+  ], 
+  "entityNameToDisambigs": {
+    "search_topic": {
+      "start": "`fbcc8bd8-981c-4d10-939b-1e93d63b3a97`START", 
+      "end": "`fbcc8bd8-981c-4d10-939b-1e93d63b3a97`END", 
+      "empty": [
+        "`fbcc8bd8-981c-4d10-939b-1e93d63b3a97`DECOY`EMPTY", 
+        4
+      ]
+    }
+  }, 
+  "inferenceEngine": {
+    "version": 2
+  }
+}

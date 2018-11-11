@@ -1,0 +1,103 @@
+import React, { Component } from 'react'
+
+import {SnipsReactSpeaker,SnipsReactMicrophone,SnipsReactAppServer,SnipsReactHotwordServer,SnipsLogger,SnipsReactLogger,SnipsReactFlatLogger,SnipsReactTts} from 'snips-react-satellite'
+
+
+export default class App extends Component {
+    
+    constructor(props) {
+        super(props);
+        this.state={}
+        this.setLogData = this.setLogData.bind(this);
+        this.logger = new SnipsLogger({logAudio:true,setLogData:this.setLogData });
+
+        /**
+         *  INTENT examples from meeka@home 
+         * !! Note that intent functions are bound to the SnipsReactAppServer class to supply "this" context
+         * !! Note that intent functions return a promise
+         */
+         
+        this.intents = {
+            'syntithenai:open_window': function(payload) {
+                let that = this;
+                return new Promise(function(resolve,reject) {
+                    let slots = that.cleanSlots(payload.slots)
+                    console.log(slots,that);
+                    that.logger.say(payload.siteId,'open window '+ slots.search_topic.value).then(function() {
+                        resolve();
+                    });  
+                });
+            },
+            'syntithenai:close_window': function(payload) {
+                let that = this;
+                return new Promise(function(resolve,reject) {
+                    let slots = that.cleanSlots(payload.slots)
+                    console.log(slots,that);
+                    that.logger.say(payload.siteId,'close window '+ slots.search_topic.value).then(function() {
+                        resolve();
+                    });  
+                });
+            },
+            'syntithenai:list_windows': function(payload) {
+                let that = this;
+                return new Promise(function(resolve,reject) {
+                    that.logger.say(payload.siteId,'weather is eek').then(function() {
+                        resolve();
+                    });  
+                });
+            },
+            'syntithenai:get_time': function(payload) {
+                let that = this;
+                return new Promise(function(resolve,reject) {
+                    let now = new Date();
+                    let minutes = now.getMinutes();
+                    let hours = now.getHours();
+                    let amPm = hours > 11 ? 'PM' : 'AM';
+                    hours = hours % 12;
+                     if (minutes < 10) {
+                        minutes = "0" + minutes;
+                    }
+                    that.logger.say(payload.siteId,'The time is '+hours+ ':' + minutes + ' ' + amPm).then(function() {
+                        resolve();
+                    });  
+                });
+            },
+            'syntithenai:get_date': function(payload) {
+                let that = this;
+                return new Promise(function(resolve,reject) {
+                    let now = new Date();
+                    let months=['January','February','March','April','May','June','July','August','September','October','November','December']
+                    let day = now.getDate   ();
+                    let month = months[now.getMonth()];
+                    let year = now.getFullYear();
+                    that.logger.say(payload.siteId,'The date is '+day+ ' ' + month + ' ' + year).then(function() {
+                        resolve();
+                    });  
+                });
+            },
+        }
+    
+    };
+
+   
+   // force update
+   setLogData(sites,messages,sessionStatus,sessionStatusText,hotwordListening,audioListening) {
+        this.setState({ state: this.state });
+   };
+          
+                  
+  render () {
+    return (
+        <div>
+            <SnipsReactSatellite logger={this.logger} siteId={this.siteId} intents={this.intents} />
+           
+             <br/><br/><br/><br/><br/><br/><br/>
+             <hr/>
+            <SnipsReactLogger logger={this.logger} {...this.logger.state} siteId={null}/>
+            <hr/>
+            <SnipsReactFlatLogger logger={this.logger} {...this.logger.state} siteId={null}/>
+            
+        </div>
+    )
+  }
+}

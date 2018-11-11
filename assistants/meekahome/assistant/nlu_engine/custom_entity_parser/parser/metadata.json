@@ -1,0 +1,8 @@
+{
+  "parsers_metadata": [
+    {
+      "entity_identifier": "search_topic",
+      "entity_parser": "parser_1"
+    }
+  ]
+}

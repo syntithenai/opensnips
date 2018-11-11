@@ -13,27 +13,24 @@ RUN export DEBIAN_FRONTEND="noninteractive" ;  apt-get -f install && apt-get ins
 # SNIPS
 
 # SWITCH ON ARCHITECTURE TO SELECT APT SOURCES
-RUN if [ `uname -m` = "armv7l" ]; then  bash -c  'echo "deb https://raspbian.snips.ai/$(lsb_release -cs) stable main" > /etc/apt/sources.list.d/snips.list'; apt-key adv --keyserver pgp.mit.edu --recv-keys D4F50CDCA10A2849; elif [ `uname -m` = "x86_64" ]; then bash -c  'echo "deb https://debian.snips.ai/$(lsb_release -cs) stable main" > /etc/apt/sources.list.d/snips.list'; apt-key adv --keyserver pgp.mit.edu --recv-keys F727C778CCB0A455; fi
+#RUN if [ `uname -m` = "armv7l" ]; then  bash -c  'echo "deb https://raspbian.snips.ai/$(lsb_release -cs) stable main" > /etc/apt/sources.list.d/snips.list'; apt-key adv --keyserver pgp.mit.edu --recv-keys D4F50CDCA10A2849; elif [ `uname -m` = "x86_64" ]; then bash -c  'echo "deb https://debian.snips.ai/$(lsb_release -cs) stable main" > /etc/apt/sources.list.d/snips.list'; apt-key adv --keyserver pgp.mit.edu --recv-keys F727C778CCB0A455; fi
 
-RUN apt-get update 
-RUN apt-get install -y snips-platform-voice pulseaudio jq snips-watch
-#    snips-asr-model-en-500mb
+RUN apt-get install -y dirmngr apt-transport-https openssl  alsa-utils
 
+RUN bash -c  'echo "deb https://debian.snips.ai/stretch stable main" > /etc/apt/sources.list.d/snips.list'
+#hkp://p80.pool.sks-keyservers.net:80
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys F727C778CCB0A455
+#RUN apt-key adv --keyserver pgp.mit.edu --recv-keys F727C778CCB0A455 
+RUN apt-get update
+# ?? not available on intel snips-asr-injection
+RUN apt-get install -y snips-platform-voice pulseaudio jq snips-watch  snips-makers-tts snips-skill-server
+
+#    snips-asr-model-en-500mb snips-platform-demo
 # ADD NON FREE REPOS
 # raspian includes them by default
-RUN printf "deb http://deb.debian.org/debian jessie main contrib non-free" > /etc/apt/sources.list.d/non-free.list
-
-RUN apt-get update
-
-RUN apt-get -y install libttspico0 libttspico-utils libttspico-data libav-tools
-RUN apt-get -y install alsa-utils
-
-RUN apt-get install openssl
-
-RUN apt-get install snips-platform-demo
-RUN apt-get install -y snips-asr-injection
-RUN apt-get install -y snips-makers-tts
-RUN apt-get install -y snips-skill-server
+#RUN printf "deb http://deb.debian.org/debian jessie main contrib non-free" > /etc/apt/sources.list.d/non-free.list
+#RUN apt-get update
+#RUN apt-get -y install libttspico0 libttspico-utils libttspico-data libav-tools
 
 # startup script from docker image using supervisord
 COPY snips-entrypoint.sh /opt/snips/snips-entrypoint.sh

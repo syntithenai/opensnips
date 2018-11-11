@@ -1,0 +1,66 @@
+{
+  "id" : "proj_Vb1o42OQr",
+  "name" : "Meeka@Home",
+  "intents" : [ {
+    "id" : "syntithenai:get_date",
+    "type" : "registry",
+    "version" : "0.2.0",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "get_date"
+  }, {
+    "id" : "syntithenai:get_time",
+    "type" : "registry",
+    "version" : "0.1.0",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "get_time"
+  }, {
+    "id" : "syntithenai:open_window",
+    "type" : "registry",
+    "version" : "0.3.0",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "search_topic",
+      "id" : "kBYOLvszp",
+      "entityId" : "entity_Q5kyZeEK7x4",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "open_window"
+  }, {
+    "id" : "syntithenai:close_window",
+    "type" : "registry",
+    "version" : "0.3.0",
+    "language" : "en",
+    "slots" : [ {
+      "name" : "search_topic",
+      "id" : "jW88IOsuQ",
+      "entityId" : "entity_Q5kyZeEK7x4",
+      "missingQuestion" : "",
+      "required" : false
+    } ],
+    "name" : "close_window"
+  }, {
+    "id" : "syntithenai:list_windows",
+    "type" : "registry",
+    "version" : "0.1.0",
+    "language" : "en",
+    "slots" : [ ],
+    "name" : "list_windows"
+  } ],
+  "createdAt" : "2017-09-04T23:17:34.721Z",
+  "language" : "en",
+  "version" : {
+    "nluModel" : "0.17.0"
+  },
+  "platform" : {
+    "type" : "rasberrypi"
+  },
+  "asr" : {
+    "type" : "snips"
+  },
+  "analyticsEnabled" : false,
+  "heartbeatEnabled" : true,
+  "hotword" : "hey_snips"
+}

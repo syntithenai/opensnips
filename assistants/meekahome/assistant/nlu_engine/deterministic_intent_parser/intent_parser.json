@@ -1,0 +1,60 @@
+{
+  "config": {
+    "max_pattern_length": 1000, 
+    "max_queries": 100, 
+    "unit_name": "deterministic_intent_parser"
+  }, 
+  "group_names_to_slot_names": {
+    "group_0": "search_topic", 
+    "group_1": "search_topic", 
+    "group_2": "search_topic", 
+    "group_3": "search_topic", 
+    "group_4": "search_topic", 
+    "group_5": "search_topic", 
+    "group_6": "search_topic"
+  }, 
+  "language_code": "en", 
+  "patterns": {
+    "syntithenai:close_window": [
+      "^\\s*close\\s*the\\s*page\\s*about\\s*(?P<group_4>%SEARCH_TOPIC%)\\s*$", 
+      "^\\s*close\\s*the\\s*last\\s*window\\s*$", 
+      "^\\s*close\\s*the\\s*(?P<group_6>%SEARCH_TOPIC%)\\s*window\\s*$", 
+      "^\\s*close\\s*(?P<group_5>%SEARCH_TOPIC%)\\s*$", 
+      "^\\s*close\\s*window\\s*$"
+    ], 
+    "syntithenai:get_date": [
+      "^\\s*what\\s*s\\s*the\\s*date\\s*$", 
+      "^\\s*what\\s*is\\s*todays\\s*date\\s*$", 
+      "^\\s*what\\s*is\\s*the\\s*date\\s*today\\s*$", 
+      "^\\s*what\\s*is\\s*the\\s*date\\s*$", 
+      "^\\s*tell\\s*me\\s*the\\s*date\\s*$"
+    ], 
+    "syntithenai:get_time": [
+      "^\\s*what\\s*is\\s*the\\s*time\\s*$", 
+      "^\\s*what\\s*s\\s*the\\s*time\\s*$", 
+      "^\\s*tell\\s*me\\s*the\\s*time\\s*$"
+    ], 
+    "syntithenai:list_windows": [
+      "^\\s*list\\s*windows\\s*$", 
+      "^\\s*what\\s*do\\s*i\\s*have\\s*open\\s*$", 
+      "^\\s*list\\s*the\\s*open\\s*windows\\s*$"
+    ], 
+    "syntithenai:open_window": [
+      "^\\s*tell\\s*me\\s*about\\s*(?P<group_0>%SEARCH_TOPIC%)\\s*$", 
+      "^\\s*show\\s*me\\s*how\\s*to\\s*(?P<group_2>%SEARCH_TOPIC%)\\s*$", 
+      "^\\s*search\\s*for\\s*(?P<group_1>%SEARCH_TOPIC%)\\s*$", 
+      "^\\s*open\\s*a\\s*window\\s*to\\s*(?P<group_3>%SEARCH_TOPIC%)\\s*$"
+    ]
+  }, 
+  "slot_names_to_entities": {
+    "syntithenai:close_window": {
+      "search_topic": "search_topic"
+    }, 
+    "syntithenai:get_date": {}, 
+    "syntithenai:get_time": {}, 
+    "syntithenai:list_windows": {}, 
+    "syntithenai:open_window": {
+      "search_topic": "search_topic"
+    }
+  }
+}
