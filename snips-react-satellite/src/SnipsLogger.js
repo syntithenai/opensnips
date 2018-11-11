@@ -396,13 +396,17 @@ export default class SnipsLogger  extends SnipsMqttServer {
         if (this.props.logAudio === true) {
             try {
                 // save to sites/sessions
-                console.log(['EXPORT AUDIO',this.getAudioBuffer(siteId)]);
+                //console.log(['EXPORT AUDIO',this.getAudioBuffer(siteId)]);
                 let audioContext = window.AudioContext || window.webkitAudioContext;
                 let context = new audioContext();
                 //let audioBuffers=[];    
                 let audioBuffer = this.getAudioBuffer(siteId);
-                if (audioBuffer.length> 10) return;
+                //console.log(['EXPORT AUDIO Buffer length',audioBuffer.length]);
+                // memory overload protection
+              // if (audioBuffer.length> 350) return;
                 audioBuffer.map(function(bytes,key) {
+                    //console.log(['HANDLE BUFFER',bytes,key]);
+                        
                     let p = new Promise(function(resolve,reject) {
                         //console.log(['HANDLE BUFFER',bytes]);
                         var buffer = new Uint8Array( bytes.length );
@@ -410,7 +414,7 @@ export default class SnipsLogger  extends SnipsMqttServer {
                             buffer.set( new Uint8Array(bytes), 0 );
                             try {
                                 context.decodeAudioData(buffer.buffer, function(audioBuffer) {
-                                   console.log(['PUSH BUFFER',audioBuffer]);
+                                   //console.log(['PUSH BUFFER',audioBuffer]);
                                     //audioBuffers.push(audioBuffer);
                                     resolve(audioBuffer);
                                 });

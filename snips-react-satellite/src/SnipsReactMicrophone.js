@@ -115,14 +115,14 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
         //this.sendAsrStopListening(this.props.siteId);
         //this.sendAsrToggleOff();
         //this.sendAsrToggleOn();
-        this.sendStartSession(this.props.siteId);
-        setTimeout(function() {
-            console.log('timeout end session');
-            that.sendEndSession(that.props.siteId);
-            if (localStorage.getItem(that.appendUserId('snipsmicrophone_enabled',that.props.user)) === 'true') {
-                that.activate(false);
-            }
-        },1000);
+        //this.sendStartSession(this.props.siteId);
+        //setTimeout(function() {
+            ////console.log('timeout end session');
+            //that.sendEndSession(that.props.siteId);
+            //if (localStorage.getItem(that.appendUserId('snipsmicrophone_enabled',that.props.user)) === 'true') {
+                //that.activate(false);
+            //}
+        //},1000);
         
         
     }
@@ -164,7 +164,7 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
        //console.log(['MIC START REC']);
         this.setState({lastIntent:'',lastTts:'',lastTranscript:'',showMessage:false});
         // TODO START AT BOOT
-        this.sendAsrToggleOn();
+        //this.sendAsrToggleOn();
         this.sendStartSession(this.siteId,{startedBy:'snipsmicrophone',user:this.props.user ? this.props.user._id : ''});
         //this.sendHotwordDetected(this.hotwordId,this.siteId);
     }
@@ -184,7 +184,7 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
      * Access the microphone and start streaming mqtt packets
      */ 
     startRecorder() {
-       console.log('MIC START RECORDER');
+      // console.log('MIC START RECORDER');
         let that = this;
         if (!navigator.getUserMedia) {
             navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||

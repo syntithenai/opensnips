@@ -24,7 +24,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys F727C778CC
 RUN apt-get update
 # ?? not available on intel snips-asr-injection
 RUN apt-get install -y snips-platform-voice pulseaudio jq snips-watch  snips-makers-tts snips-skill-server
-
+RUN apt-get install -y snips-injection
 #    snips-asr-model-en-500mb snips-platform-demo
 # ADD NON FREE REPOS
 # raspian includes them by default

@@ -36,10 +36,11 @@ docker-compose up &
 Open http://localhost:3000/ in your browser to see the microphone demo.
 
 The opensnips repository includes a snips assistant for meekahome that supports the example AppServer intents.
+```
 "what is the time"
 "what is the date"
 "search for <search_topic>"
-
+```
 
 ## Web Browser Audioserver
 
@@ -48,4 +49,19 @@ The opensnips repository includes a snips assistant for meekahome that supports 
 ![microphone ](snips-react-satellite/snips-webbrowser-audioserver-microphone.png  "microphone ")
 
 ![microphone configuration](./snips-react-satellite/snipsmicrophone_configuration.png  "microphone configuration")
+
+
+## PulseAudio
+
+If you are developing on Linux it is useful to have multiple access to the sound card by using pulse audio.
+
+The docker compose file shows a container can use  pulseaudio on the Linux host.
+Run paprefs and enable network server. Possibly also update volume mount to cookie file (if not anon access) and PULSE_HOST to 
+Linux IP address.
+
+The snips image is built with alsa and pulse config compatible with the environment variables from the docker-compose file.
+
+
+
+
 

@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 
-import {SnipsReactSpeaker,SnipsReactMicrophone,SnipsReactAppServer,SnipsReactHotwordServer,SnipsLogger,SnipsReactLogger,SnipsReactFlatLogger,SnipsReactTts,SnipsReactSatellite} from 'snips-react-satellite'
+import {SnipsLogger,SnipsReactLogger,SnipsReactFlatLogger,SnipsReactSatellite} from 'snips-react-satellite'
 
 
 export default class App extends Component {
@@ -9,6 +9,8 @@ export default class App extends Component {
         super(props);
         this.state={}
         this.setLogData = this.setLogData.bind(this);
+        this.siteId = 'browser_'+parseInt(Math.random()*100000000,10);
+        
         this.logger = new SnipsLogger({logAudio:true,setLogData:this.setLogData });
 
         /**
@@ -23,9 +25,8 @@ export default class App extends Component {
                 return new Promise(function(resolve,reject) {
                     let slots = that.cleanSlots(payload.slots)
                     console.log(slots,that);
-                    that.logger.say(payload.siteId,'open window '+ slots.search_topic.value).then(function() {
-                        resolve();
-                    });  
+                    that.logger.say(payload.siteId,'open window '+ slots.search_topic.value);
+                    resolve();
                 });
             },
             'syntithenai:close_window': function(payload) {
@@ -33,17 +34,15 @@ export default class App extends Component {
                 return new Promise(function(resolve,reject) {
                     let slots = that.cleanSlots(payload.slots)
                     console.log(slots,that);
-                    that.logger.say(payload.siteId,'close window '+ slots.search_topic.value).then(function() {
-                        resolve();
-                    });  
+                    that.logger.say(payload.siteId,'close window '+ slots.search_topic.value)
+                    resolve();
                 });
             },
             'syntithenai:list_windows': function(payload) {
                 let that = this;
                 return new Promise(function(resolve,reject) {
-                    that.logger.say(payload.siteId,'weather is eek').then(function() {
-                        resolve();
-                    });  
+                    that.logger.say(payload.siteId,'weather is eek')
+                    resolve(); 
                 });
             },
             'syntithenai:get_time': function(payload) {
@@ -57,9 +56,8 @@ export default class App extends Component {
                      if (minutes < 10) {
                         minutes = "0" + minutes;
                     }
-                    that.logger.say(payload.siteId,'The time is '+hours+ ':' + minutes + ' ' + amPm).then(function() {
-                        resolve();
-                    });  
+                    that.logger.say(payload.siteId,'The time is '+hours+ ':' + minutes + ' ' + amPm);
+                    resolve();
                 });
             },
             'syntithenai:get_date': function(payload) {
@@ -70,9 +68,8 @@ export default class App extends Component {
                     let day = now.getDate   ();
                     let month = months[now.getMonth()];
                     let year = now.getFullYear();
-                    that.logger.say(payload.siteId,'The date is '+day+ ' ' + month + ' ' + year).then(function() {
-                        resolve();
-                    });  
+                    that.logger.say(payload.siteId,'The date is '+day+ ' ' + month + ' ' + year);
+                    resolve();  
                 });
             },
         }

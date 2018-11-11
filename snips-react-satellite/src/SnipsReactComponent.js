@@ -50,7 +50,7 @@ export default class SnipsReactComponent extends Component {
      * Used to forcibly initialise the local hotword server.
      */ 
     sendHotwordToggleOn(siteId) {
-        console.log(["hermes/hotword/toggleOn",{siteId:siteId}]);
+        //console.log(["hermes/hotword/toggleOn",{siteId:siteId}]);
         this.sendMqtt("hermes/hotword/toggleOn",{siteId:siteId});
     };
     /**

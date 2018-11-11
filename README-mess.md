@@ -1,6 +1,7 @@
 ## VITAL FOR PULSE AUDIO
 https://wiki.archlinux.org/index.php/PulseAudio/Examples#Allowing_multiple_users_to_use_PulseAudio_at_the_same_time
-~/.config/pulse/default.pa
+~/.config/
+edit /etc/pulse/default.pa and add
 load-module module-native-protocol-unix auth-anonymous=1 socket=/tmp/pulse-socket
 
 
