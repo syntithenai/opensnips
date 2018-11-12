@@ -5,8 +5,6 @@ import React, { Component } from 'react'
 import eventFunctions from './eventFunctions'
 import Crunker from 'crunker'
 import SnipsMqttServer from './SnipsMqttServer'
-//const UNKNOWNSITE = 'Unknown Site';
-//const UNKNOWNSESSION = 'Unknown Session';
 
 export default class SnipsLogger  extends SnipsMqttServer {
 
@@ -14,14 +12,10 @@ export default class SnipsLogger  extends SnipsMqttServer {
         super(props);
         this.eventFunctions = eventFunctions;
         this.eventCallbackFunctions = this.addCallbacks(this.props.eventCallbackFunctions);
-        //this.clientId = props.clientId ? props.clientId :  'client'+parseInt(Math.random()*100000000,10);
         this.siteId = props.siteId ? props.siteId :  'site'+parseInt(Math.random()*100000000,10);
         this.state={sites:{},messages:[],session:{},audioListening:{},hotwordListening:{},showLogMessages:{},sessionStatus:{},sessionStatusText:{}};
-        //messages:[],sessions:{},intents:[],asr:[],tts:{'unknownSession':[]}};
         this.audioBuffers={};
-        // state
         this.lastSessionId={};
-        // console.log('LOGGER CONSTRUCT');
         
         this.getSession = this.getSession.bind(this);
         this.saveSession = this.saveSession.bind(this);
@@ -32,40 +26,37 @@ export default class SnipsLogger  extends SnipsMqttServer {
         this.findEventCallbackFunctions = this.findEventCallbackFunctions.bind(this);
         this.onMessageArrived = this.onMessageArrived.bind(this);
         this.isConnected = this.isConnected.bind(this);
-        //this.setSites = this.setSites.bind(this);
-        //  this.setState = this.props.setState;
+        this.reset = this.reset.bind(this);
         this.mqttConnect.bind(this)() ;
     }   
      
+    reset() {
+        this.setState({sites:{},messages:[],session:{},audioListening:{},hotwordListening:{},showLogMessages:{},sessionStatus:{},sessionStatusText:{} });
+        this.audioBuffers={};
+        this.lastSessionId={};
+        
+    };
+     
     
-    addCallbacks(eventCallbackFunctions) {
-        //console.log(['ADD CALLBACKS',eventCallbackFunctions,this.eventCallbackFunctions]);
+    addCallbacks(eventCallbackFunctions,oneOff = false) {
         let that = this;
         this.eventCallbackFunctions = Array.isArray(this.eventCallbackFunctions) ? this.eventCallbackFunctions : [];
         if (eventCallbackFunctions) {
-            //console.log(['HAVE CALLBACKS',eventCallbackFunctions]);
             Object.keys(eventCallbackFunctions).map(function(key,loopKey) {
                 let value = eventCallbackFunctions[key];
-                //console.log(['TRY CALLBACKS',value,key]);
                 if (typeof value === "function") {
-                    //console.log(['USE CALLBACKS',{subcription:key,callBack:value}]);
-                    that.eventCallbackFunctions.push({subscription:key,callBack:value});
+                    that.eventCallbackFunctions.push({subscription:key,callBack:value, oneOff: oneOff,id:parseInt(Math.random()*100000000,10)});
                 }
-                
             });
         }
-        //console.log(['ADDED CALLBACKS',this.eventCallbackFunctions]);
         return this.eventCallbackFunctions;
     };
     
     findEventCallbackFunctions(subscriptionKey) {
         let that = this;
-        //console.log(['AAA::FIND  EVENT CALLBACK',subscriptionKey,this.eventCallbackFunctions]);
         let ret=[];
         this.eventCallbackFunctions.map(function(value,vkey) {
-            //console.log(['AAA::TRY FIND  EVENT CALLBACK',value,vkey]);
             if (value.subscription === subscriptionKey) {
-                //console.log(['AAA::FOUND  EVENT CALLBACK',subscriptionKey,value]);
                 ret.push(value);
                 return;
             }
@@ -116,17 +107,17 @@ export default class SnipsLogger  extends SnipsMqttServer {
                     }   
                     let functionKey ='hermes/audioServer/#/'+action;
                     // hooks and callbacks
-                    if (action !== "audioFrame") console.log(['LOGGER AUDIO CALLBACK',functionKey,that.eventFunctions[functionKey]]);
+                   // if (action !== "audioFrame") console.log(['LOGGER AUDIO CALLBACK',functionKey,that.eventFunctions[functionKey]]);
                         
                     if (this.eventFunctions.hasOwnProperty(functionKey)) {
                         let p = that.eventFunctions[functionKey].bind(that)(audio);
                         p.then(function(session) {
-                            if (action !== "audioFrame")  console.log(['LOGGER AUDIO CALLBACK COMPLETE',functionKey,session]);
+                            //if (action !== "audioFrame")  console.log(['LOGGER AUDIO CALLBACK COMPLETE',functionKey,session]);
                             let callbacks = that.findEventCallbackFunctions(functionKey);
-                            if (action !== "audioFrame")  console.log(['LOGGER AUDIO CALLBACKS',callbacks]);
+                            //if (action !== "audioFrame")  console.log(['LOGGER AUDIO CALLBACKS',callbacks]);
                             if (callbacks) {
                                 callbacks.map(function(value,ckey) {
-                                    if (action !== "audioFrame")  console.log(['LOGGER AUDIO CALLBACK ONE',value,ckey]);
+                                    //if (action !== "audioFrame")  console.log(['LOGGER AUDIO CALLBACK ONE',value,ckey]);
                                     let session = that.getSession(siteId,null);
                                     value.callBack.bind(that)(message.destinationName,siteId,id,session,audio);
                                 });
@@ -138,9 +129,7 @@ export default class SnipsLogger  extends SnipsMqttServer {
                     let sessionId = this.lastSessionId[siteId];
                      
                     let messages = this.state.messages;
-                    // console.log(['CAPTURE LOGS',this.props.siteId,payload.siteId]);
                     if (action !== "audioFrame" && (!this.props.siteId || (this.props.siteId && this.props.siteId === siteId ))) {
-                     //   console.log(['LOGGER AUDIO MESSAGE',message.destinationName]);
                         messages.push({sessionId:sessionId,payload: <div style={{backgroundColor:'lightgrey'}}><hr/></div>  ,text:message.destinationName});
                         this.setState({messages:messages});                        
                     }
@@ -151,10 +140,6 @@ export default class SnipsLogger  extends SnipsMqttServer {
                   payload = JSON.parse(message.payloadString);  
                 } catch (e) {
                 }
-               // console.log(['LOGGER PRE MESSAGE',message.destinationName,message,JSON.stringify(this.state.sites)]);
-                
-               // limit by siteId prop ??
-              // if (!this.props.siteId || (this.props.siteId && payload.siteId == this.props.siteId)) {
                     // special case for hotword parameter in url
                     let functionKey = message.destinationName;
                     if (parts.length > 3 && parts[0] === "hermes" && parts[1] === "hotword" && parts[3] === "detected") {
@@ -165,48 +150,42 @@ export default class SnipsLogger  extends SnipsMqttServer {
                     }
                     
                     if (this.eventFunctions.hasOwnProperty(functionKey)) {
-                      //  console.log(['AAA:: EVENT FN DETECT ',functionKey,this.eventFunctions[functionKey]]);
                         let p = that.eventFunctions[functionKey].bind(that)(payload);
-                        //console.log(['AAA::EVENT FN callback ',functionKey,p]);
-                        //if (p && typeof p.then === "function") 
                         p.then(function(session) {
-                            //  console.log(['AAA::RESOLVED INTERNAL PROMISE',functionKey,session,that.props.eventCallbackFunctions]);
                             let callbacks = that.findEventCallbackFunctions(functionKey);
-                            //console.log(['AAA::GOT  EVENT CALLBACK',functionKey,callbacks]);
                             if (callbacks) {
                                 callbacks.map(function(value,ckey) {
-                                    //console.log(['AAA::DO  EVENT CALLBACK',functionKey,ckey,value]);
                                     value.callBack.bind(that)(payload,message);
+                                    if (value.oneOff) {
+                                        // remove this callback
+                                        let breakLoop = false;
+                                        that.eventCallbackFunctions.map(function(tvalue,vkey) {
+                                            if (value.id === tvalue.id && !breakLoop) {
+                                                that.eventCallbackFunctions.splice(vkey,1);
+                                                breakLoop = true;
+                                            }
+                                            return;
+                                        });
+                                    }
                                 });
                             }
                         }).catch(function(e) {
                             console.log(e);
                         });
-                    } else {
-                       // console.log(['AAA:: NO FUNCTION',functionKey]);
                     }
                         
                     let messages = this.state.messages;
-                   // console.log(['CAPTURE LOGS',this.props.siteId,payload.siteId]);
-                   // TODO losing logs with sessionId only
                    let thisState = {}
                         if (payload.siteId) {
                         if (payload.sessionId) {
                             thisState = this.getSession(payload.siteId,payload.sessionId);
                         }
                     }
-                    
-                    //console.log(['THISSTaTE',thisState]);
-                    
-                   // if (!this.props.siteId || (this.props.siteId && this.props.siteId === thisState.siteId)) {
                         messages.push({sessionId:thisState.sessionId,payload: <div style={{backgroundColor:'lightgrey'}}><hr/><div style={{backgroundColor:'lightblue'}}><pre>{JSON.stringify(payload,undefined,4)}</pre></div><hr/><div style={{backgroundColor:'lightgreen'}}><pre>{JSON.stringify(thisState,undefined,4)}</pre></div><hr/></div>  ,text:message.destinationName});
-                        // + ' ' + JSON.stringify(payload)
                         this.setState({messages:messages});                        
-                   // }
                     
-                    console.log(['LOGGER MESSAGE',message.destinationName,message,JSON.parse(JSON.stringify(this.state.sites))]);
-                            //,this.sessionId,mainTopic,audio.length,payload,message                   
-               //}
+                   // console.log(['LOGGER MESSAGE',message.destinationName,message,JSON.parse(JSON.stringify(this.state.sites))]);
+               
             } 
         }
     };
@@ -236,10 +215,8 @@ export default class SnipsLogger  extends SnipsMqttServer {
         function findOrCreateSession(siteId,sessionId) {
             if (siteId && siteId.length > 0 && sessionId && sessionId.length > 0) {
                 if (that.state.sites && that.state.sites.hasOwnProperty(siteId) && that.state.sites[siteId].hasOwnProperty(sessionId) && that.state.sites[siteId][sessionId]) {
-                   //console.log('GOT EXISTING SESSION',this.state.sites[siteId][sessionId]);
                     return that.state.sites[siteId][sessionId];
                 } else {
-                    //console.log('CREATE NEW SESSION');
                     // fallback, create a new session
                     let sites = that.state.sites ? that.state.sites : {};
                     let sessions = that.state.sessions ? that.state.sessions : {};
@@ -297,7 +274,6 @@ export default class SnipsLogger  extends SnipsMqttServer {
    
     
     saveSession(siteIdIn,sessionIdIn,session) {
-        //console.log(['SAVE SESSION']);
          let sessionId =  sessionIdIn && sessionIdIn.length > 0 ? sessionIdIn : 'unknownSession';
         // ensure siteId
         let siteId=siteIdIn;
@@ -314,7 +290,6 @@ export default class SnipsLogger  extends SnipsMqttServer {
     };
 
     setLogData() {
-        //console.log('LOG SET SITES');
         if (this.props.setLogData)  this.props.setLogData(this.state.sites,this.state.messages,this.state.sessionStatus,this.state.sessionStatusText,this.state.hotwordListening,this.state.audioListening);
     };   
 
@@ -338,15 +313,9 @@ export default class SnipsLogger  extends SnipsMqttServer {
         let allSessionsStatusText = that.state.sessionStatusText;
         allSessionsStatus[sessionKey] = sessionStatus;
         allSessionsStatusText[sessionKey] = statusText;
-      //  console.log(['UPDATE SESSION STATUS',{sessionStatus:allSessionsStatus,sessionStatusText:allSessionsStatusText}]);
         that.setState({sessionStatus:allSessionsStatus,sessionStatusText:allSessionsStatusText});
     }; 
  
-
-
-
-
-
   
     /**
      * Get or create an audio buffer for the siteId
@@ -373,9 +342,6 @@ export default class SnipsLogger  extends SnipsMqttServer {
                 currentBuffer.push(buffer);
             }
         }
-        // merge current and buffer
-        
-        //this.audioBuffers[siteId] = [];
     };
 
 
@@ -383,12 +349,10 @@ export default class SnipsLogger  extends SnipsMqttServer {
      * Get or create an audio buffer for the siteId
      */
     resetAudioBuffer(siteId) {
-        console.log(['RESET AUDIO']);
         this.audioBuffers[siteId] = [];
     };
     
     logAudioBuffer(payload) {
-        //return;
         let that = this;
         let promises = [];
         let siteId = payload.siteId;
@@ -396,58 +360,44 @@ export default class SnipsLogger  extends SnipsMqttServer {
         if (this.props.logAudio === true) {
             try {
                 // save to sites/sessions
-                //console.log(['EXPORT AUDIO',this.getAudioBuffer(siteId)]);
                 let audioContext = window.AudioContext || window.webkitAudioContext;
                 let context = new audioContext();
-                //let audioBuffers=[];    
                 let audioBuffer = this.getAudioBuffer(siteId);
-                //console.log(['EXPORT AUDIO Buffer length',audioBuffer.length]);
                 // memory overload protection
               // if (audioBuffer.length> 350) return;
                 audioBuffer.map(function(bytes,key) {
-                    //console.log(['HANDLE BUFFER',bytes,key]);
-                        
                     let p = new Promise(function(resolve,reject) {
-                        //console.log(['HANDLE BUFFER',bytes]);
                         var buffer = new Uint8Array( bytes.length );
                         if (bytes.length > 0) {
                             buffer.set( new Uint8Array(bytes), 0 );
                             try {
                                 context.decodeAudioData(buffer.buffer, function(audioBuffer) {
-                                   //console.log(['PUSH BUFFER',audioBuffer]);
-                                    //audioBuffers.push(audioBuffer);
                                     resolve(audioBuffer);
                                 });
-                                
                             } catch (e) {
                                 // trash buffer
                                 reject();
                             }   
                         }
                     });
-            
-                
-                    promises.push(p);
+                   promises.push(p);
                     return;
                 })
-            
             } catch (e) {
                 console.log(['ERROR',e]);
             }
                 
             Promise.all(promises).then(function(allBuffers) {
-               // console.log(['MERGED allBuffers',allBuffers]);
                 let merger =  new Crunker();
                 try {
                     let output = merger.export(merger.concatAudio(allBuffers), "audio/wav");
-                    //console.log(['MERGED AUDIO',output]);
                     that.updateSession(payload,function(session) {
                              if (!session.audio) session.audio=[];
                              that.blobToDataUrl(output.blob).then(function(dataUrl) {
-                                console.log(['BLOB TO DATA URL',dataUrl,output.blob]);
                                 session.audio.push(dataUrl);               
                                 // start again
                                 that.resetAudioBuffer(siteId); 
+                                that.setLogData();
                              });                         
                              return session;
                     });                
@@ -455,8 +405,6 @@ export default class SnipsLogger  extends SnipsMqttServer {
                     console.log(e.message);
                 }
             });            
-                
-            
         }
     };
     
@@ -471,9 +419,8 @@ export default class SnipsLogger  extends SnipsMqttServer {
     
     sendMqtt(destination,payload) {
         
-       if (!destination.startsWith('hermes/audioServer')) console.log(['SESSION SEND MQTT LOGGER',destination,payload])
+       //if (!destination.startsWith('hermes/audioServer')) console.log(['SESSION SEND MQTT LOGGER',destination,payload])
         if (this.state.connected) {
-           // if (!destination.startsWith('hermes/audioServer')) console.log(['SESSION SEND MQTT LOGGER CNNECTED',destination,payload])
             let message = new Paho.MQTT.Message(JSON.stringify(payload));
             message.destinationName = destination;
             this.mqttClient.send(message);
@@ -495,12 +442,10 @@ export default class SnipsLogger  extends SnipsMqttServer {
      */ 
     say(siteId,text) {
         let that = this;
-       // console.log(['LOGGER SAY ',this,this.logger,text]);
         if (that.state && that.state.connected) {
             let currentSession = that.getSession(siteId,null);
             let payload = {siteId:siteId,text:text};
             if (currentSession) payload.sessionId = currentSession.sessionId;
-           // console.log(['LOGGER SAY ',text,currentSession]);
             let message = new Paho.MQTT.Message(JSON.stringify(payload));
             message.destinationName = "hermes/tts/say";
             that.mqttClient.send(message);
@@ -514,15 +459,3 @@ export default class SnipsLogger  extends SnipsMqttServer {
 
 
 }
-
-   //<h4>Sessions</h4>
-         //{JSON.stringify(this.state.sessions)}
-        //<hr/>
-        //<h4>Audio On</h4>
-         //{JSON.stringify(this.state.audioListening)}
-        //<hr/>
-        //<h4>Hotword On</h4>
-         //{JSON.stringify(this.state.hotwordListening)}
-        //<br/><hr/>
-         //<hr/>
-     

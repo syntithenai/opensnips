@@ -11,11 +11,6 @@ export default class SnipsReactFlatLogger extends Component {
         this.isLogMessageExpanded = this.isLogMessageExpanded.bind(this);
         
     };
-
-    componentDidMount() {
-       // console.log(' logger mount');
-    }; 
-
        
     toggleMessageExpansion(e,key) {
         let showLogMessages = this.state.showLogMessages;
@@ -24,7 +19,6 @@ export default class SnipsReactFlatLogger extends Component {
         } else {
             showLogMessages[key] = true;
         }
-       // console.log(['TOGGLE',showLogMessages]);
         this.setState({showLogMessages:showLogMessages});
     };
     
@@ -37,11 +31,9 @@ export default class SnipsReactFlatLogger extends Component {
     
    
     render() {
-        //console.log(['RENDER SITES',this.props.sites]);
         let that = this;
         if (this.props.messages) {
             let logs = that.props.messages.map(function(val,key) {
-             //   console.log(['LOG',val,key,session.sessionId,val.sessionId]);
                     return <div key={key} >
                         <button onClick={(e) => that.toggleMessageExpansion(e,key)} >+</button> 
                          &nbsp;&nbsp;{val.text}
@@ -51,6 +43,5 @@ export default class SnipsReactFlatLogger extends Component {
             });
             return  <div >{logs}</div>
         }
-        //
     }
 }

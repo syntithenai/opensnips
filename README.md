@@ -56,12 +56,14 @@ The opensnips repository includes a snips assistant for meekahome that supports 
 If you are developing on Linux it is useful to have multiple access to the sound card by using pulse audio.
 
 The docker compose file shows a container can use  pulseaudio on the Linux host.
-Run paprefs and enable network server. Possibly also update volume mount to cookie file (if not anon access) and PULSE_HOST to 
+
+- Run paprefs and enable network server. 
+- Possibly also update volume mount to cookie file (if not anon access) and PULSE_HOST to 
 Linux IP address.
 
 The snips image is built with alsa and pulse config compatible with the environment variables from the docker-compose file.
 
-
+!! If you have a (playstation eye) microphone plugged into a always on usb power port, it may not reset on reboot and end up jammed. Switch usb ports (and reboot) to fix.
 
 
 

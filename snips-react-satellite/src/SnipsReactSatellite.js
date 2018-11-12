@@ -24,13 +24,13 @@ export default class SnipsReactSatellite extends Component  {
     
     // force update
     setLogData(sites,messages,sessionStatus,sessionStatusText,hotwordListening,audioListening) {
-        this.setState({ state: this.state });
+        this.setState(this.state);
     };
 
 //<SnipsReactConfig logger={this.logger} siteId={this.siteId} config={this.props.config} />
     render() {
         let position=this.props.position ? this.props.position  : 'top left'
-        return <div id ="snipssatellite" >
+        return <div id ="snipsreactsatellite" >
             <SnipsReactHotwordServer toggleOn={true} logger={this.logger} siteId={this.siteId} config={this.props.config} />
             <SnipsReactMicrophone position={position} logger={this.logger} siteId={this.siteId} config={this.props.config} />
             <SnipsReactTts logger={this.logger} siteId={this.siteId}  config={this.props.config}/>

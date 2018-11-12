@@ -13,10 +13,7 @@ export default class SnipsReactLogger extends Component {
         this.toggleLogExpansion = this.toggleLogExpansion.bind(this);
     };
 
-    componentDidMount() {
-       // console.log(' logger mount');
-    }; 
-
+  
        
     toggleMessageExpansion(e,key) {
         let showLogMessages = this.state.showLogMessages;
@@ -25,7 +22,6 @@ export default class SnipsReactLogger extends Component {
         } else {
             showLogMessages[key] = true;
         }
-       // console.log(['TOGGLE',showLogMessages]);
         this.setState({showLogMessages:showLogMessages});
     };
     
@@ -36,7 +32,6 @@ export default class SnipsReactLogger extends Component {
         } else {
             showLog[key] = true;
         }
-       console.log(['TOGGLE',showLog]);
         this.setState({showLog:showLog});
     };
     
@@ -55,7 +50,6 @@ export default class SnipsReactLogger extends Component {
     };
    
     render() {
-        //console.log(['RENDER SITES',this.props.sites]);
         let that = this;
         if (this.props.sites) {
             let sitesRendered = Object.keys(this.props.sites).map(function(siteKeyIn) {
@@ -68,12 +62,8 @@ export default class SnipsReactLogger extends Component {
                 });
                 if (!that.props.siteId || (that.props.siteId && siteKey === that.props.siteId)) {
                     let sessionsRendered = sessions.map(function(session,sessionLoopKey) {
-                        //let session = that.props.sites[siteKey][sessionKey];
-                        //if () {
                         if (session)  {
-                           // console.log(['RENDER LOGS',that.props.messages]);
                             let logs = that.props.messages.map(function(val,key) {
-                             //   console.log(['LOG',val,key,session.sessionId,val.sessionId]);
                                 if (val.sessionId === session.sessionId) {
                                     return <div key={key} >
                                         <button onClick={(e) => that.toggleMessageExpansion(e,key)} >+</button> 
@@ -83,16 +73,16 @@ export default class SnipsReactLogger extends Component {
                                 }
                                 return [];
                             });
-                            
-                            //let sessionStatus = that.props.sessionStatus[session.sessionId];
-                            //let statusColors=['lightgrey','lightblue','lightgreen','lightorange','lightgreen','lightred'];
-                            //let statusTexts=['starting','hotword','listening','queued','started','transcribed','interpreted','ended'];
                             let statusText= that.props.sessionStatusText[session.sessionId];
-                            //let statusColor= statusColors[sessionStatus];
                             let sessionClass = 'session-'+statusText;
                             let sessionStyle = {margin:'1em', padding:'1em', border: '2px solid black',borderRadius:'10px'};
-                            //console.log(sessionStyle);
                             let sessionItems = [];
+                            let audioItems = [];
+                            if (session.audio) {
+                                audioItems = session.audio.map(function(audioData,ikey) {
+                                    return <span key={ikey} >{audioData[ikey]  && audioData.length > 0 && <audio src={audioData} controls={true} style={{float:'right'}}/>}</span>
+                                });
+                            }
                             if (session.asr) sessionItems = session.asr.map(function(transcript,ikey) {
                                 let slotValues = [];
                                 
@@ -100,7 +90,6 @@ export default class SnipsReactLogger extends Component {
                                     return <li key={skey}>{slot.slotName.split('_').join(' ')} {slot.value.value}</li>
                                 });
                                 return <div key={ikey}>
-                                {session.audio && session.audio.length > ikey && session.audio[ikey]  && session.audio[ikey].length > 0 && <audio src={session.audio[ikey]} controls={true} style={{float:'right'}}/>}
                                 <div style={{marginBottom:'1em',fontWeight:'bold'}}>
                                     {transcript.text} 
                                 </div>
@@ -116,12 +105,13 @@ export default class SnipsReactLogger extends Component {
                                 
                                 </div>
                             });
-                            //<span>{session.intents && session.intents.length > ikey && session.intents[ikey] && JSON.stringify(session.intents[ikey])}</span>
                             if (session.started && session.sessionId) {
                                 return <div className={sessionClass} style={sessionStyle}  key={sessionLoopKey} >
                                     <button style={{display:'inline',paddingRight:'0.5em'}} onClick={(e) => that.toggleLogExpansion(e,session.sessionId)} >+</button> 
-                                    <h4 style={{marginLeft:'1em',display:'inline',clear:'right'}}>{session.sessionId} {that.props.sessionStatusText[session.sessionId]} </h4>
+                                    <h4 style={{marginLeft:'1em',display:'inline',clear:'right'}}>{session.sessionId} {that.props.sessionStatusText[session.sessionId]} </h4><div style={{float:'right'}}>{audioItems}</div>
+                                
                                     <hr style={{height:'1px', width:'100%'}}/>
+                                    
                                     <div >{sessionItems}</div>
                                     <hr style={{height:'1px', width:'100%'}}/>
                                     {that.isLogExpanded(session.sessionId) && <div >{logs}</div>}
@@ -150,6 +140,5 @@ export default class SnipsReactLogger extends Component {
         } else {
             return []
         }
-        //
     }
 }

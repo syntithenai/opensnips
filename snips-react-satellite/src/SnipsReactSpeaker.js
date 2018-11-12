@@ -5,7 +5,6 @@ export default class SnipsReactSpeaker extends SnipsReactComponent  {
 
     constructor(props) {
         super(props);
-        //console.log(['SPEAKER CONSTR']);
         let that = this;
         
         if (!props.siteId || props.siteId.length === 0) {
@@ -14,21 +13,16 @@ export default class SnipsReactSpeaker extends SnipsReactComponent  {
         this.state.config={}
         this.playSound = this.playSound.bind(this);
         this.setVolume = this.setVolume.bind(this);
-       // this.gainNode = null;
         this.state = {volume:.5}
         
         let eventFunctions = {
         // SESSION
             'hermes/audioServer/#/playBytes' : function(destination,siteId,id,session,audio) {
-                //console.log(['PLAY AUDIO EVENT',  siteId,that.props.siteId,session]);
                 if (siteId && siteId.length > 0 && siteId === that.props.siteId) {
                     that.playSound(audio).then(function() {
                           //// TODO wait for mqtt mesage    
                           that.sendMqtt("hermes/audioServer/"+siteId+"/playFinished",{id:id,siteId:siteId,sessionId:session ? session.sessionId : null}); 
                     }); 
-                    
-                    //console.log(['PLAY AUDIO EVENT Mqtt']);           
-                    
                 }
             },
             'hermes/hotword/#/detected': function(payload) {
@@ -48,8 +42,6 @@ export default class SnipsReactSpeaker extends SnipsReactComponent  {
     
     playSound(bytes) {
         let that = this;
-      //  console.log(['PLAY SOUND']);
-        //return;
         return new Promise(function(resolve,reject) {
             var buffer = new Uint8Array( bytes.length );
             buffer.set( new Uint8Array(bytes), 0 );
@@ -65,7 +57,6 @@ export default class SnipsReactSpeaker extends SnipsReactComponent  {
                 gainNode.connect( context.destination );
                 source.start(0);
                 source.onended = function() {
-                    console.log(['PLAY FINISHED']);
                     resolve();
                 };
             });                        

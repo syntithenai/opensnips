@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 
 import {SnipsLogger,SnipsReactLogger,SnipsReactFlatLogger,SnipsReactSatellite} from 'snips-react-satellite'
 
-
 export default class App extends Component {
     
     constructor(props) {
@@ -79,7 +78,7 @@ export default class App extends Component {
    
    // force update
    setLogData(sites,messages,sessionStatus,sessionStatusText,hotwordListening,audioListening) {
-        this.setState({ state: this.state });
+        this.setState( this.state );
    };
           
                   

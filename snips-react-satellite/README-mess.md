@@ -3,36 +3,14 @@
 ## TODO
 
 ### Microphone
-- extract hotword server
-- extract audio server
-- mqtt payloads crashing connection ??
-- sessionId endSession
-- limit notifications to event from on this site
 - recording duration timeout + other timeout
-- server hotword
-    - intent -> endSession
-    - stopListening -> textCaptured
-    - textCaptured -> eventParsed
-    - 
-- ? bubble style
-- user support (key localStorage) DONE
-- docs
-
-
-
-### Log
-- reverse sort log DONE
-- logs in session blocks DONE
-- filter by siteId DONE
-- intent handlers DONE
-- audio logging DONE
- ? site connect to audio - listen, send
--
-- 
 
 ### AppServer
 - say method (and other helpers -> end, continue) export available in app server intent functions
 - debounce
+
+
+
 
 ### Opensnips
 - extend logger to replace opensnips with nodejs replacements for snips-scripts (plus gstreamer-kaldi and rasa server)
@@ -85,18 +63,6 @@ https://github.com/syl22-00/pocketsphinx.js
 
 Because OpenSnips relies on a number of services, we suggest using Docker to orchestrate the suite of microservices as per the included example.
 
-
-## Props
-
-
-- mqttServer
-- mqttPort
-- hotwordId
-- siteId
-- clientId
-- buttonStyle
-- speechBubbleStyle
-- configStyle
 
 
 

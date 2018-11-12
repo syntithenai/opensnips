@@ -12,9 +12,8 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
         if (!props.siteId || props.siteId.length === 0) {
             throw "Snips Microphone must be configured with a siteId property";
         }
-        //this.audioBuffer=[]
         this.state={recording:false,messages:[],lastIntent:'',lastTts:'',lastTranscript:'',showMessage:false,activated:false,speaking:false,showConfig:false,listening:false,sessionId : ""}
-        this.siteId = props.siteId ? props.siteId : 'browser'+parseInt(Math.random()*100000000,10);
+        this.siteId = props.siteId ; //? props.siteId : 'browser'+parseInt(Math.random()*100000000,10);
         this.clientId = props.clientId ? props.clientId :  'client'+parseInt(Math.random()*100000000,10);
         this.hotwordId = props.hotwordId ? props.hotwordId :  'default';
         this.context = null;
@@ -38,23 +37,6 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
         
         let eventFunctions = {
         // SESSION
-            //'hermes/dialogueManager/sessionStarted' : function(payload) {
-                //console.log(['SESSION STARTED',payload,payload.siteId,that.siteId ,payload.customData]);
-                //if (payload.siteId && payload.siteId.length > 0 && payload.siteId === that.siteId ) {
-                    //console.log(['SESSION STARTED MATCH SITE'])
-                    //that.setState({sending : true});
-                    ////try {
-                        ////let customData = JSON.parse(payload.customData);
-                        ////console.log(['SESSION STARTED PARSE CUSTM DATA']);
-                        ////if (customData.startedBy === "snipsmicrophone") {
-                            ////console.log(['SESSION STARTED SEND START LISTENING']);
-                            ////that.sendMqtt('hermes/asr/startListening',{siteId:payload.siteId,sessionId:payload.sessionId});
-                        ////}
-                    ////} catch (e) {
-                        ////// no custom data
-                    ////}
-                ////}
-            //},
             'hermes/asr/textCaptured' : function(payload) {
                 if (payload.siteId && payload.siteId.length > 0 && payload.siteId === that.siteId && payload.text && payload.text.length > 0 ) {
                     that.flashState('lastTranscript',payload.text);
@@ -75,22 +57,17 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
             'hermes/hotword/#/toggleOff' : function(payload) {
                 if (that.props.enableServerHotword) {
                     if (payload.siteId && payload.siteId.length > 0 && payload.siteId === that.siteId) {
-                      //  console.log(['MIC STOP LISTENING']);
                         that.setState({sending : false});
                     }                    
                 }
             },
             'hermes/asr/startListening' : function(payload) {
-                //console.log(['MIC STart LISTENING',that.siteId,payload.siteId,payload.text]);
-                    
                 if (payload.siteId && payload.siteId.length > 0 && payload.siteId === that.siteId ) {
-                    //console.log(['MIC STart LISTENING',that.siteId,payload.siteId,payload.text]);
                     that.setState({sending : true});
                 }
             },
             'hermes/asr/stopListening' : function(payload) {
                 if (payload.siteId && payload.siteId.length > 0 && payload.siteId === that.siteId ) {
-                    //console.log(['MIC STOP LISTENING']);
                     that.setState({sending : false});
                 }
             }
@@ -108,23 +85,31 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
      * Activate on mount if user has previously enabled.
      */ 
     componentDidMount() {
-        // if previously activated, restore microphone
         this.startRecorder();
+        
         let that = this;
-        // TODO START AT BOOT
-        //this.sendAsrStopListening(this.props.siteId);
-        //this.sendAsrToggleOff();
-        //this.sendAsrToggleOn();
-        //this.sendStartSession(this.props.siteId);
-        //setTimeout(function() {
-            ////console.log('timeout end session');
-            //that.sendEndSession(that.props.siteId);
-            //if (localStorage.getItem(that.appendUserId('snipsmicrophone_enabled',that.props.user)) === 'true') {
-                //that.activate(false);
-            //}
-        //},1000);
-        
-        
+        // FORCE START ASR ON THIS SITE BY TOGGLE ON SESSION, WAIT, THEN END SESSION AND RESET LOGS
+            that.queueOneOffCallbacks({
+                'hermes/dialogueManager/sessionStarted' : function(payload) {
+                    if (payload.siteId && payload.siteId.length > 0 && payload.siteId === that.siteId ) {
+                        //that.queueOneOffCallbacks({
+                            //'hermes/feedback/sound/toggleOn' : function(payload) {
+                                //if (payload.siteId && payload.siteId.length > 0 && payload.siteId === that.siteId ) {
+                                    //that.logger.reset();
+                                //}
+                            //}
+                        //});
+                        setTimeout(function() {
+                            that.sendEndSession(payload.sessionId);
+                            that.sendFeedbackToggleOn(that.props.siteId);
+                        },500);
+                    }
+                }
+            });
+        setTimeout(function() {
+            that.sendFeedbackToggleOff(that.props.siteId);
+            that.sendStartSession(that.props.siteId);
+        },900);
     }
     
     showConfig() {
@@ -143,13 +128,10 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
      * Triggered by microphone click or hotword when the mic is deactivated
      */
     activate(start = true) {
-        //console.log(['MIC ACTIVATE',start]);
         let that = this;
         localStorage.setItem(this.appendUserId('snipsmicrophone_enabled',this.props.user),'true');
         if (start) {
             setTimeout(function() {
-                //this.sendEndSession.bind(this)(this.siteId);
-                //this.sendStartSession.bind(this)(this.siteId);
                 that.startRecording();
             },500);  
         }
@@ -161,20 +143,14 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
      * Enable streaming of the audio input stream
      */ 
     startRecording = function() {
-       //console.log(['MIC START REC']);
         this.setState({lastIntent:'',lastTts:'',lastTranscript:'',showMessage:false});
-        // TODO START AT BOOT
-        //this.sendAsrToggleOn();
-        this.sendStartSession(this.siteId,{startedBy:'snipsmicrophone',user:this.props.user ? this.props.user._id : ''});
-        //this.sendHotwordDetected(this.hotwordId,this.siteId);
+        this.sendStartSession(this.siteId,{startedBy:'snipsreactmicrophone',user:this.props.user ? this.props.user._id : ''});
     }
     
     /**
      * Disable microphone and listeners
      */
     deactivate() {
-       // console.log(['MIC DEACTIV']);
-        //console.log(['deactivate',this.mqttClient]);
         localStorage.setItem(this.appendUserId('snipsmicrophone_enabled',this.props.user),'false');
         this.setState({activated:false,sending:false});
     };
@@ -184,38 +160,27 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
      * Access the microphone and start streaming mqtt packets
      */ 
     startRecorder() {
-      // console.log('MIC START RECORDER');
         let that = this;
         if (!navigator.getUserMedia) {
             navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
         navigator.mozGetUserMedia || navigator.msGetUserMedia;
         }
          try {
-           // console.log(['MIC START RECORDER',navigator,navigator ? navigator.getUserMedia : 'NULL']);
             if (navigator.getUserMedia) {
-             //   console.log(['MIC START RECORDER have usermedia']);
               navigator.getUserMedia({audio:true}, success, function(e) {
                 console.log(['MIC Error capturing audio.',e]);
               });
-              //console.log(['MIC START RECORDER after have usermedia']);
             } else {
                 console.log('MIC getUserMedia not supported in this browser.');
             }
-             
          }   catch (e) {
              console.log(e);
          }
         
         function success(e) {
-           //console.log('MIC STARTING');
            let audioContext = window.AudioContext || window.webkitAudioContext;
            let context = new audioContext();
             that.setState({'activated':true});
-           
-           // that.bindSpeakingEvents.bind(that)(context,e);
-            // start media streaming mqtt
-           //console.log(['SET CONTEXT',context]);
-          
           let gainNode = context.createGain();
           // initial set volume
           gainNode.gain.value = 0.9; // that.state.config.inputvolume > 0 ? that.state.config.inputvolume/100 : 0.5;
@@ -227,18 +192,12 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
             if(!that.state.sending) return;
             var left = e.inputBuffer.getChannelData(0);
             that.sendAudioBuffer(e.inputBuffer,context.sampleRate); 
-            console.log('MIC send audio'); //,buffer,that.audioBuffer]);
-            //that.audioBuffer.push(new Float32Array(e.inputBuffer.getChannelData(0)));
-            //that.recordingLength += bufferSize;
+            //console.log('MIC send audio'); //,buffer,that.audioBuffer]);
           }
         that.addInputGainNode(gainNode) ;
         audioInput.connect(gainNode)
         gainNode.connect(recorder);
-        //audioInput.connect(recorder)
-        // TODO, is this required?
         recorder.connect(context.destination); 
-        //that.sendHotwordToggleOn.bind(that)(that.siteId);
-       // console.log('MIC STARTED');
         }
     };
  
@@ -247,20 +206,13 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
     
 
     stopRecording = function() {
-       // console.log(['STOP REC']);
-        //this.setState({sending : false});
         let session = this.logger.getSession(this.siteId,null);
         if (session) this.sendEndSession(session.sessionId);
-       
-      
     }
-    
-    
         
     addInputGainNode(node) {
         this.inputGainNodes.push(node);
     };
-    
     
     appendUserId(text,user) {
         if (user && user._id) {
@@ -331,12 +283,10 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
     /** WAV encoding functions */
     sendAudioBuffer(buffer,sampleRate) {
          let that = this;
-         //this.audioBuffer
         if (buffer) {
            this.reSample(buffer,16000,function(result) {
                let wav = that.audioBufferToWav(result) ;
                that.logger.sendAudioMqtt("hermes/audioServer/"+that.siteId+"/audioFrame",wav);
-               //console.log('send audio',that.siteId,wav);          
             },sampleRate);
         }
         
@@ -568,7 +518,7 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
   
     let inputStyle={marginBottom:'0.5em',fontSize:'0.9em'};
     let config = this.state.config;
-    return <div>
+    return <div id="snipsreactmicrophone" >
         {(!this.state.activated) && <span  onClick={this.activate}>{micOnIcon}</span>} 
         {(this.state.activated && this.state.sending) && <span onTouchStart={this.showConfig}  onTouchEnd={this.clearConfigTimer}   onMouseDown={this.showConfig} onMouseUp={this.clearConfigTimer} onContextMenu={this.showConfigNow} onClick={this.stopRecording}>{micOffIcon}</span>} 
         {(this.state.activated && !this.state.sending) && <span onTouchStart={this.showConfig}  onTouchEnd={this.clearConfigTimer}   onMouseDown={this.showConfig} onMouseUp={this.clearConfigTimer} onContextMenu={this.showConfigNow} onClick={this.startRecording}>{micOnIcon}</span>} 
@@ -609,24 +559,3 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
     //};
 
  
-    
-    //playSound(bytes) {
-        
-        //if (this.state.config.enableaudio !== "no") {
-            //var buffer = new Uint8Array( bytes.length );
-            //buffer.set( new Uint8Array(bytes), 0 );
-            //let audioContext = window.AudioContext || window.webkitAudioContext;
-            //let context = new audioContext();
-            //let gainNode = context.createGain();
-            //// initial set volume
-            //gainNode.gain.value = this.state.config.outputvolume > 0 ? this.state.config.outputvolume/100 : 0.5;
-          
-            //context.decodeAudioData(buffer.buffer, function(audioBuffer) {
-                //var source = context.createBufferSource();
-                //source.buffer = audioBuffer;
-                //source.connect(gainNode);
-                //gainNode.connect( context.destination );
-                //source.start(0);
-            //});            
-        //}
-    //}

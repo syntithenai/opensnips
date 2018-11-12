@@ -134,6 +134,7 @@ let eventFunctions = {
                 let audioListening = that.state.audioListening;
                 audioListening[payload.siteId] = false;
                 that.setState({audioListening:audioListening});
+                // log audio
                 that.updateSession(payload,function(session) {
                     if (session) {
                         that.logAudioBuffer(payload);
@@ -142,13 +143,11 @@ let eventFunctions = {
                     return session ;
                 })
                 resolve() ;
-               // console.log(['STOP ASR']);
             });
         },
         'hermes/asr/textCaptured': function(payload) {
             let that = this;
             return new Promise(function(resolve,reject) {
-                //console.log(['ASR CAPTURE']);
                 that.updateSession(payload,function(session) {
                     if (session) {
                         if (!session.asr) session.asr=[];

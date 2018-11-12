@@ -10,6 +10,7 @@ export default class SnipsReactComponent extends Component {
         this.props = props;
         this.state={};
         this.logger = null;
+        this.queueOneOffCallbacks = this.queueOneOffCallbacks.bind(this);
     };
     
     componentDidMount() {
@@ -27,11 +28,15 @@ export default class SnipsReactComponent extends Component {
             return this.logger;
         }
     };
+    
+    queueOneOffCallbacks(eventFunctions) {
+        if (this.logger) {
+            this.logger.addCallbacks(eventFunctions,true);
+        }
+    };
    
     sendMqtt(destination,payload) {
-        // console.log(['SESSION SEND MQTT',destination,payload,this.logger])
         if (this.logger) {
-          //  console.log(['SESSION SEND MQTT REALLY',destination,payload,this.logger])
             this.logger.sendMqtt(destination,payload);
         }
     }; 
@@ -50,7 +55,6 @@ export default class SnipsReactComponent extends Component {
      * Used to forcibly initialise the local hotword server.
      */ 
     sendHotwordToggleOn(siteId) {
-        //console.log(["hermes/hotword/toggleOn",{siteId:siteId}]);
         this.sendMqtt("hermes/hotword/toggleOn",{siteId:siteId});
     };
     /**
@@ -87,7 +91,7 @@ export default class SnipsReactComponent extends Component {
     /**
      * Send Mqtt message to end the session immediately
      */ 
-     sendEndSession(sessionId,text) {
+    sendEndSession(sessionId,text) {
         let payload = {sessionId:sessionId}
         if (text && text.length > 0) {
             payload.text = text;
@@ -128,6 +132,23 @@ export default class SnipsReactComponent extends Component {
     sendAsrToggleOff(siteId) {
         this.sendMqtt("hermes/asr/toggleOff",{});
     };
+    
+     /**
+     * Send Mqtt message to toggle on feedback
+     */ 
+    sendFeedbackToggleOn(siteId) {
+        this.sendMqtt("hermes/feedback/sound/toggleOn",{siteId:siteId});
+    };
+    
+     /**
+     * Send Mqtt message to toggle off feedback
+     */ 
+    sendFeedbackToggleOff(siteId) {
+        this.sendMqtt("hermes/feedback/sound/toggleOff",{siteId:siteId});
+    };
+    
+    
+    
     
     render() {
         return <b id="snipsreactcomponent" ></b>

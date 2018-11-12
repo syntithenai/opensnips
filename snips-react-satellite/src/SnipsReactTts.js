@@ -9,13 +9,11 @@ export default class SnipsReactTts extends SnipsReactComponent  {
             throw "TTS Server must be configured with a siteId property";
         }
         this.state.config={}
-        
         let that = this;
         let eventFunctions = {
         // SESSION
             'hermes/tts/say' : function(payload) {
-                //console.log(['SAY EVENT',payload.siteId,that.props.siteId]);
-                if (payload.siteId && payload.siteId.length > 0 && payload.siteId === that.props.siteId) {
+                if (payload.siteId && payload.siteId.length > 0 && payload.siteId === props.siteId) {
                     if (payload.text && payload.text.length > 0 ) {
                         that.say(payload.text);
                     }
@@ -38,9 +36,8 @@ export default class SnipsReactTts extends SnipsReactComponent  {
      * Synthesise speech from text and send to to audio output
      */ 
     say(text) {
-        if (this.state.config && this.state.config.enablevoice !== "no") {
-            let voice = this.state.config.ttsvoice ? this.state.config.ttsvoice : 'default';
-           // console.log(['SPEAK',voice,text,this.state.config.ttsvoice,this.state.config.voicevolume,this.state.config.voicerate,this.state.config.voicepitch]);
+        if (!this.state.config || this.state.config.enablevoice !== "no") {
+            let voice = this.state.config && this.state.config.ttsvoice ? this.state.config.ttsvoice : 'default';
             
             if (voice === "default") {
                 // js generated fallback
@@ -71,7 +68,6 @@ export default class SnipsReactTts extends SnipsReactComponent  {
     initSpeechSynthesis() {
         let that = this;
         if ('speechSynthesis' in window) {
-
             // Fetch the list of voices and populate the voice options.
             function loadVoices() {
               // Fetch the available voices.
@@ -81,7 +77,6 @@ export default class SnipsReactTts extends SnipsReactComponent  {
                 let voiceOptions=[];
                 voices.forEach(function(voice, i) {
                 // Create a new option element.
-                //console.log(voice);
                     voiceOptions.push({'name':voice.name,label:voice.name});
                 });
                 voiceOptions.push({'name':'default',label:'Browser Generated'});
@@ -101,13 +96,12 @@ export default class SnipsReactTts extends SnipsReactComponent  {
             let voiceOptions=[];
             voiceOptions.push({'name':'default',label:'Browser Generated'});
             that.setState({voices:voiceOptions});
-            //console.log(['VOICES b',voiceOptions]);
         }
-        //console.log(['LOADE VOICES',this.state.voices]);
+       // console.log(['LOADED VOICES',this.state.voices]);
     };
 
     render() {
-        return <b></b>
+        return <b id="snipsreacttts" ></b>
     };
 
   

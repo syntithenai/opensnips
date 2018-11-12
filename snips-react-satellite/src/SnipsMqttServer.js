@@ -23,13 +23,11 @@ export default class SnipsMqttServer {
      };
 
     start() {
-       // console.log(['START SERVER']);
         this.started = true;
         this.mqttConnect() ;
     };
     
     stop() {
-      //  console.log(['STOP SERVER']);
         this.started = false;
         if (this.mqttClient) this.mqttClient.disconnect() ;
     };
@@ -40,8 +38,6 @@ export default class SnipsMqttServer {
     mqttConnect() {
         let port = this.props.mqttPort && this.props.mqttPort > 0 ? parseInt(this.props.mqttPort,10) : 9001
         let server = this.props.mqttServer && this.props.mqttServer.length > 0 ? this.props.mqttServer :  window.location.hostname ;
-        
-       // console.log([' SERVER CONNECT',server,port,this.clientId]);
         this.mqttClient = new Paho.MQTT.Client(server,port, this.clientId);
         this.mqttClient.onConnectionLost = this.onConnectionLost;
         this.mqttClient.onMessageArrived = this.onMessageArrived;
@@ -58,19 +54,17 @@ export default class SnipsMqttServer {
       this.failCount = 0;
       let subscribe = this.props.subscribe && this.props.subscribe.length  > 0 ? this.props.subscribe : '#';
       that.mqttClient.subscribe(subscribe,{});
-      //this.sendHotwordToggleOn(this.props.siteId);
       this.afterConnect(this);
     }
     
     afterConnect() {
-       // console.log([' after CONNECTED']);
+       //console.log([' after CONNECTED']);
     };
  
     /**
      * When the client loses its connection, reconnect after 5s
      */ 
     onConnectionLost(responseObject) {
-       //console.log(['SERVER DISCONNECTED']);
         let that = this;
         this.setState({'connected':false});
         if (responseObject.errorCode !== 0) {
