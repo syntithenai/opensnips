@@ -16,13 +16,13 @@ This package provides a React component that shows a microphone and streams audi
 
 - optionally implements the hotword server elements of the Snips hermes mqtt protocol using Porcupine running with WebAssembly in the browser. Currently the only available hotword is "Ok Lamp" (or a range of colors). 
 
-I've requested snips and mycroft [here](https://github.com/Picovoice/Porcupine/issues/95).
+    - I've requested snips and mycroft [here](https://github.com/Picovoice/Porcupine/issues/95).
 
 - implements the tts  server elements of the Snips hermes mqtt protocol using native voices or falling back to speak.js javascript tts generation. 
 
-By default the first voice from speechSynthesis.getVoices() is used or if no voices are available falls back to speak.js to generate audio.
+    - By default the first voice from speechSynthesis.getVoices() is used or if no voices are available falls back to speak.js to generate audio.
 
-Preferred voice can be set in the configuration panel.
+    - Preferred voice can be set in the configuration panel.
 
 - long press or right click to show configuration page to select volume, tts voice, hotword.
 
@@ -36,7 +36,14 @@ Preferred voice can be set in the configuration panel.
 
 - memory overrun -  this.setState(this.state);
 
-- pass props through when creating logger instance (particularly mqttServer/port props)
+- random mqtt dropouts
+    - WebSocket connection to 'ws://localhost:9001/mqtt' failed: A server must not mask any frames that it sends to the client.
+    - mqttws31.min.js:36 WebSocket connection to 'ws://localhost:9001/mqtt' failed: Invalid frame header
+    - index.es.js:149 ["  SERVER onConnectionLost:AMQJS0008I Socket closed."]
+
+- check autoplay compatibility
+index.es.js:467 The Web Audio autoplay policy will be re-enabled in Chrome 71 (December 2018). Please check that your website is compatible with it. https://goo.gl/7K7WLu
+
 
 - test/debug multi platform support (developed with Chromium on Linux)
     - Android 
@@ -64,14 +71,14 @@ Preferred voice can be set in the configuration panel.
     - start session
     - wait for session to start plus half a second while audio streams then end session.
     
-Without this "initialisation", the snips dialog manager will start a session, send the blip sounds and send asr/startListening on the browser site but never sends textCaptured or stopListening.
+    - Without this "initialisation", the snips dialog manager will start a session, send the blip sounds and send asr/startListening on the browser site but never sends textCaptured or stopListening.
 
-This first session is visible in the demo log view.
+    - This first session is visible in the demo log view.
 
 
 2. ?? scalable use for a website would require the possibility for clients to subscribe to based on their userId and/or siteId to limit the mqtt traffic that is received.
 
-To implement this would require that some services in the Hermes protocol suite to optionally support the userId/siteId in the topic string. ????
+    - To implement this would require that some services in the Hermes protocol suite to optionally support the userId/siteId in the topic string. ????
 
 
 3. To use the server hotword requires configuration in snips.toml to explicitly list siteIds on which to listen for the hotword.
@@ -79,7 +86,7 @@ It would be useful allow wildcard configuration so for example all "browser_*" s
 
 4. It would be useful if audioserver/playBytes messages could be discriminated by purpose - eg hotword bleep notifications, tts, general audio so that the client could choose to mute any of these categories. 
 
-While TTS is currently local to the browser (and can be filtered), better voices would be available by sending tts/say which triggers audioserver/playBytes using a server created audio file of the text.
+    - While TTS is currently local to the browser (and can be filtered), better voices would be available by sending tts/say which triggers audioserver/playBytes using a server created audio file of the text.
 
 
 
@@ -99,8 +106,7 @@ While TTS is currently local to the browser (and can be filtered), better voices
 - !! Ensure the snips voice services are running on localhost. The package only makes sense when used with a Snips voice server.
 
 - !! Note that the mqtt server must support web sockets for a web browser to talk directly.
-
-There are no settings in the snips mqtt server for websockets so an external broker may be required.
+    - There are no settings in the snips mqtt server for websockets so an external broker may be required.
 See the docker files for websocket configuration of mosquitto.
 
 
@@ -283,13 +289,17 @@ If no logger is provided, one is created and shared with the child components.
 
 
 ### SnipsReactHotwordServer
-The hotword server 
+The hotword server  component listens for hermes/hotword/toggleOn and toggleOff.
+When the hotword is toggled on, the browser starts listening for the hotword and sends hermes/dialogueServer/startSession when the hotword is detected.
+
+A choice of hotwords and hotword sensitivity is available in the config panel.
 
 ### SnipsReactMicrophone
 The speaker component listens for hermes/tts/startListening and stopListening and starts/stops streaming audio packets over mqtt.
 
 If the prop "enableServerHotword" is true. Audio packets are streamed between hermes/hotword/toggleOn and toggleOff as well.
-At this time the Snips hotword must be configured  (in snips.toml) with the siteId of any hotword satellites.
+
+At this time the Snips hotword must be configured  (in snips.toml) with the siteId of any hotword satellites and the browser siteId must be fixed to a configured value to be able to use server side hotword.
 
 
 ### SnipsReactTts
@@ -318,7 +328,7 @@ Intent functions must return a promise.
 For example
 
 ```
-let intents = 'syntithenai:get_time': function(payload) {
+let intents = {'syntithenai:get_time': function(payload) {
                 let that = this;
                 return new Promise(function(resolve,reject) {
                     let now = new Date();
@@ -332,7 +342,8 @@ let intents = 'syntithenai:get_time': function(payload) {
                     that.logger.say(payload.siteId,'The time is '+hours+ ':' + minutes + ' ' + amPm);
                     resolve();
                 });
-            }
+            }};
+            
 <SnipsReactAppServer intents={intents} />
 ```
 

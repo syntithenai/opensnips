@@ -96,6 +96,7 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
             that.queueOneOffCallbacks({
                 'hermes/dialogueManager/sessionStarted' : function(payload) {
                     if (payload.siteId && payload.siteId.length > 0 && payload.siteId === that.siteId ) {
+                        // clear log
                         //that.queueOneOffCallbacks({
                             //'hermes/feedback/sound/toggleOn' : function(payload) {
                                 //if (payload.siteId && payload.siteId.length > 0 && payload.siteId === that.siteId ) {
