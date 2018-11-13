@@ -46,10 +46,6 @@ The opensnips repository includes a snips assistant for meekahome that supports 
 
 [More info](./snips-react-satellite/README.md)
 
-![microphone ](snips-react-satellite/snips-webbrowser-audioserver-microphone.png  "microphone ")
-
-![microphone configuration](./snips-react-satellite/snipsmicrophone_configuration.png  "microphone configuration")
-
 
 ## PulseAudio
 
