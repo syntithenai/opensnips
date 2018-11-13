@@ -201,9 +201,9 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
            let audioContext = window.AudioContext || window.webkitAudioContext;
            let context = new audioContext();
             that.setState({'activated':true});
-          this.gainNode = context.createGain();
+          that.gainNode = context.createGain();
           // initial set volume
-          this.gainNode.gain.value = that.props.config.inputvolume > 0 ? that.props.config.inputvolume/100 : 0.5;
+          that.gainNode.gain.value = that.props.config.inputvolume > 0 ? that.props.config.inputvolume/100 : 0.5;
           let audioInput = context.createMediaStreamSource(e);
           var bufferSize = 256;
           let recorder = context.createScriptProcessor(bufferSize, 1, 1);
@@ -214,9 +214,9 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
             that.sendAudioBuffer(e.inputBuffer,context.sampleRate); 
             //console.log('MIC send audio'); //,buffer,that.audioBuffer]);
           }
-        that.addInputGainNode(this.gainNode) ;
-        audioInput.connect(this.gainNode)
-        this.gainNode.connect(recorder);
+        //that.addInputGainNode(that.gainNode) ;
+        audioInput.connect(that.gainNode)
+        that.gainNode.connect(recorder);
         recorder.connect(context.destination); 
         }
     };

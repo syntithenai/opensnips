@@ -85,11 +85,13 @@ While TTS is currently local to the browser (and can be filtered), better voices
 
 ## Screenshots
 
-![microphone ](./snips-webbrowser-audioserver-microphone.png)
+![microphone ](./microphone.png)
 
-![microphone configuration](./snipsmicrophone_configuration.png)
+![microphone configuration](./configurationpanel.png)
 
-![Snips logs](./snipsmicrophone_logs.png)
+![Snips logs collated](./collatedlogs.png)
+
+![Snips complete logs](./flatlogs.png)
 
 
 ## Quickstart
