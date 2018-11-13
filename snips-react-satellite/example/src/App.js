@@ -9,8 +9,8 @@ export default class App extends Component {
         this.state={}
         this.setLogData = this.setLogData.bind(this);
         this.siteId = 'browser_'+parseInt(Math.random()*100000000,10);
-        
-        this.logger = new SnipsLogger({logAudio:true,setLogData:this.setLogData });
+         //
+        this.logger = new SnipsLogger(Object.assign({logAudio:true,setLogData:this.setLogData,mqttServer:'mylocalhost', mqttPort:9002 },props));
 
         /**
          *  INTENT examples from meeka@home 

@@ -17,7 +17,7 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
         this.clientId = props.clientId ? props.clientId :  'client'+parseInt(Math.random()*100000000,10);
         this.hotwordId = props.hotwordId ? props.hotwordId :  'default';
         this.context = null;
-        this.inputGainNodes = [];
+        this.gainNode = null;
         this.messageTimeout = null;
         this.speakingTimeout = null;
         this.speechEvents =  null;
@@ -32,8 +32,12 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
         this.flashState = this.flashState.bind(this);
         this.activate = this.activate.bind(this);
         this.deactivate = this.deactivate.bind(this);
-        this.waitingForSession = null;
+        this.showConfig = this.showConfig.bind(this);
+        this.showConfigNow = this.showConfigNow.bind(this);
+        this.clearConfigTimer = this.clearConfigTimer.bind(this);
         
+        this.waitingForSession = null;
+        this.configTimeout = null;
         
         let eventFunctions = {
         // SESSION
@@ -111,16 +115,32 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
             that.sendStartSession(that.props.siteId);
         },900);
     }
+
+    /** 
+     * Functions to enable and disable configuration screen 
+     * by default using a debounce to implement click and hold to enable config
+     **/
+    showConfig(e) {
+        let that = this;
+         this.configTimeout = setTimeout(function() {
+            // console.log('show now');
+            //that.setState({showConfig:true}); 
+            if (that.props.showConfig) that.props.showConfig();
+            else that.deactivate();
+        },1000);
+    }; 
+
+    showConfigNow(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        //this.setState({showConfig:true});
+        if (this.props.showConfig) this.props.showConfig();
+        else this.deactivate();
+    }; 
     
-    showConfig() {
-        
-    };
-    showConfigNow() {
-        
-    };
     clearConfigTimer() {
-        
-    };
+        if (this.configTimeout) clearTimeout(this.configTimeout);
+    }; 
   
     
     /**
@@ -181,9 +201,9 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
            let audioContext = window.AudioContext || window.webkitAudioContext;
            let context = new audioContext();
             that.setState({'activated':true});
-          let gainNode = context.createGain();
+          this.gainNode = context.createGain();
           // initial set volume
-          gainNode.gain.value = 0.9; // that.state.config.inputvolume > 0 ? that.state.config.inputvolume/100 : 0.5;
+          this.gainNode.gain.value = that.props.config.inputvolume > 0 ? that.props.config.inputvolume/100 : 0.5;
           let audioInput = context.createMediaStreamSource(e);
           var bufferSize = 256;
           let recorder = context.createScriptProcessor(bufferSize, 1, 1);
@@ -194,9 +214,9 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
             that.sendAudioBuffer(e.inputBuffer,context.sampleRate); 
             //console.log('MIC send audio'); //,buffer,that.audioBuffer]);
           }
-        that.addInputGainNode(gainNode) ;
-        audioInput.connect(gainNode)
-        gainNode.connect(recorder);
+        that.addInputGainNode(this.gainNode) ;
+        audioInput.connect(this.gainNode)
+        this.gainNode.connect(recorder);
         recorder.connect(context.destination); 
         }
     };
@@ -263,20 +283,21 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
     
    flashState(key,value) {
        let that = this;
-       if (key && key.length > 0 && value && value.length > 0) {
-           if (this.messageTimeOut) clearTimeout(this.messageTimeOut);
-           let newObj = {showMessage:true};
-           if (key === "lastTranscript") {
-               newObj.lastIntent='';
-               newObj.lastTts='';
-           }
-           newObj[key] = value;
-           this.setState(newObj);
-           setTimeout(function() {
-               that.setState({showMessage:false});
-           },that.props.messageTimeout > 0 ? that.props.messageTimeout : 10000);           
+       if (this.props.config.enablenotifications !== "no") {
+           if (key && key.length > 0 && value && value.length > 0) {
+               if (this.messageTimeOut) clearTimeout(this.messageTimeOut);
+               let newObj = {showMessage:true};
+               if (key === "lastTranscript") {
+                   newObj.lastIntent='';
+                   newObj.lastTts='';
+               }
+               newObj[key] = value;
+               this.setState(newObj);
+               setTimeout(function() {
+                   that.setState({showMessage:false});
+               },that.props.messageTimeout > 0 ? that.props.messageTimeout : 10000);           
+           }           
        }
-
    };
     
     
@@ -517,12 +538,12 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
     
   
     let inputStyle={marginBottom:'0.5em',fontSize:'0.9em'};
-    let config = this.state.config;
-    return <div id="snipsreactmicrophone" >
+    let config = this.props.config;
+    return <div id="snipsreactmicrophone" style={{zIndex:'9999'}}>
         {(!this.state.activated) && <span  onClick={this.activate}>{micOnIcon}</span>} 
         {(this.state.activated && this.state.sending) && <span onTouchStart={this.showConfig}  onTouchEnd={this.clearConfigTimer}   onMouseDown={this.showConfig} onMouseUp={this.clearConfigTimer} onContextMenu={this.showConfigNow} onClick={this.stopRecording}>{micOffIcon}</span>} 
         {(this.state.activated && !this.state.sending) && <span onTouchStart={this.showConfig}  onTouchEnd={this.clearConfigTimer}   onMouseDown={this.showConfig} onMouseUp={this.clearConfigTimer} onContextMenu={this.showConfigNow} onClick={this.startRecording}>{micOnIcon}</span>} 
-        {(this.state.showMessage ) && <div style={{padding:'1em', borderRadius:'20px',backgroundColor:'skyblue',margin:'5%',width:'90%',top:'1.7em',color:'black',border:'2px solid blue'}} >
+        {(this.state.showMessage ) && <div style={{padding:'1em', borderRadius:'20px',backgroundColor:'skyblue',margin:'5%',width:'90%',top:'1.7em',color:'black',border:'2px solid blue',zIndex:'9999'}} >
                 {this.state.lastTranscript && <div style={{fontStyle:'italic'}}>{this.state.lastTranscript}</div>}
                 {false && this.state.lastIntent && <div>{this.state.lastIntent}</div>}
                 {this.state.lastTts && <div>{this.state.lastTts}</div>}
@@ -534,28 +555,5 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
     
   }
 }
- //configurationChange(e) {
-        //let that = this;
-        ////console.log(['configurationChange',this,e,e.target.value,e.target.id]);
-        //let config = this.state.config;
-        //config[e.target.id] = e.target.value;
-        //this.setState(config);
-        //// set silence threshhold directly
-        //if (e.target.id === "silencesensitivity" && this.speechEvents) {
-            //this.speechEvents.setThreshold(this.getThreshholdFromVolume(this.state.config.silencesensitivity));
-        //} else if (e.target.id === "inputvolume" ) {
-            //// update all input gain nodes
-            //this.inputGainNodes.map(function(node) {
-                ////console.log(['set gain',node,that.state.config.inputvolume/100]);
-                //node.gain.value = that.state.config.inputvolume/100;
-            //});
-            
-        //}
-        //localStorage.setItem(this.appendUserId('snipsmicrophone_config',this.props.user),JSON.stringify(config));
-    //};
-    
-    //addInputGainNode(node) {
-        //this.inputGainNodes.push(node);
-    //};
 
  

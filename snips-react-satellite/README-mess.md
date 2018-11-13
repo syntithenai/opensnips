@@ -9,6 +9,20 @@
 - say method (and other helpers -> end, continue) export available in app server intent functions
 - debounce
 
+apt-get install speech-dispatcher espeak
+
+
+
+
+# WEBSOCKET ERRORS
+* WebSocket connection to 'ws://localhost:9001/mqtt' failed: A server must not mask any frames that it sends to the client.
+
+* mqttws31.min.js:36 WebSocket connection to 'ws://localhost:9001/mqtt' failed: Invalid frame header
+
+* index.es.js:149 ["  SERVER onConnectionLost:AMQJS0008I Socket closed."]
+
+# OTHER
+* index.es.js:467 The Web Audio autoplay policy will be re-enabled in Chrome 71 (December 2018). Please check that your website is compatible with it. https://goo.gl/7K7WLu
 
 
 

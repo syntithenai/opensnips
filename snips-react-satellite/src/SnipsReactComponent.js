@@ -11,6 +11,7 @@ export default class SnipsReactComponent extends Component {
         this.state={};
         this.logger = null;
         this.queueOneOffCallbacks = this.queueOneOffCallbacks.bind(this);
+        this.connectToLogger = this.connectToLogger.bind(this);
     };
     
     componentDidMount() {
@@ -24,7 +25,7 @@ export default class SnipsReactComponent extends Component {
             this.logger = logger;
             return this.logger;
         } else {
-            this.logger =  new SnipsLogger({logAudio:false,setLogData:this.setLogData , eventCallbackFunctions :eventFunctions});
+            this.logger =  new SnipsLogger(Object.assign({logAudio:false,setLogData:this.setLogData , eventCallbackFunctions :eventFunctions},this.props));
             return this.logger;
         }
     };
@@ -42,7 +43,7 @@ export default class SnipsReactComponent extends Component {
     }; 
     // force update
     setLogData(sites,messages,sessionStatus,sessionStatusText,hotwordListening,audioListening) {
-       this.setState({state:this.state});
+       this.setState(this.state);
    };
    
    /**
@@ -146,6 +147,7 @@ export default class SnipsReactComponent extends Component {
     sendFeedbackToggleOff(siteId) {
         this.sendMqtt("hermes/feedback/sound/toggleOff",{siteId:siteId});
     };
+    
     
     
     

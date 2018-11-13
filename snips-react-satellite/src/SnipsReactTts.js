@@ -8,7 +8,7 @@ export default class SnipsReactTts extends SnipsReactComponent  {
         if (!props.siteId || props.siteId.length === 0) {
             throw "TTS Server must be configured with a siteId property";
         }
-        this.state.config={}
+        //this.props.config={}
         let that = this;
         let eventFunctions = {
         // SESSION
@@ -36,23 +36,24 @@ export default class SnipsReactTts extends SnipsReactComponent  {
      * Synthesise speech from text and send to to audio output
      */ 
     say(text) {
-        if (!this.state.config || this.state.config.enablevoice !== "no") {
-            let voice = this.state.config && this.state.config.ttsvoice ? this.state.config.ttsvoice : 'default';
+        console.log(['TTS SAY',this.props,this.props.config,this.props.config.enablevoice]);
+        if (this.props.config.enabletts !== "no") {
+            let voice = this.props.config && this.props.config.ttsvoice ? this.props.config.ttsvoice : 'default';
             
             if (voice === "default") {
                 // js generated fallback
                 speak(text,{
-                    amplitude : !isNaN(parseFloat(this.state.config.voicevolume)) ? parseFloat(this.state.config.voicevolume) : 70,
-                    pitch: !isNaN(parseFloat(this.state.config.voicepitch)) ? parseFloat(this.state.config.voicepitch) : 50,
-                    speed : !isNaN(parseFloat(this.state.config.voicerate)) ? parseFloat(this.state.config.voicerate) * 2.2 : 175
+                    amplitude : !isNaN(parseFloat(this.props.config.voicevolume)) ? parseFloat(this.props.config.voicevolume) : 70,
+                    pitch: !isNaN(parseFloat(this.props.config.voicepitch)) ? parseFloat(this.props.config.voicepitch) : 50,
+                    speed : !isNaN(parseFloat(this.props.config.voicerate)) ? parseFloat(this.props.config.voicerate) * 2.2 : 175
                 });
             } else {
                 // Create a new instance of SpeechSynthesisUtterance.
                 var msg = new SpeechSynthesisUtterance();
                 msg.text = text;
-                msg.volume = !isNaN(parseFloat(this.state.config.voicevolume)) ? parseFloat(this.state.config.voicevolume) : 50;
-                msg.rate = !isNaN(parseFloat(this.state.config.voicerate)) ? parseFloat(this.state.config.voicerate)/100 : 50/100;
-                msg.pitch = !isNaN(parseFloat(this.state.config.voicepitch)) ? parseFloat(this.state.config.voicepitch) : 50;
+                msg.volume = !isNaN(parseFloat(this.props.config.voicevolume)) ? parseFloat(this.props.config.voicevolume) : 50;
+                msg.rate = !isNaN(parseFloat(this.props.config.voicerate)) ? parseFloat(this.props.config.voicerate)/100 : 50/100;
+                msg.pitch = !isNaN(parseFloat(this.props.config.voicepitch)) ? parseFloat(this.props.config.voicepitch) : 50;
                 var voices = speechSynthesis.getVoices();
       
               // Loop through each of the voices.

@@ -437,8 +437,7 @@ export default class SnipsLogger  extends SnipsMqttServer {
     };
     
     /**
-     * Send Mqtt message to toggle on hotword
-     * Used to forcibly initialise the local hotword server.
+     * Send Mqtt message to sppeak text
      */ 
     say(siteId,text) {
         let that = this;

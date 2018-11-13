@@ -10,7 +10,6 @@ export default class SnipsReactSpeaker extends SnipsReactComponent  {
         if (!props.siteId || props.siteId.length === 0) {
             throw "Speaker must be configured with a siteId property";
         }
-        this.state.config={}
         this.playSound = this.playSound.bind(this);
         this.setVolume = this.setVolume.bind(this);
         this.state = {volume:.5}
@@ -43,25 +42,28 @@ export default class SnipsReactSpeaker extends SnipsReactComponent  {
     playSound(bytes) {
         let that = this;
         return new Promise(function(resolve,reject) {
-            var buffer = new Uint8Array( bytes.length );
-            buffer.set( new Uint8Array(bytes), 0 );
-            let audioContext = window.AudioContext || window.webkitAudioContext;
-            let context = new audioContext();
-            let gainNode = context.createGain();
-            // initial set volume
-            gainNode.gain.value = that.state.volume;
-            context.decodeAudioData(buffer.buffer, function(audioBuffer) {
-                var source = context.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(gainNode);
-                gainNode.connect( context.destination );
-                source.start(0);
-                source.onended = function() {
-                    resolve();
-                };
-            });                        
-        });
-   
+            if (that.props.config.enableaudio !== "no") {
+                var buffer = new Uint8Array( bytes.length );
+                buffer.set( new Uint8Array(bytes), 0 );
+                let audioContext = window.AudioContext || window.webkitAudioContext;
+                let context = new audioContext();
+                let gainNode = context.createGain();
+                // initial set volume
+                gainNode.gain.value = that.props.config.outputvolume/100 ? that.props.config.outputvolume/100 : 0.5;
+                context.decodeAudioData(buffer.buffer, function(audioBuffer) {
+                    var source = context.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(gainNode);
+                    gainNode.connect( context.destination );
+                    source.start(0);
+                    source.onended = function() {
+                        resolve();
+                    };
+                });
+            } else {
+                resolve();
+            }
+        });                        
     }
     
     

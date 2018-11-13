@@ -4,31 +4,63 @@ React component providing a microphone that works with [Snips](http://snips.ai).
 Implements audioserver,hotword,tts and skill-server elements of the Hermes protocol.
 
 
-## TODO
+## About
 
-- restore config panel
-- wait for sayFinished before end session after intent
-- remove hack for initialising dialogueManager start/stop session
-- eventFunctions rename # to +
-- tighten subscriptions to eventFunction keys.
-- android not working ?
-- force endSession on silence timeout with hark (in case snips doesn't respond)
+This package provides a React component that shows a microphone and streams audio over mqtt in a dialog suitable for the [Snips Voice Platform](https://snips.ai) making it easy to develop web applications that behave as satellites in the Snips ecosystem.
 
-## Wishlist
+!! The package is still a work in progress. See below for bugs. Seems mostly fine with Chromium and Firefox on Linux.
 
-- expand example
-    - query to site mapping
-    - alarm
-    - note taking
-    - maths
-    - volume
-    - audio notes
+## Features
+
+- implements audioserver elements of the Snips hermes mqtt protocol supporting streaming audio to and from the browser.
+
+- optionally implements the hotword server elements of the Snips hermes mqtt protocol using Porcupine running with WebAssembly in the browser. Currently the only available hotword is "Ok Lamp" (or a range of colors). 
+
+I've requested snips and mycroft [here](https://github.com/Picovoice/Porcupine/issues/95).
+
+- implements the tts  server elements of the Snips hermes mqtt protocol using native voices or falling back to speak.js javascript tts generation. 
+
+By default the first voice from speechSynthesis.getVoices() is used or if no voices are available falls back to speak.js to generate audio.
+
+Preferred voice can be set in the configuration panel.
+
+- long press or right click to show configuration page to select volume, tts voice, hotword.
+
+- logs showing asr transcripts, intent and tts plus audio recordings for each asr transcript.
+
+
+## BUGS/TODO
+
+- update gain nodes on config change
+- hotword reload on config change
+
+- memory overrun -  this.setState(this.state);
+
+- pass props through when creating logger instance (particularly mqttServer/port props)
+
+- test/debug multi platform support (developed with Chromium on Linux)
+    - Android 
+        - firefox works but sometimes glitchy.
+        - chrome gives warning, mic access on https only (not localhost) TODO test this.
+        - edge seems to work but doesn't
+    - Linux
+        - chromium works but has no TTS voices. log warning about upcoming autoplay changes.
+        - firefox works but the TTS voices are awful and there is no volume control.
     
-- speech bubble style
+- remove hack for initialising dialogueManager start/stop session
 
-## Questions
+- wait for sayFinished before end session after intent
 
-- Currently the microphone component does a little dance when it loads to force Snips to listen.
+- ???? non repeatable
+    - double send tts
+    - double audio capture
+    - multiple browser sites in log 
+
+
+
+## Questions/Thoughts
+
+1. Currently the microphone component does a little dance when it loads to force Snips to listen.
     - start session
     - wait for session to start plus half a second while audio streams then end session.
     
@@ -37,41 +69,18 @@ Without this "initialisation", the snips dialog manager will start a session, se
 This first session is visible in the demo log view.
 
 
-- ?? scalable use for a website would require the possibility for clients to subscribe to based on their userId.
-To implement this would require that some services in the Hermes protocol suite to optionally support the userId in the topic string.
+2. ?? scalable use for a website would require the possibility for clients to subscribe to based on their userId and/or siteId to limit the mqtt traffic that is received.
+
+To implement this would require that some services in the Hermes protocol suite to optionally support the userId/siteId in the topic string. ????
 
 
+3. To use the server hotword requires configuration in snips.toml to explicitly list siteIds on which to listen for the hotword.
+It would be useful allow wildcard configuration so for example all "browser_*" sites could be allowed for hotword listening.
 
+4. It would be useful if audioserver/playBytes messages could be discriminated by purpose - eg hotword bleep notifications, tts, general audio so that the client could choose to mute any of these categories. 
 
-## About
+While TTS is currently local to the browser (and can be filtered), better voices would be available by sending tts/say which triggers audioserver/playBytes using a server created audio file of the text.
 
-This package provides a React component that shows a microphone and streams audio over mqtt in a dialog suitable for the [Snips Voice Platform](https://snips.ai) making it easy to develop web applications that behave as satellites in the Snips ecosystem.
-
-- The package only makes sense when used with a Snips voice server.
-
-- !! Note that the mqtt server must support web sockets for a web browser to talk directly.
-
-There are no settings in the snips mqtt server for websockets so an external broker may be required.
-See the docker files for websocket configuration of mosquitto.
-
-
-## Features
-
-- implements audioserver elements of the Snips hermes mqtt protocol supporting streaming audio to and from the device.
-
-- optionally implements the hotword server elements of the Snips hermes mqtt protocol using Porcupine running with WebAssembly in the browser. Currently the only available hotword is "Ok Lamp" (or a range of colors). 
-
-I've requested snips and mycroft [here](https://github.com/Picovoice/Porcupine/issues/95)
-
-- implements the tts  server elements of the Snips hermes mqtt protocol using native voices or falling back to speak.js javascript tts generation.
-
-By default the first voice from speechSynthesis.getVoices() is used or if no voices are available falls back to speak.js to generate audio.
-
-Preferred voice can be set in the configuration panel.
-
-- long press or right click to show configuration page to select volume, tts voice, hotword, remote control and silence detection.
-
-- logs showing asr transcripts, intent and tts plus audio recordings for each asr transcript.
 
 
 ## Screenshots
@@ -85,7 +94,13 @@ Preferred voice can be set in the configuration panel.
 
 ## Quickstart
 
-!! Ensure the snips voice services are running on localhost
+- !! Ensure the snips voice services are running on localhost. The package only makes sense when used with a Snips voice server.
+
+- !! Note that the mqtt server must support web sockets for a web browser to talk directly.
+
+There are no settings in the snips mqtt server for websockets so an external broker may be required.
+See the docker files for websocket configuration of mosquitto.
+
 
 Run the example
 
@@ -96,6 +111,9 @@ npm install
 npm start
 
 ```
+
+
+
 
 ## Install
 
@@ -211,38 +229,169 @@ class App extends Component  {
 
 ```
 
+## Classes
+
+### SnipsMqttServer
+Base class that manages mqtt connection
+
+### SnipsLogger
+Captures mqtt events into a data structure of sites and sessions. Optionally captures audio.
+There is a SnipsLogger component required for all the SnipsReact components below.
+
+The logger captures
+- messages (all mqtt messages)
+- sites (mqtt messages collated by siteId then sessionId)
+- sessionStatus (status codes keyed by sessionId. status updated at key points in the session lifecycle)
+- hotwordListening (current state of hotword toggle per siteId)
+- audioListening (current state of audio streaming per siteId)
+- lastSession (last active session keyed by site used to lookup session for mqtt requests that only specify the siteId)
+
+The logger provides
+- getSession(siteId,sessionId) where only one of the two values is required.
+
+The logger allows registration of event callbacks keyed by "normalised" mqtt subjects.
+
+See eventFunctions for the list of Snips topics with implementations to update status and state.
+
+Use addCallbacks to register an object of callbacks that are called after the eventFunctions with matching topic and siteId.
+
+```
+addCallbacks({'hermes/intent/#':function() {console.log('doit')}},oneOff = false)
+```
+
+Callbacks can be added as 'oneOff' in which case they are deregistered after they are called. 
+
+This feature is useful to allow code describing a trigger action, a wait for mqtt message, then further action all in one code block.
+
+
+### SnipsReactComponent
+Base class for SnipsReact components below. Contains sendMqtt commands - sendEndSession etc.
+
+
 ## Components
+
 
 ### SnipsReactSatellite
 Combination of components to implement Snips satellite.
 
-### SnipsReactHotwordServer
+The satellite passes all it's properties through to child components.
 
+If no siteId property is provided, one is generated.
+If no logger is provided, one is created and shared with the child components.
+
+
+### SnipsReactHotwordServer
+The hotword server 
 
 ### SnipsReactMicrophone
+The speaker component listens for hermes/tts/startListening and stopListening and starts/stops streaming audio packets over mqtt.
+
+If the prop "enableServerHotword" is true. Audio packets are streamed between hermes/hotword/toggleOn and toggleOff as well.
+At this time the Snips hotword must be configured  (in snips.toml) with the siteId of any hotword satellites.
 
 
 ### SnipsReactTts
+The speaker component listens for hermes/tts/say on the configured siteId and generates and plays the words through the browser.
 
+The microphone configuration panel offers choices of speech rate, volume and voice. These options can also be set as props.config
+
+- ttsvoice
+- voicerate
+- voicepitch
 
 ### SnipsReactSpeaker
-
+The speaker component listens for hermes/audioServer/playBytes on the configured siteId and plays sounds through the browser.
 
 ### SnipsReactAppServer
+The app server listens for hermes/intent/# and triggers an associated function in the browser.
+
+Intent function are passed to the SnipsReactAppServer components as an intents property.
+
+Intent functions are passed the mqtt payload as parameters.
+Intent function are run in the context of the SnipsReactAppServer so can call this.logger.getSession(payload.sessionId) to get a handle on the current session.
+
+Intent functions must return a promise.
+
+
+For example
+
+```
+let intents = 'syntithenai:get_time': function(payload) {
+                let that = this;
+                return new Promise(function(resolve,reject) {
+                    let now = new Date();
+                    let minutes = now.getMinutes();
+                    let hours = now.getHours();
+                    let amPm = hours > 11 ? 'PM' : 'AM';
+                    hours = hours % 12;
+                     if (minutes < 10) {
+                        minutes = "0" + minutes;
+                    }
+                    that.logger.say(payload.siteId,'The time is '+hours+ ':' + minutes + ' ' + amPm);
+                    resolve();
+                });
+            }
+<SnipsReactAppServer intents={intents} />
+```
+
+### SnipsReactConfiguration
+
+
 
 
 ## Props
 
-
+### All Components
 - mqttServer
 - mqttPort
-- hotwordId
 - siteId
 - clientId
+- user
+- config   (these options set in the config panel or can be forced by passing as props)
+    - inputvolume
+    - outputvolume
+    - voicevolume
+    - hotword
+    - hotwordsensitivity
+    - enabletts  (disable tts)
+    - enableaudio  (disable audioserver output)
+    - enablenotifications  (disable microphone notification panel)
+    - ttsvoice
+    - voicerate
+    - voicepitch
+
+### Microphone Component
+- hotwordId
 - buttonStyle
 - speechBubbleStyle
 - configStyle
 - position
+- messageTimeout
+- enableHotwordServer
+
+
+
+## Wishlist
+
+- expand example
+    - query to site mapping (mail = > gmail, weather ,...)
+    - alarm
+    - note taking
+    - maths
+    - volume
+    - audio notes
+    
+- speech bubble style 
+
+- eventFunctions rename # to +
+- tighten subscriptions to eventFunction keys.
+    
+- force endSession on silence timeout with hark (in case snips doesn't respond)
+
+- server side tts for better voices
+
+- debounce AppServer
+
 
 
 ## Links
