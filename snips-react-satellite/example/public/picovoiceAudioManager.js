@@ -1,6 +1,6 @@
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
-var PicovoiceAudioManager = (function() {
+var PicovoiceAudioManager = (function(addInputGainNode,inputvolume) {
     const inputBufferLength = 2048;
 
     let inputSampleRate;
@@ -48,14 +48,23 @@ var PicovoiceAudioManager = (function() {
 
     let getUserMediaSuccessCallback = function(stream) {
         let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
+        let gainNode = audioContext.createGain();
+        gainNode.gain.value = inputvolume > 0 ? inputvolume/100 : 0.5;
         let audioSource = audioContext.createMediaStreamSource(stream);
 
         inputSampleRate = audioSource.context.sampleRate;
 
         let engineNode = audioSource.context.createScriptProcessor(inputBufferLength, 1, 1);
+        
+        //addInputGainNode
+        
+        
         engineNode.onaudioprocess = function(ev) { process(ev.inputBuffer.getChannelData(0)); };
-        audioSource.connect(engineNode);
+        // global volume
+        if (addInputGainNode) addInputGainNode(gainNode);
+        
+        audioSource.connect(gainNode);
+        gainNode.connect(engineNode);
         engineNode.connect(audioSource.context.destination);
     };
 

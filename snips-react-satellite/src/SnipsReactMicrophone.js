@@ -199,26 +199,26 @@ export default class SnipsReactMicrophone extends SnipsReactComponent  {
          }
         
         function success(e) {
-           let audioContext = window.AudioContext || window.webkitAudioContext;
-           let context = new audioContext();
-            that.setState({'activated':true});
-          that.gainNode = context.createGain();
-          // initial set volume
-          that.gainNode.gain.value = that.props.config.inputvolume > 0 ? that.props.config.inputvolume/100 : 0.5;
-          let audioInput = context.createMediaStreamSource(e);
-          var bufferSize = 256;
-          let recorder = context.createScriptProcessor(bufferSize, 1, 1);
-          recorder.onaudioprocess = function(e){
-            //!that.logger.connected || 
-            if(!that.state.sending) return;
-            var left = e.inputBuffer.getChannelData(0);
-            that.sendAudioBuffer(e.inputBuffer,context.sampleRate); 
-            //console.log('MIC send audio'); //,buffer,that.audioBuffer]);
-          }
-        //that.addInputGainNode(that.gainNode) ;
-        audioInput.connect(that.gainNode)
-        that.gainNode.connect(recorder);
-        recorder.connect(context.destination); 
+               let audioContext = window.AudioContext || window.webkitAudioContext;
+               let context = new audioContext();
+                that.setState({'activated':true});
+              that.gainNode = context.createGain();
+              // initial set volume
+              that.gainNode.gain.value = that.props.config.inputvolume > 0 ? that.props.config.inputvolume/100 : 0.5;
+              let audioInput = context.createMediaStreamSource(e);
+              var bufferSize = 256;
+              let recorder = context.createScriptProcessor(bufferSize, 1, 1);
+              recorder.onaudioprocess = function(e){
+                    //!that.logger.connected || 
+                    if(!that.state.sending) return;
+                    var left = e.inputBuffer.getChannelData(0);
+                    that.sendAudioBuffer(e.inputBuffer,context.sampleRate); 
+                    //console.log('MIC send audio'); //,buffer,that.audioBuffer]);
+              }
+            if (that.props.addInputGainNode) that.props.addInputGainNode(that.gainNode) ;
+            audioInput.connect(that.gainNode)
+            that.gainNode.connect(recorder);
+            recorder.connect(context.destination); 
         }
     };
  

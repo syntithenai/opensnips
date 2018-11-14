@@ -13,12 +13,14 @@ export default class SnipsReactSatellite extends Component  {
     constructor(props) {
         super(props);
         this.siteId = props.siteId ? props.siteId : 'browser_'+parseInt(Math.random()*100000000,10);
-        
+        this.inputGainNodes=[];
         this.state = {showConfig:false,config:{}};
         this.setLogData = this.setLogData.bind(this);
         this.setConfig = this.setConfig.bind(this);
         this.showConfig = this.showConfig.bind(this);
         this.hideConfig = this.hideConfig.bind(this);
+        this.addInputGainNode = this.addInputGainNode.bind(this);
+        
         this.logger = props.logger ? props.logger : new SnipsLogger(Object.assign({logAudio:false,setLogData:this.setLogData },props));
         let configString = localStorage.getItem(this.appendUserId('snipsmicrophone_config',props.user));
         let config = null;
@@ -65,6 +67,10 @@ export default class SnipsReactSatellite extends Component  {
     hideConfig() {
         this.setState({showConfig:false});
     };
+    
+    addInputGainNode(node) {
+        this.inputGainNodes.push(node);
+    };
 
      getDefaultConfig() {
         //console.log(['GDC',this.state]);
@@ -87,13 +93,13 @@ export default class SnipsReactSatellite extends Component  {
     render() {
         let position=this.props.position ? this.props.position  : 'top left'
         return <div id ="snipsreactsatellite" >
-            <SnipsReactHotwordServer {...this.props}  logger={this.logger} siteId={this.siteId}  config={this.state.config} />
-            <SnipsReactMicrophone {...this.props} position={position} logger={this.logger} siteId={this.siteId} config={this.state.config} showConfig={this.showConfig} hideConfig={this.hideConfig} />
+            <SnipsReactHotwordServer {...this.props}  logger={this.logger} siteId={this.siteId}  config={this.state.config}  addInputGainNode={this.addInputGainNode}/>
+            <SnipsReactMicrophone {...this.props} position={position} logger={this.logger} siteId={this.siteId} config={this.state.config} showConfig={this.showConfig} hideConfig={this.hideConfig} addInputGainNode={this.addInputGainNode} />
             <SnipsReactTts {...this.props} logger={this.logger} siteId={this.siteId} config={this.state.config}  />
             <SnipsReactSpeaker {...this.props} logger={this.logger} siteId={this.siteId}  config={this.state.config} />
             {this.props.intents && <SnipsReactAppServer  {...this.props} logger={this.logger} siteId={this.siteId}  config={this.state.config}  />}
             <div style={{width:'100%',clear:'both'}}>&nbsp;</div>
-          {this.state.showConfig && <SnipsReactConfig  {...this.props}  setConfig={this.setConfig} configurationChange={this.setConfig} hideConfig={this.hideConfig} config={this.state.config} />}
+          {this.state.showConfig && <SnipsReactConfig  {...this.props}  setConfig={this.setConfig} configurationChange={this.setConfig} hideConfig={this.hideConfig} config={this.state.config} addInputGainNode={this.addInputGainNode} inputGainNodes={this.inputGainNodes} />}
             
         </div>
     };

@@ -50,13 +50,6 @@ apt-get install speech-dispatcher espeak
         - ??? pi voiceId/login hooks
   - SnipsDiscoveryServer - mqtt based site discovery
 
-- local messaging wrappers around mqtt send to pass local messages locally to browser
-- ? 100% browser ASR - pocketSphinx, NLU - see speechify.js
-https://github.com/syl22-00/pocketsphinx.js
-
-- model building UI
-    - intents and slots and actions (nodejs/browser)
-    - training server
 
 ### Snips Image
 - sam

@@ -89,7 +89,7 @@ export default class SnipsReactHotwordServer extends SnipsReactComponent {
               let parts = this.props.config.hotword.split(":");
               if (parts.length > 1) {
                   let localHotword = parts[1];
-                  this.hotwordManager =  new PicovoiceAudioManager();
+                  this.hotwordManager =  new PicovoiceAudioManager(this.props.addInputGainNode,this.props.config.inputvolume);
                   let singleSensitivity = this.props.config.hotwordsensitivity ? this.props.config.hotwordsensitivity/100 : 0.9;
                   let sensitivities=new Float32Array([singleSensitivity]);
                   let selectedKeyword = null;

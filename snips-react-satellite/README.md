@@ -10,6 +10,9 @@ This package provides a React component that shows a microphone and streams audi
 
 !! The package is still a work in progress. See below for bugs. Seems mostly fine with Chromium and Firefox on Linux.
 
+Would love help !! Bug reports, feature requests, suggestions for the bugs or thoughts below or best yet pull requests :)
+
+
 ## Features
 
 - implements audioserver elements of the Snips hermes mqtt protocol supporting streaming audio to and from the browser.
@@ -20,34 +23,21 @@ This package provides a React component that shows a microphone and streams audi
 
 - implements the tts  server elements of the Snips hermes mqtt protocol using native voices or falling back to speak.js javascript tts generation. 
 
-    - By default the first voice from speechSynthesis.getVoices() is used or if no voices are available falls back to speak.js to generate audio.
+- implements application server listening for hermes/intent/# to build applications that run in the browser in response to speech commands.
+    - eventCallbacks and intents make it easy to customise and build applications without thinking about MQTT.
 
-    - Preferred voice can be set in the configuration panel.
-
-- long press or right click to show configuration page to select volume, tts voice, hotword.
+- long press or right click to show configuration page to configure volume, text to speech, hotword and notifications.
 
 - logs showing asr transcripts, intent and tts plus audio recordings for each asr transcript.
+
+- decomposed React components allow flexibility in implementing voice features in a web application.
 
 
 ## BUGS/TODO
 
-- update gain nodes on config change
-- hotword reload on config change
-
-- memory overrun -  this.setState(this.state);
-
-- random mqtt dropouts
-    - WebSocket connection to 'ws://localhost:9001/mqtt' failed: A server must not mask any frames that it sends to the client.
-    - mqttws31.min.js:36 WebSocket connection to 'ws://localhost:9001/mqtt' failed: Invalid frame header
-    - index.es.js:149 ["  SERVER onConnectionLost:AMQJS0008I Socket closed."]
-
-- check autoplay compatibility
-index.es.js:467 The Web Audio autoplay policy will be re-enabled in Chrome 71 (December 2018). Please check that your website is compatible with it. https://goo.gl/7K7WLu
-
-
 - test/debug multi platform support (developed with Chromium on Linux)
     - Android 
-        - firefox works but sometimes glitchy.
+        - firefox works but sometimes glitchy. Fail on first attempt.
         - chrome gives warning, mic access on https only (not localhost) TODO test this.
         - edge seems to work but doesn't
     - Linux
@@ -56,12 +46,27 @@ index.es.js:467 The Web Audio autoplay policy will be re-enabled in Chrome 71 (D
     
 - remove hack for initialising dialogueManager start/stop session
 
-- wait for sayFinished before end session after intent
+- check autoplay compatibility
+index.es.js:467 The Web Audio autoplay policy will be re-enabled in Chrome 71 (December 2018). Please check that your website is compatible with it. https://goo.gl/7K7WLu
+
+- packaging of porcupine, paho and speak client. I was only able to make these libraries work by including them globally in the example/public/index.html file and using /* global paho */  to gain access within react. I would like to be able to include these as packages so the developer can use npm normally. 
 
 - ???? non repeatable
+    - memory overrun -  this.setState(this.state);
+
+    - random mqtt dropouts
+        - WebSocket connection to 'ws://localhost:9001/mqtt' failed: A server must not mask any frames that it sends to the client.
+        - mqttws31.min.js:36 WebSocket connection to 'ws://localhost:9001/mqtt' failed: Invalid frame header
+        - index.es.js:149 ["  SERVER onConnectionLost:AMQJS0008I Socket closed."]
+
     - double send tts
     - double audio capture
     - multiple browser sites in log 
+
+
+- hotword reload on config change
+- wait for sayFinished before end session after intent
+
 
 
 
@@ -87,7 +92,7 @@ It would be useful allow wildcard configuration so for example all "browser_*" s
 4. It would be useful if audioserver/playBytes messages could be discriminated by purpose - eg hotword bleep notifications, tts, general audio so that the client could choose to mute any of these categories. 
 
     - While TTS is currently local to the browser (and can be filtered), better voices would be available by sending tts/say which triggers audioserver/playBytes using a server created audio file of the text.
-
+    
 
 
 ## Screenshots
@@ -311,6 +316,9 @@ The microphone configuration panel offers choices of speech rate, volume and voi
 - voicerate
 - voicepitch
 
+By default the first voice from speechSynthesis.getVoices() is used or if no voices are available falls back to speak.js to generate audio. Preferred voice can be set in the configuration panel.
+
+
 ### SnipsReactSpeaker
 The speaker component listens for hermes/audioServer/playBytes on the configured siteId and plays sounds through the browser.
 
@@ -348,7 +356,9 @@ let intents = {'syntithenai:get_time': function(payload) {
 ```
 
 ### SnipsReactConfiguration
+The configuration component renders a page of settings.
 
+When the settings are changed, the parent function "props.configurationChange" is called with the updated config settings.
 
 
 
@@ -392,7 +402,7 @@ let intents = {'syntithenai:get_time': function(payload) {
     - note taking
     - maths
     - volume
-    - audio notes
+    - audio notes - > online transcript (google stt or alexa transcribe or snips-asr-model-en-500mb or ??)
     
 - speech bubble style 
 
@@ -405,6 +415,39 @@ let intents = {'syntithenai:get_time': function(payload) {
 
 - debounce AppServer
 
+- openssnips nodejs implementations dialogueManager, nlu, asr, serverhotword, piwho user id.
+    - mqtt training messages to update asr/nlu models
+    - multiple models
+    - SNIPS RASA - example training data for music player phrases https://github.com/aaldaber/snips_training_data_to_rasa
+    - [RASA nodejs wrapper](https://github.com/beevelop/rasa-client)
+    
+
+- model updates using snips-injection
+- distributed training
+
+- internationalisation framework ??
+    - asr models
+    - nlu models
+    - skills/appserver
+
+
+- local messaging wrappers around mqtt send to pass local messages locally to browser
+- browser ASR - pocketSphinx, NLU - see speechify.js
+    - https://github.com/syl22-00/pocketsphinx.js
+    - # browser hotword
+https://github.com/alanjames1987/Cross-Browser-Voice-Recognition-with-PocketSphinx.js/blob/master/js/main.js
+
+- browser NLU - speechify.js or ..
+    - JS NLU
+        - https://github.com/Botfuel/botfuel-nlp-sdk
+        - https://github.com/spencermountain/compromise
+        - https://github.com/superscriptjs/superscript/wiki/Triggers
+        - https://github.com/NaturalNode/natural
+
+
+- model building UI
+    - intents and slots and actions (nodejs/browser)
+    - training server
 
 
 ## Links

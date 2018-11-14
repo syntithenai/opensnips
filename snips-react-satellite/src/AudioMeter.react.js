@@ -85,7 +85,7 @@ export default class AudioMeter extends Component {
                 processor.connect(audioCtx.destination);
                 gainNode.connect(processor);
                 source.connect(gainNode);
-                this.props.addInputGainNode(gainNode);
+                if (this.props.addInputGainNode) this.props.addInputGainNode(gainNode);
             }.bind(this)
         ).catch(function(err){
                 console.log('Error occurred while initalizing audio input: ' +  err.toString());

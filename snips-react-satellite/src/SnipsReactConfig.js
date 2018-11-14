@@ -82,18 +82,14 @@ export default class SnipsReactConfig extends SnipsReactComponent  {
         // set silence threshhold directly
         if (e.target.id === "inputvolume" ) {
             // update all input gain nodes
-            //this.inputGainNodes.map(function(node) {
-                ////console.log(['set gain',node,that.state.config.inputvolume/100]);
-                //node.gain.value = that.props.config.inputvolume/100;
-            //});
+            this.props.inputGainNodes.map(function(node) {
+                console.log(['set gain',node,that.props.config.inputvolume/100]);
+                node.gain.value = that.props.config.inputvolume/100;
+            });
             
         }
         localStorage.setItem(this.appendUserId('snipsmicrophone_config',this.props.user),JSON.stringify(config));
         if (this.props.configurationChange) this.props.configurationChange(this.props.config);
-    };
-    
-    addInputGainNode(node) {
-        //this.inputGainNodes.push(node);
     };
 
 
@@ -163,7 +159,7 @@ export default class SnipsReactConfig extends SnipsReactComponent  {
                <form style={{fontSize:'1.8em'}}>
                     <div style={{clear:'both', width:'100%'}}>
                         <div style={{float:'right'}} >
-                            <AudioMeter  inputvolume={this.props.config.inputvolume} addInputGainNode={this.addInputGainNode.bind(this)}  source={this.source}  style={{float:'right',marginRight:"2em",height:'200',width:'50',dtooLoudColor:"#FF9800",scolor:'#889bd8',border:'1px solid black',backgroundColor:'lightgrey'}} />
+                            <AudioMeter  inputvolume={this.props.config.inputvolume} addInputGainNode={this.props.addInputGainNode}  source={this.source}  style={{float:'right',marginRight:"2em",height:'200',width:'50',dtooLoudColor:"#FF9800",scolor:'#889bd8',border:'1px solid black',backgroundColor:'lightgrey'}} />
                         
                         </div>
                         <div style={{width:'80%'}}>
@@ -173,7 +169,7 @@ export default class SnipsReactConfig extends SnipsReactComponent  {
                             
                             <div className='form-group' >
                                 <label htmlFor="inputvolume" >Microphone </label>
-                                <input type="range" id="inputvolume" value={config.inputvolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'    },inputStyle)} min="0" max="150" ></input>
+                                <input type="range" id="inputvolume" value={config.inputvolume} onChange={this.configurationChange.bind(this)} style={Object.assign({width:'80%'    },inputStyle)} min="0" max="200" ></input>
                             </div> 
                                             
                             <div className='form-group' >
