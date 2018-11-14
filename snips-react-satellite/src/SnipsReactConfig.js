@@ -16,6 +16,7 @@ export default class SnipsReactConfig extends SnipsReactComponent  {
         }
         this.hideConfig = this.hideConfig.bind(this);
         this.logger = this.connectToLogger(props.logger,eventFunctions);
+        this.resetConfig = this.resetConfig.bind(this);
     }  
     
        /**
@@ -43,9 +44,10 @@ export default class SnipsReactConfig extends SnipsReactComponent  {
     
     resetConfig(e) {
         e.preventDefault();
-        let newConfig = this.getDefaultConfig.bind(this)();        
+        let newConfig = this.getDefaultConfig();        
         this.setState({'config':newConfig});
         localStorage.setItem(this.appendUserId('snipsmicrophone_config',this.props.user),JSON.stringify(newConfig));
+        if (this.props.configurationChange) this.props.configurationChange(newConfig);
     };
     
     getDefaultConfig() {
@@ -83,7 +85,7 @@ export default class SnipsReactConfig extends SnipsReactComponent  {
         if (e.target.id === "inputvolume" ) {
             // update all input gain nodes
             this.props.inputGainNodes.map(function(node) {
-                console.log(['set gain',node,that.props.config.inputvolume/100]);
+                //console.log(['set gain',node,that.props.config.inputvolume/100]);
                 node.gain.value = that.props.config.inputvolume/100;
             });
             

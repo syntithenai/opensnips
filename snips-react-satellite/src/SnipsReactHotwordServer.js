@@ -53,14 +53,14 @@ export default class SnipsReactHotwordServer extends SnipsReactComponent {
     };
     
     componentDidUpdate(props,state) {
-        console.log(['HW DID UPDATE',props,state,JSON.parse(JSON.stringify(this.props)),this.props.config.hotword + ':' + props.config.hotword]);
+      //  console.log(['HW DID UPDATE',props,state,JSON.parse(JSON.stringify(this.props)),this.props.config.hotword + ':' + props.config.hotword]);
         let that = this;
         if (props.inputvolume != this.props.inputvolume) {
             
         }
         if (props.config.hotword != this.props.config.hotword) {
             this.hotwordManager = null;
-            console.log(['RESTART HOTWORD']);
+           // console.log(['RESTART HOTWORD']);
             if (this.props.config.hotword.startsWith("browser:")) {
                setTimeout(function() {
                     that.startHotword(that.props.siteId);
@@ -85,7 +85,7 @@ export default class SnipsReactHotwordServer extends SnipsReactComponent {
     startHotword(siteId) {
       if (siteId === this.props.siteId ) {
           if (this.hotwordManager === null) {
-              console.log(['REALLY START HOTWORD',this.props.config.hotword]);
+              //console.log(['REALLY START HOTWORD',this.props.config.hotword]);
               let parts = this.props.config.hotword.split(":");
               if (parts.length > 1) {
                   let localHotword = parts[1];
@@ -95,7 +95,7 @@ export default class SnipsReactHotwordServer extends SnipsReactComponent {
                   let selectedKeyword = null;
                   if (Resources.keywordIDs.hasOwnProperty(localHotword)) {
                       selectedKeyword = Resources.keywordIDs[localHotword];
-                      console.log(['SELECTED KW',localHotword,selectedKeyword]);
+                    //  console.log(['SELECTED KW',localHotword,selectedKeyword]);
                       this.hotwordManager.start(Porcupine.create([selectedKeyword], sensitivities), this.hotwordCallback, function(e) {
                         console.log(['HOTWORD error',e]);
                       });

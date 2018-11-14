@@ -64,7 +64,7 @@ index.es.js:467 The Web Audio autoplay policy will be re-enabled in Chrome 71 (D
     - multiple browser sites in log 
 
 
-- hotword reload on config change
+- hotword reload on config change. picovoice doesn't restart on recreate instance.
 - wait for sayFinished before end session after intent
 
 
