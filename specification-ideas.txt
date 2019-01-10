@@ -1,0 +1,982 @@
+Hermod Voice Services Protocol
+The Hermod (Norse messenger of the gods)  voice protocol describes a series of contracts between services that communicate over MQTT messaging bus and HTTPS to implement the steps in a voice interaction from capturing audio through executing commands.
+The protocol is almost the same as the Snips hermes protocol and this document is intended encourage discussion about how the hermes protocol will move forward as well as result in the development of open source versions of services to help get developers started hacking their own customisations.
+
+
+The main services involved in implementing a voice interaction include
+Bidirectional Media Streaming
+
+Hotword recognition (eg OK Google)
+
+Automated Speech Recognition (ASR) to convert audio to text.
+
+Natural Language Understanding (NLU) to convert text into intentions and typed variable slots.
+
+Dialog Manager to coordinate the services and track service state so it can garbage collect and log analytics data.
+
+Routing Service providing core routing using history of intents and slots with machine learning to determine actions and templates.
+
+Application Services listen for actions from the routing service and intents from the NLU service. They implement custom logic to build a response.
+
+
+
+Other services include
+Text to speech server
+Volume manager (change volume in response to events)
+User identification and diarizing.
+Training manager
+LED lights animations manager
+
+While the protocol can be used on a single machine as a well encapsulated software stack for voice based bot development, it is designed to be distributed. Multiple devices can be placed across a home and work together with devices from the local network or the Internet to provide elements of the protocol.
+
+Because communication between services is strictly defined, and MQTT client libraries are available for many languages, the suite can be implemented in a combination of programming languages. Python is most commonly used for machine learning applications.
+
+The MQTT server is available directly to javascript in web browsers using websockets and SSL. A react client is part of the library and provides media streaming and hotword services as well as a visual microphone component for easy integration with web sites.
+
+The protocol is designed to scale to many concurrent users of a service suite. Subscriptions and publishing are segmented by siteId so messages are only sent to the correct site or sites.
+
+Topic segmentation also allows flexible implementation of access control. For example a user may be required to register with a website or be identified by voice, before being able to subscribe to their assigned topic.
+
+The protocol describes a low level api that is designed to allow for any kind of voice interaction. 
+
+Every message in the protocol starts with hermod/<siteId> where siteId is a unique identifier for the device that initiated the dialog.
+
+Application developers will typically only use a subset of the dialog service messages.
+
+Listen for
+hermod/<siteId>/intent
+hermod/<siteId>/action
+
+Send
+hermod/<siteId>/dialog/start
+hermod/<siteId>/dialog/continue
+hermod/<siteId>/dialog/end
+
+
+
+
+
+
+Summary of differences from the Snips hermes protocol
+Support fine grained topic subscription to allow many concurrent clients, and access controls. 
+Add RASA Core Routing as an optional but integrated step in the dialog process.
+Multiple model NLU and ASR. Query request specifies the model key. 
+ASR connection pool to allow a single site to manage concurrent requests.
+Remove the concept of queueing from the dialog manager. If an application needs extended processing time it can send many dialog/continue messages. If ASR service pool is overloaded, the dialog is ended. 
+Error manager and hermod/<siteId>/error  
+Volume manager responding to lifecycle events.
+Hotword always active to allow dialog reset at any stage in the dialog.
+Training API using MQTT messaging 
+User identification and diarization.
+Hardware
+Services should support  ARM, Arduino and Intel based hardware.
+
+Hotword and media streaming services must support ARM and Arduino for lower powered satellite devices. 
+
+The Snips platform is optimised to work with an ARM based Raspberry Pi 3 board. Satellite units can be run on a Raspberry Pi Zero. 
+
+Open source ARM based routers running DDWRT and similar could be extended to function as satellites.
+
+Where the application service requires intensive processing, lots of memory, high end graphics cards or specialist software not yet ported to ARM,  Intel hardware provides more choice and is likely to be more cost effective.
+
+Tuning hardware performance to needs and efficient software implementations can make a big difference to power consumption. As an increasing number of always on devices exist it is our ethical responsibility as makers to always aim for minimum power to meet the task.
+
+Centralisation of processing intensive tasks such as training on power hungry hardware with scheduled availability also offers the potential for resource optimisation.
+
+Service Management
+
+The protocol relies on a variable number of executable services that need to be started, monitored, logged and restarted if required.
+
+supervisord is one option for Linux and the library includes a startup script to write service configuration derived from the hermod central configuration.
+
+Docker is another approach that allows services to be developed using a number of different, specific operating system requirements. Docker also provides an incredibly useful shared resource of preconfigured operating system images for specific software requirements. 
+
+The sample implementation uses a number of shared (nginx,mongodb,nginx-proxy,nginx-ssl-gen,snips,mqtt) and custom Docker images in a suite where each service is encapsulated as a Docker container.
+
+In this setup, central configuration is passed down as environment variables and the docker-compose.yml becomes the main configuration file.
+
+Security
+
+For a standalone device, network access to the MQTT server is prevented by a firewall or virtual private network and authentication is not required.
+
+Where a device offers services over a network to other devices, the MQTT server must be exposed to network requests so MQTT authentication is required.
+
+The mosquitto MQTT server includes an authentication plugin that allows configuration of users and access controls in various backend systems including postgres, myql, files, redis and mongodb. The default authentication plugin allows configuration of read and/or write access to any topic or wildcard topic by updating the access control field in the user collection of a mongodb database.
+
+When using the authentication plugin, the client must provide username and password as part of the initial CONNECT message. Subscription to a topic is only allowed if the siteId matches the username and password.
+
+The MQTT server authentication plugin can be initialised with a list of allowed sites or sites can be added on the fly by authenticated users.
+
+To secure messages in transit, it is possible to configure the MQTT server to encrypt messages or perhaps easier to only allow access via secure websockets.
+
+
+Dialog Manager Overview
+The dialog manager tracks the state of each dialog to ensure valid dialog flow and manage asynchronous collection of dialog components before some stages in the dialog.
+
+The service is invoked between each step in the dialog flow in response to messages from services. It hears one message then sends one or more messages in response to further the dialog on the next relevant service.
+
+The dialog manager tracks when multiple ASR or NLU services of the same type indicate that they have started. It waits for all final responses and selects the highest confidence before sending the next message.
+For example, when two ASR services on the same bus share a model key and respond to hermod/<siteId>/dialog/start sending two hermod/<siteId>/asr/started messages,  the dialog manager waits for both to respond with hermod/<siteId>/asr/text before sending hermod/<siteId>/nlu/parse.
+When two NLU services indicate they have started , the dialog manager waits before sending hermod/<siteId>/intent.
+
+When Voice ID is enabled, the dialog manager waits for hermod/<siteId>/voiceid/detected/<userId>  before sending  hermod/<siteId>/intent.
+
+When multiple devices in a room hear an utterance, they all respond at the same time. This affects Google Home, Alexa, Snips and Mycroft. 
+Google has elements of a solution because an Android phone will show a notification saying "Answering on another device". Two Google Home devices in a room will both answer.
+
+The hermod protocol with many satellites sharing a dialog service allows the solution that the  hotword server could be debounced. 
+
+When the dialog manager hears hermod/<siteId>/hotword/detected or hermod/<siteId>/dialog/start, it waits for a fraction of a second to see if there are any more messages with the same topic, where there are multiple messages, the one with the highest confidence is selected and the others are ignored.
+
+The debounce introduces a short delay between hearing a hotword and starting transcription. To avoid requiring the user pause after the hotword, the ASR needs audio from immediately after the hotword is detected and before transcription is started. To support this, the media server maintains a short ring buffer of audio that is sent before audio data from the hardware. The length of audio that is sent can be controlled by a parameter prependAudio in the JSON body of a message to hermod/<siteId>/microphone/start
+
+
+Typical Dialog Flow
+
+When a session is initiated by one of 
+hermod/<siteId>/hotword/detected
+hermod/<siteId>/dialog/start
+
+The dialog manager creates a new dialogId, then sends a series of MQTT messages to further the dialog.
+hermod/<siteId>/hotword/stop
+hermod/<siteId>/microphone/start
+hermod/<siteId>/asr/start
+hermod/<siteId>/dialog/started
+
+When the ASR finishes detecting text it sends hermod/<siteId>/text with a JSON payload. 
+
+The dialog manager hears this message and sends 
+hermod/<siteId>/asr/stop
+hermod/<siteId>/microphone/stop
+hermod/<siteId>/nlu/parse.
+
+The NLU service hears the parse request and sends hermod/<siteId>/nlu/intent or hermod/<siteId>/nlu/fail.
+
+The dialog manager hears the nlu intent message and sends hermod/<siteId>/intent
+
+The core application router hears the intent message, determines the next action using RASA Core and sends hermod/<siteId>/core/action with a JSON body including the intent and the action and any related template output.
+
+The dialog manager hears the core action message and sends hermod/<siteId>/action.
+
+The application service hears the action message and runs local code. When finished it sends hermod/<siteId>/dialog/continue  with a text message to speak in the JSON body (For example asking a question).
+
+The dialog restarts and runs through the previous steps but this time the application service sends hermod/<siteId>/dialog/end (with an optional text message) to finalise the dialog.
+
+The dialog manager hears the end message. (This can be issued at any time). It clears the audio buffer and sends
+hermod/<siteId>/microphone/start
+hermod/<siteId>/dialog/ended
+hermod/<siteId>/hotword/start
+
+
+
+
+
+
+
+
+Configuration
+All services on a device, read a single configuration file in yaml format.
+
+Configuration allows enabling and disabling services as well as service specific configuration.
+
+At the top level ,configuration is keyed by the service identifier with objects containing
+specific configuration.
+
+
+
+
+Multi room/distributed setup
+
+The protocol allows for devices to be distributed across a LAN or the Internet and communicate via a centrally accessible MQTT server. Collaboration is mostly restricted to devices connected to the MQTT server. 
+
+To save power,  low power satellite devices can be configured with the minimum of media streaming and hotword services and pointed to a central server that provides authentication, MQTT, dialog, ASR and NLU and application services.
+
+There can be only one dialog service connected to a MQTT messaging bus however 
+multiple instances of other services (including Hotword, ASR, NLU, Application and Media streaming) can be connected to the bus. These services may be implemented across multiple devices including devices connected via the Internet.
+
+Hotword, ASR and NLU services only respond to start requests that include an parameter specifying an available model. If the model is not available the service is silent. Typically a number of these services coexist by using distinct sets of model keys so there is no overlap.
+
+Where there is overlap and for example ASR processing is triggered on multiple devices, the results with the highest confidence are passed to the next stage as described above.
+
+In low power environments like a Raspberry Pi0 or Arduino, the hotword service reads directly from local audio hardware. Additionally the hotword service is only enabled when a Voice Activity Detector (VAD) library hears speech from the microphone.
+
+Collaboration with devices on another bus occurs when the dialog server is configured to replicate intent and action messages on another MQTT server.
+
+Training complete messages include a model key to ensure that a training response is only loaded by devices for which that model is appropriate.
+
+For example, imagine a home network with the following devices collaborating around a single MQTT server
+A raspberry pi 3 (PI1)  exposed to Internet running an authenticated MQTT server and mongodb backend plus web services to access admin and development user interfaces.
+Another raspberry pi3 (PI2) running hermod dialog and other services that is connected to the public MQTT server.
+A raspberry pi0 in the toilet configured as a satellite with audio streaming and hotword services.
+A web browser on a phone at a remote location connects to the MQTT bus and acts as a satellite. It also runs application services and listens for intents as trigger to run scripts in the browser. When used to provide web speech, a browser must send a site initiation request  to a secured HTTPS endpoint to generate and store a siteId and enable access to a topic on the MQTT bus.
+Another raspberry pi3 (PI3) running hass.io configured to listen for intent messages on the bus and bridge to specific home automation protocols. The device runs it's own MQTT server that is not exposed to the Internet but configured to bridge intent messages and sensor/feedback messages.
+The raspberry pi's have microphone's plugged in and run audio streaming and hotword services so they can act as user interactions sites. Using a webcam with an array microphone (eg playstation eye), each of these devices can be asked to stream video.
+An Intel based i7 mini computer on the local network listens to audio and video streams and uses openCV for streaming image analysis and raises an alarm if the user is not a family member. This machine also implements large model ASR and NLU services for other devices on the network.
+A server with powerful graphics cards for machine learning on the Internet connects to the MQTT bus and implements the training service. The service deploys Amazon AWS resources on demand to save costs.
+Don has a development laptop running Linux with all services running locally around it's own MQTT server. The dialog server is configured to copy all intent messages to the central server (via it's public Internet address so it works away from home). This enables intents to be handled independent of network access but allows intents to be passed up to the home automation system. 
+
+
+
+
+
+
+Media Streaming
+The media server can play and record audio on a device and send or receive it from the MQTT bus. 
+
+The ASR and Hotword services listen for audio via the MQTT bus. The TTS service sends audio packets of generated speech to the MQTT bus.
+
+To minimise traffic on the network, the dialog manager enables and disables media streaming in response to lifecycle events in the protocol. In particular, the dialog manager ensures audio recording is enabled or disabled in sync with the ASR or Hotword services.
+
+This means that the ASR and Hotword services do not work unless two initialisation messages are sent (typically by the dialog manager)
+hermod/<siteId>/microphone/start
+hermod/<siteId>/asr/start OR  hermod/<siteId>/hotword/start
+
+
+Message Reference
+
+Incoming
+hermod/<siteId>/speaker/play
+Play the wav file on the matching siteId.
+Message contains WAV bytes (Format …...XX) (or mp3 or aac)
+Volume
+
+hermod/<siteId>/speaker/volume
+Set the volume for current and future playback.
+
+hermod/<siteId>/microphone/start
+Start streaming wav packets from the matching siteId (format below).
+prependAudio - seconds of audio to send from ring buffer before sending hardware audio
+
+hermod/<siteId>/microphone/stop
+Stop streaming wav packets from the matching siteId.
+
+
+Outgoing
+hermod/<siteId>/speaker/playFinished
+Sent when the audio from a play request has finished playing on the hardware.
+
+hermod/<siteId>/microphone/audio
+Sent continuously when microphone is started.
+Message contains audio packet (Format XXX)
+
+Hotword recognition
+
+A hotword recogniser is a special case of automated speech recognition that is optimised to recognising just a few phrases. Optimising for a limited vocabulary means that the recognition engine can use minimum memory and resources.
+
+The hotword recogniser is used in the protocol to initiate a conversation.
+
+The hotword service listens for audio via the MQTT bus. When the hotword is detected a message is sent to the bus in reply. 
+If the service is enabled for the site, hermod/<siteId>/hotword/detected is sent. 
+
+On low power satellite devices, to save the overhead of a local MQTT server, the hotword service can be configured to listen for audio through local hardware. In this configuration, the dialog manager must be configured to only start the microphone for ASR requests.
+
+If the service is disabled and the service is configured to allow hotword interrupt, hermod/<siteId>/hotword/interrupt is sent.
+
+The service may respond to multiple different utterances. The messages indicating that the hotword has been detected include a hotword identifier in the JSON body to indicate which hotword was heard.
+
+Commercial systems like Google Home and Alexa discriminate between applications by asking for the application by name after the hotword. This can lead to some very long incantations.
+For example "Hey Google Ask Meeka Music to play some blues by JL Hooker".
+To minimise this problem, the hotword system can be configured to use different ASR and NLU models based on which hotword is detected. With this configuration, each hotword has a different personality and optimised suite of intents.
+
+There are a number of open source implementations of hotword services including picovoice porcupine, snowboy and pocketSphinx. The Snips hotword detector is closed source but free to use.
+
+
+Configuration
+allowInterrupt - (default true) enable sending hotword/interrupt messages even when the service is disabled.
+hotwords - array of objects representing hotwords that can be recognised. Each object includes 
+a name key as an identifier and 
+a recognizer key specifying the recognition model.
+(default default) ASR key specifying which ASR model should be used after hearing this hotword.
+(default default) NLU key specifying which NLU model should be used after hearing this hotword.
+
+Message Reference
+
+Incoming
+
+hermod/<siteId>/hotword/start
+Start listening for the hotword
+hermod/<siteId>/hotword/stop
+Stop listening for the hotword
+
+Outgoing
+hermod/<siteId>/hotword/detected
+Sent when service is enabled and hotword is detected.
+JSON message body
+hotword - identifier for the hotword that was heard.
+hermod/<siteId>/hotword/interrupt 
+Sent when service is disabled and hotword is detected.
+JSON message body
+hotword - identifier for the hotword that was heard.
+ASR - (optional) key to identify which ASR model should be used for the rest of the dialog.
+NLU - (optional) key to identify which NLU model should be used for the rest of the dialog.
+
+Automated Speech Recognition (ASR)
+The ASR service converts audio data into text strings. The service listens on the MQTT bus for audio packets. 
+
+When the ASR detects a long silence (XX sec) in the audio stream, the final transcript is sent and the ASR service clears it's audio transcription buffer for the site.
+
+Optionally (depending on the service implementation),  when the ASR detects a short silence in the audio data (word gap xx ms ), a partial transcript is sent.
+
+ASR is the most computationally expensive element of the protocol. Some of the implementations described below require more processing power and memory than is available on a Raspberry Pi. In particular running multiple offline models is likely to be unresponsive on low power machines.
+
+Open source implementations of ASR include Kaldi, Mozilla DeepSpeech and PocketSphinx.
+Closed source implementations include Snips, Google and Amazon Transcribe. 
+Snips has the advantage being optimised minimum hardware and for of providing a downloadable model so transcription requests can be run on local devices (including Raspberry Pi). 
+
+The ASR service allows the use of a suite of ASR processor implementations where each model is customised. The model parameter of an ASR start message allows switching between models on the fly. 
+Snips provides a reasonable quality general model but works best when the using the web UI to create a specific ASR model. 
+Google or Amazon offer the best recognition accuracy because of access to large voice data sets and would be more appropriate for arbitrary transcription.
+The open source solutions are not quite as accurate as the commercial offerings citing WER under 10%  which approaches the human error rate of 5.83 and works very well when combined with NLU.
+
+Some implementations perform recognition once off on an audio fragment. Other implementations allow for streaming audio and sending intermediate recognition results.
+
+ASR implementations from DeepSpeech, Google and Amazon provide punctuation in results.
+
+Google also implements automatic language(en/fr/jp) detection and provides a request parameter to select background noise environment.
+
+As at 28/12/18, Amazon and Google charge $0.006 AUD / 15 second chunk of audio.
+
+Depending on the implementation, the ASR model can be fine tuned to the set of words you want to recognise. 
+Snips provides a web UI to build and download models
+Google allows phraseHints to be sent with a recognition request.
+Amazon offers an API or web UI to develop vocabularies in addition to the general vocabulary.
+The open source implementations Deepspeech and Kaldi offer examples of training the ASR model.
+
+For some implementations, a pool of ASR processors is managed by the service to support multiple concurrent requests. In particular, implementation using Kaldi provides this feature using gstreamer.
+
+
+Message Reference
+
+Incoming
+
+hermod/<siteId>/asr/start
+Start listening for audio to convert to text.
+model - ASR service/model to use in capturing text (optional default value - default)
+requestId - (optional) unique id sent forwarded with results to help client connect result with original request
+
+hermod/<siteId>/asr/stop
+Stop listening for audio to convert to text.
+
+Outgoing
+
+hermod/<siteId>/asr/started
+hermod/<siteId>/asr/stopped
+hermod/<siteId>/asr/partial
+Send partial text results
+requestId 
+text - transcribed text
+confidence - ASR transcription confidence
+hermod/<siteId>/asr/text
+Send final text results
+requestId 
+text - transcribed text
+confidence - ASR transcription confidence
+
+
+Natural Language Understanding (NLU)
+
+The NLU service parses text to intents and variable slots.
+
+Parsing can be configured by specifying a model, allowed intents, allowed slots and confidence.
+
+Custom models can be developed and trained using a web user interface (based on rasa-nlu-trainer) or text files.
+
+The NLU model is configured with slots. When slots are extracted, the processing pipeline may be able to transform the values and extract additional metadata about the slot values. For example converting "next tuesday" into a Date or recognising a value in a predefined slot type.
+
+Parsing results are sent to hermod/nlu/intent as a JSON message. For example
+
+{
+    "intent": {
+    "name": "restaurant_search",
+    "confidence": 0.8231117999072759
+    },
+    "entities": [
+        {
+            "value": "mexican",
+            "raw": "mexican",
+            "entity": "cuisine",
+            "type": "text"
+        }
+    ],
+    "intent_ranking": [
+        {
+            "name": "restaurant_search",
+            "confidence": 0.8231117999072759
+        },
+        {
+            "name": "affirm",
+            "confidence": 0.07618757211779097
+        },
+        {
+            "name": "goodbye",
+            "confidence": 0.06298664363805719
+        },
+        {
+            "name": "greet",
+            "confidence": 0.03771398433687609
+        }
+    ],
+    "text": "I am looking for Mexican food"
+}
+
+
+The NLU service is implemented using RASA. RASA configuration allows for a pipeline of processing steps that seek for patterns and extract metadata. Initial steps in the pipeline prepare data for later steps.
+
+The NLU service can load multiple NLU models can be trained with different vocabularies and intents. Each parse request can specify which model to use to discover intents. If a parse request does not specify which model, the model named default  is used.
+
+The NLU service can be instructed to only allow certain intents or slots. When configured, if the results of a parse request do not include any of the allowed intents or slots, a message will be sent to hermes/<siteId>/<dialogId>/nlu/fail. The default intent may be updated with an allowed intent from the intent_ranking list if the initial default intent does not match the filters.
+
+If the final intents confidence score is not greater than the requested confidence, a message will be sent to hermes/<siteId>/<dialogId>/nlu/fail.
+
+Message Reference
+
+Incoming
+
+hermod/<siteId>/nlu/query
+Convert a  sentence into intents and slots
+Parameters
+text - sentence to convert into intents and slots
+model - name of the model to using in parsing intents and slots
+intents - list of intents that are allowed to match
+slot - specific slot to search for 
+confidence - intents recognised with confidence less than this value are not recognised and the service replies with hermes/<siteId>/nlu/fail
+
+Outgoing
+
+hermod/<siteId>/nlu/started - sent by service to indicate that parse request was received and parsing has started.
+hermod/<siteId>/nlu/intent
+Send parsed intent and slots
+
+hermod/<siteId>/nlu/fail 
+Send when entity recognition fails because there are no results of sufficient confidence value.
+Dialog Manager 
+
+The dialog manager coordinates the services by listening for MQTT messages and responding with MQTT messages to further the dialog.
+
+The dialog manager tracks the state of all active sessions so that it can
+Send fallback messages if services timeout.
+Garbage collect session and access data.
+Log analytics data.
+
+
+
+Configuration
+maximumDuration - (default 4) restrict ASR audio fragment to this number of seconds.
+asrTimeout - (default 1) time after silence detected before determining ASR non responsive
+nluTimeout - (default 0.5) time after silence detected before determining NLU non responsive
+coreTimeout - (default 0.5) time after silence detected before determining NLU non responsive
+
+
+Service Monitoring
+
+The dialog manager tracks the time duration between some messages so it can determine if services are not meeting performance criteria and provide useful feedback.
+
+Where a services is deemed unresponsive, an error message is sent and the session is ended by sending hermod/<siteId>/dialog/end.
+
+Services are considered unresponsive in the following circumstances
+For the ASR service, If the time between asr/start until asr/text exceeds the configured maximumDuration
+For the ASR service, If the time from ASR starting and then silence being detected , to asr/text or asr/fail exceeds the configured asrTimeout.
+For the NLU service, If the time between nlu/query and nlu/intent exceeds the configured nluTimeout
+For the core routing service, If the time between nlu/intent and hermod/intent exceeds the configured coreTimeout
+For the TTS service, if the time between tts/say and tts/sayFinished
+For the media streaming service, if the time between speaker/play and speaker/playFinished
+
+
+
+Logging
+
+The dialog service can be configured to log all dialogs into a database.
+
+Logging allows for diagnostics and capturing real user interactions to use in improving machine learning models.
+
+The default implementation writes to a mongo database. An entry is created for every site and dialog interactions are logged as updates to the site as a dialog progresses.
+
+Audio fragments are logged to their own collection with a reference to the dialog. 
+Audio fragments start recording after hermod/<siteId>/asr/start and stop after hermod/<siteId>/asr/stop
+
+Summary statistics
+
+Message Reference
+
+Outgoing messages are shown with => under the related incoming message.
+
+hermod/<siteId>/hotword/detected  
+hermod/<siteId>/dialog/start
+Start a dialog 
+=> hermod/<siteId>/hotword/stop
+=> hermod/<siteId>/microphone/start
+=> hermod/<siteId>/asr/start
+=> hermod/<siteId>/dialog/started/<dialogId>
+
+
+hermod/<siteId>/dialog/continue
+Sent by an action to continue a dialog and seek user input.
+text - text to speak before waiting for more user input
+ASR Model - ASR model to request
+NLU Model - NLU model to request
+Intents - Allowed Intents
+=> hermod/<siteId>/microphone/stop
+=> hermod/<siteId>/tts/say
+After hermod/<siteId>/tts/sayFinished
+=> hermod/<siteId>/microphone/start
+=> hermod/<siteId>/asr/start
+
+hermod/<siteId>/asr/text
+Sent by asr service
+=> hermod/<siteId>/nlu/query
+
+hermod/<siteId>/nlu/intent
+Sent by nlu service
+=> hermod/<siteId>/intent
+Wait for voiceid if enabled.
+OR
+=> hermod/<siteId>/nlu/fail 
+Sent when entity recognition fails because there are no results of sufficient confidence value.
+
+hermod/<siteId>/dialog/end
+The application that is listening for the intent, should sent => hermod/<siteId>/dialog/end when it's action is complete so the dialog manager can
+Garbage collect dialog resources.
+Respond with 
+hermod/<siteId>/dialog/ended
+hermod/<siteId>/microphone/start
+hermod/<siteId>/hotword/start
+
+
+
+Routing Service
+
+The application server is the final machine learning layer that maps the history of intents and slots for the session to determine the next action and template.
+
+Message Reference
+
+Incoming
+
+hermod/<siteId>/intent 
+Sent by dialog manager after hearing hermes/<siteId>/<dialogId>/nlu/intent 
+Parameters
+model - name of the model to using in parsing intents and slots
+intent - name of the intent
+slots - slots for this intent
+confidence - confidence value
+
+Outgoing
+
+hermod/<siteId>/action
+Action
+Last Intent
+Template
+
+
+
+
+Application Server
+One or many application servers listen for intents and actions and perform custom processing  that may include
+Database or URL lookups, calculations
+A text string to speak
+A user interface description
+UI updates using React/Angular in a browser.
+The default application service responds to actions that include names with certain prepositions.
+Actions starting with say_ will trigger dialog/end
+Actions starting with ask_ will trigger dialog/continue  so that snips immediately listens for a reply.
+Actions starting with chose_<intent>_<intent> will trigger dialog/continue with an intentFilter
+Actions starting with  capture_<slotname>  will trigger hermes/asr/start and then use the raw transcript as the value for the slot
+
+
+Incoming
+
+hermod/<siteId>/action
+hermod/<siteId>/intent
+
+Outgoing
+
+hermod/<siteId>/dialog/ended
+Sent when action is complete to notify the dialog manager.
+
+hermod/<siteId>/error
+Send when there was a problem executing any actions configured for the intent.
+
+
+Text to speech Service (TTS)
+
+The text to speech service generates audio data from text. Audio containing the spoken text is sent to the media service via the MQTT bus.
+
+Offline TTS implementations include Mycroft Mimic, picovoice, MaryTTS, espeak, merlin or speak.js in a browser.
+Online TTS implementation include Amazon Polly and Google. These services support SSML markup.
+
+SuperSnipsTTS provides a service implementation that can be configured to use a variety of implementations and fall back to offline implementations where required.
+
+
+Message Reference
+
+Incoming
+
+hermod/<siteId>/tts/say
+Speak the requested text by generating audio and sending it to the media streaming service.
+Parameters
+text - text to generate as audio
+lang - (optional default en_GB)  language to use in interpreting text to audio
+
+hermod/<siteId>/speaker/playFinished
+When audio has finished playing send a message to hermod/<siteId>/tts/sayFinished  to notify that speech has finished playing.
+
+Outgoing
+
+hermod/<siteId>/speaker/play/<speechRequestId>
+speechRequestId is generated
+Body contains WAV data of generated audio.
+
+hermod/<siteId>/tts/sayFinished
+Notify applications that TTS has finished speaking.
+
+
+
+Sessions and Multi Step Dialog
+
+A common dialog flow often described as slot filling involves collecting a suite of values and before finally sending an action request.
+
+Slot filling workflows can be implemented by including stories in the application server core routing training data that ask to fill the values of missing slots.
+
+Slot filling can also be implemented by creating a custom FormAction class which allows type mapping and validation as well as minimising the number of training examples.
+
+
+Other Services
+Volume Manager
+The volume manager service updates the site output volume in response to events.
+In particular, the volume is reduced when the hotword is detected and restored when a dialog session is ended.
+
+Message Reference
+
+Incoming
+
+hermod/<siteId>/hotword/detected
+Reduce volume in response to hotword  to optimise ASR.
+
+hermod/<siteId>/hotword/start
+Restore previous volume after hotword silencing.
+
+Outgoing
+
+hermod/<siteId>/speaker/volume
+User Identification
+
+
+Google and Amazon ASR implementations are able to identify multiple speakers and annotate the results in real time identifying multiple speakers in an audio fragment.
+
+Piwho works on a raspberry pi to provide speaker identification. Performance is variable depending on hardware so implementing speaker id is likely to bring additional latency if run synchronously as part of the hotword or ASR services. 
+
+To some extent that latency can be absorbed into the protocol by implementing a user identification service asynchronously and requiring that the dialog manager (if configured) to wait on sending a final intent message until user identification from the hotword audio fragment has found a match on an appropriate user or send an error message on incorrect match.
+
+With a more powerful central server other options become available including.
+Speaker id on ASR transcript that ignores transcript segments where user id doesn't match hotword speaker id that started the dialog.
+Asynchronous multi user diarization of all hermod/<siteId>/microphone/audio messages.
+
+Configuration
+enableTranscription - enable transcription and diarization of all audio fragments that occur between asr/start and asr/text messages.
+confidence - minimum allowable confidence to send a detected message
+
+
+Message Reference
+
+Incoming
+hermod/<siteId>/hotword/start
+hermod/<siteId>/hotword/stop
+hermod/<siteId>/microphone/start
+hermod/<siteId>/microphone/stop
+hermod/<siteId>/microphone/audio
+
+
+Outgoing
+hermod/<siteId>/voiceid/started
+Sent immediately when voice identification starts
+
+hermod/<siteId>/voiceid/detected/<userId>
+Sent when a user is detected in the hotword audio.
+
+hermod/<siteId>/voiceid/failed
+When no identified user was of sufficient confidence.
+
+hermod/<siteId>/voiceid/transcription
+Diarized transcription in JSON format.
+
+Training Manager
+
+The protocol includes multiple services that use machine learning algorithms in their processing. 
+
+Machine learning models likely require ongoing training to learn from interactions or optimise to a data set provided by an application. For example a music player application may update the ASR and NLU models to include the names of artists or albums that would not normally be recognised. With supervised training, the NLU and core application routing models can be optimised and extended with data from logs of user interactions.
+
+It's also useful for developers to have a consistent approach to building initial models. 
+
+The Hermod voice protocol provides api endpoints for training and updating Hotword, ASR and NLU and core application models. These endpoints proxy requests for the per service training required for models and provide a standardised training API across all implementations.
+Availability of training and specific endpoints varies with the ASR and NLU implementation.
+
+For example an MQTT message to hermod/train/slots might result in a local function call to rebuild a model or a call to Amazon Transcribe training REST API.
+
+Locally trained models are made available from a HTTP endpoint of the training server. When a trainingComplete message is sent, it includes a download link, clients running the training client service can download, unzip and reload their models.
+
+Only one concurrent training request is allowed per model. When a model is being trained and another request is sent, the second request triggers a training/rejected message.
+
+To ensure security when the MQTT server is exposed to the network, MQTT endpoints can be disabled in favor of HTTP endpoints following a url pattern matching the message topic format and sending the same JSON body format for requests.
+
+Training requests are topics derived from hermod/<siteId>/training/
+As such, when authentication is in place, training messages are only accepted from explicitly allowed sites or sites that use the HTTP api to initiate a siteId.
+
+The service can be configured so that training complete messages are not topic filtered by siteId so all sites/devices connected to a particular MQTT server are notified of updates to models. The Training Client service filters these messages by model key to decide if reloading is required.
+
+This is useful where the MQTT server is exposed on a local area network and other devices in the home or office want updates. If the service is exposed to untrusted networks, it is recommended to leave the feature disabled so that only the initiating site is notified when the training is complete.
+
+
+
+
+
+Configuration
+
+broadcast - (default false) whether to send final training complete message to a siteId topic like hermod/<siteId>/training/complete or broadcast the message by publishing to hermod/training/complete
+
+An array of models specifies which models can be trained and implementation specific configuration for each model.
+
+For example
+[
+{model:'kaldi_general', type:'asr', implementation:'kaldi'},
+{model:'google_general', type:'asr', implementation:'google'},
+{model:'default, type:'nlu', implementation:'rasa'},
+{model:'music_player', type:'nlu', implementation:'rasa'},
+{model:'music_player_artists', type:'nlu_slots', implementation:'rasa'},
+{model:'music_player_albums', type:'nlu_slots', implementation:'rasa'},
+]
+
+
+
+Message Reference
+
+Incoming
+
+hermod/training/start
+Send a request to train a model
+JSON body parameters include
+siteId
+Model - model identifier
+Training data - model and implementation specific format
+
+
+hermod/training/stop
+trainingId
+
+Outgoing
+hermod/<siteId>/training/started
+Initial reply that training run has started
+JSON body parameters include
+trainingId - Generated unique trainingId for this request.
+Model - model identifier
+Service  - service identifier (hotword/asr/nlu) from configuration
+Implementation - service implementation (kaldi/rasa etc) from configuration
+
+hermod/<siteId>/training/rejected
+Sent if training start request was not accepted because
+Invalid model was requested
+Invalid training data was provided
+Another request is running for the same model.
+
+hermod/training/complete
+Sent when model build is complete
+JSON body parameters include
+siteId - initiating siteId
+trainingId - Generated unique trainingId for this request.
+Model - model identifier
+Service  - service identifier (hotword/asr/nlu) from configuration
+Implementation - service implementation (kaldi/rasa etc) from configuration
+download - URL for model download if available
+
+
+
+
+Training Client Service
+This service listens for training complete messages which trigger a model update by downloading and installing the latest model.
+
+This service is only required for locally trained models for example 
+Kaldi or Deepspeech trained ASR 
+RASA NLU or CORE models.
+Custom Hotword or voice id models.
+
+Message Reference
+
+Incoming
+
+hermod/training/complete
+Message indicating training is complete.
+JSON body including keys - generated requestId, date, model, service, service implementation, (optional) download URL
+
+Outgoing
+
+hermod/<siteId>/<requestId>/training/loaded
+Sent when a client has finished download and reload of the model.
+
+
+LED lights animations manager
+
+Some microphone arrays offer LED ring lights. The snipsLedControl project provides a service that listens for a suite of events on the MQTT bus and respond by setting the LEDs possibly using an animation.
+
+A minimal implementation flashes the front light on the raspberry pi to indicate that the device is listening.
+
+Message Reference
+
+The services listens to many types of messages in determining how to manage LED lights.
+
+
+Error Manager
+
+Errors and Exception in services are handled by sending a message to hermod/<siteId>/error with a json body including a text message describing the error.  The error manager service can be configured to log silently or log and notify via TTS.
+
+
+Configuration
+enableTTS Feedback - (default true)
+
+Message Reference
+
+Incoming
+
+hermod/<siteId>/error
+Sent when error could be resolved by user action.
+Message is logged and optionally spoken as TTS
+message - speakable text describing the error
+
+hermod/<siteId>/exception
+Sent when error could not be resolved by user action.
+Messages is logged but not spoken.
+message - text describing a non resolvable code error. 
+
+
+Outgoing
+
+hermod/<siteId>/tts/say
+text - Error message to be spoken.
+
+
+
+Scripting Framework
+The library provides a suite of scripts to assist in the deployment and maintenance of a network of devices.
+
+Web Based Administration
+The library provides a web application to assist managing a network of devices.
+
+The UI provides an overview of hermod sites/devices connected to a local MQTT bus.
+
+Various controls are available for each site including
+Volume controls
+Media Playback controls
+Remote control speak or listen to a site.
+
+
+...
+Web Based Development UI
+
+The library provides a web application user interface (UI) to assist in the development and maintenance of machine learning models.
+
+The UI provides training interfaces for hotword, NLU, ASR and core models.
+
+The React microphone component integrates satellite services into the web page.
+The UI implements voice first design principles. All features are designed to work with voice input and the UI supports the required flows. All features also work without voice.
+
+The hotword training interface guides a user to make multiple recordings of a hotword and saves the audio to a database and uses it to train hotword models, finally notifying devices that training is complete so that the hotword model can be reloaded by relevant devices.
+
+The main training interface provides a unified editor for Domains, Intents, Slots, Wizards (slot filling), actions and templates while being focussed around the development of Stories using a customised markdown editor to generate RASA training data.
+
+Changes here can result in updates to the NLU, ASR and core models.
+
+As well as keeping a master copy in the database, updates in the web UI result in changes to suites of text files that are generated for each Domain. Training can be run by clicking a button. When training is complete, 
+a link is available to download the trained model.
+a training/complete message is broadcast on the MQTT bus so all devices attached to the bus are notified of updates to the model.
+
+The UI includes a logging interface that provides a view into the log records captured by the dialog manager.
+
+A wizard encourages users to review dialog logs and mark them as correct or select a correct choice. Marked examples are transferred to training data for intents and slots.
+
+
+
+
+Example Applications
+
+The library includes two example applications.
+A Linux desktop voice package offering a range of voice shortcuts to start applications. In text editing mode, the example features a vocabulary supporting text editing using Google ASR for dictation.
+A web based music player featuring a microphone as an example of integration of voice into a website.
+
+Other
+Playlist support - reusable for news, music, video ..
+
+Interdevice calling
+-broadcast
+- message
+- drop in
+- call
+
+External Messaging
+Email
+Skype
+VOIP
+
+Initiated conversations
+
+Home automation integration
+
+With Camera
+Lip Reading
+Sign Language
+Visual User ID
+
+Bluetooth audio server
+Allow bluetooth connections and send to audio server
+Bluetooth client - Audio server sends to bluetooth sink.
+
+
+Configurable intent preconditions
+Don't send final intent message until collected messages with matching dialogId for 
+Hotword voice id match ?
+…...
+
+
+Sharing of models and intents and action suites.
+Github tagged hermod
+Approved suites can be pushed to shared extensions repository 
+
+MQTT discover - server by trying to connect (linux and webRTC)
+
+Training Data Generation
+Open data sources
+Training UI integration
+
+Voice Application Suite as a base to replace Alexa/Google Home
+Time
+Timers
+Maths
+Calendar gmail
+Weather
+Questions AI
+Play media
+Calling and messaging
+Games
+Relaxation 
+Workout
+Multi room synchronised playback
+Shopping List, Todo List
+Jokes
+Help
+Device Admin - network, bluetooth, …
+
+
+
+
+Shopping List
+
+Playstation eye
+Raspberry pi3
+Power supply and usb cable
+SD card
+Case
+
+Printable Cases
+
+
+Audio Hardware Speakers and Microphones
+
+
+
+
