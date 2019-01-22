@@ -1,4 +1,54 @@
 
+Overview
+
+The Hermes protocol describes a series of contracts between services that communicate over MQTT to implement the steps in a voice interaction including
+- Hotword recognition
+- ASR (Automated Speech Recognition) - speech to text
+- NLU (Natural Language Understanding)  - text to intents and slots
+- Sessions and multi step dialog
+- Multi room setups
+- TTS (Text to speech)
+- Media playback
+
+
+
+Extensions
+
+- User ID /Piwho
+- Web site integration
+- Custom NLU with multiple slots
+- Interruptions - hey snips - volume integration - 
+- Ring Lights
+- mULTIPLE MODELS
+   - Minimising "Hey Google Ask Meeka Music to "
+- Messaging and Voice calls
+
+
+Related Technologies
+
+Mycroft ,Api.ai,Kaldi,Rasa
+
+
+==============================================
+
+https://medium.com/@amit.bezalel/state-of-the-market-voice-dictation-apis-2f7d09c346d5
+
+
+https://github.com/mhdawson/AlexaMqttBridge
+
+#  deepspeech and kaldi images with web service and english model
+https://github.com/amitbet/speech
+
+https://github.com/daanzu/deepspeech-websocket-server
+
+https://github.com/nohum/chromecast-mqtt-connector
+
+# system volume 
+https://github.com/LinusU/node-loudness/tree/master/impl
+- core application
+
+# transform volume on pipe
+https://www.npmjs.com/package/pcm-volume
 
 # android x server
 https://play.google.com/store/apps/details?id=x.org.server&hl=en&showAllReviews=true
@@ -21,13 +71,18 @@ https://www.lucidchart.com/techblog/2014/12/02/definitive-guide-copying-pasting-
 https://archive.org/details/audio_music
 
 
+https://github.com/astorfi/lip-reading-deeplearning#lip-tracking-demo
+
+https://github.com/paschmann/rasa-ui
+
+https://github.com/aasaHQ/rasa-nlu-trainer
 
 
 
+https://github.com/syhw/wer_are_we
 
 
-
-
+https://uxdesign.cc/tips-on-designing-conversations-for-voice-interfaces-d4084178cfd2
 
 
 
@@ -565,3 +620,123 @@ hermes/dialogue/capture_slot
 
 [](snips-webbrowser-audioserver/README.md) [audioserver](./snips-webbrowser-audioserver/README.md) 
 
+
+
+
+
+# FORUM QUESTIONS
+
+Hi @David Leroy , to reply to your question on Slack.
+I want to write stories for rasa core that use naming conventions to trigger differing dialogue flows within the hermes protocol.
+
+So an action starting with 
+- say will trigger hermes/tts/say and hermes/dialogue/endSession
+- ask will trigger hermes/tts/say and then hermes/hotword/detected  so that snips immediately listens for a reply.
+- askslot<slotname> will trigger hermes/nlu/partial to parse a raw slot value as a reply (and also hotword/detected)
+- choose<intent><intent> will trigger hermes/continueSession with an intentFilter (and also hotword/detected)
+- capture<slot>  will trigger hermes/asr/start and then use the raw transcript as the value for the slot
+
+=======================================================================================================
+I'm wondering what people think about how to extend the dialog manager to support dialogue flows involving automatic listening, slot filling partial queries and raw slot capture (direct from ASR).
+=======================================================================================================
+To be honest I haven't got a good handle on how the official snips works with partial queries and automatic listening (continueSession). I've ended up putting time into my open source version.
+
+In my version of the dialogue manager I am supporting 
+- a capture parameter to trigger slot allocation on hermes/asr/textCaptured
+- intentFilter
+- slot - to trigger partial query
+- fallbackIntent
+
+Also not related to extended dialogue flows
+- a model parameter to select between multiple loaded rasa NLU, rasa core and kaldi models.
+- automatic distributed training (for rasa nlu/core/kaldi/snowboy/piwho)
+
+I have a nearly complete implementation of this. Flooded for the next few weeks but dying to finish it as get back to more story writing for Meeka Music so it feels less like a verbal menu and more like a conversation (and move to from api.ai to raspberry pi locally supporting local music files)
+
+The listening server
+https://github.com/syntithenai/opensnips/blob/develop/docker-images/rasa/snips_services/rasa_core_server.py
+
+Rasa Action class to implement switching described above
+https://github.com/syntithenai/opensnips/blob/develop/docker-images/rasa/snips_services/snips_action.py
+
+Extended Rasa Agent, Domain so that Rasa uses my action class. (There is also one change required in the core rasa repo that exists in my fork only for now to allow Factory injection)
+https://github.com/syntithenai/opensni
+GitHub
+syntithenai/opensnips
+opensnips - Open source implementation of the Hermes MQTT protocol combining hotword, speech recognition, natural language recogntion and a dialog manager supporting multiple devices.
+
+GitHub
+syntithenai/opensnips
+opensnips - Open source implementation of the Hermes MQTT protocol combining hotword, speech recognition, natural language recogntion and a dialog manager supporting multiple devices.
+-----------------------------------------------------------------
+
+@syntithenai that's great, binding with Rasa core's dialogue manager seems promising !
+
+You should actually be able to use only the dialogueManager API  without having to call other services, since the continueSession and endSession events both take an optional text arg that will trigger the TTS (used for say_ and ask_ actions)
+https://github.com/snipsco/snips-platform-documentation/wiki/5.-Build-rich-interactions#hermesdialoguemanagercontinuesession
+-----------------------------------------------------------------
+Regarding your second point about how to better handle dialogue, we're currently working on it, the idea is to be able to provide two APIs: 
+- The current dialogueManager API that should allow to theoritically build any interaction
+- A more "high level" API built on top the dialogueManager API that handles built-in  dialogue features, at the assistant level ( Intent elicitation, assistant functionalities discovery, small talk) and intent level (template-based approach, e.g advanced slot elicitation with slot filling, confirmation, fallbackIntents, context carry over). This API would also expose state tracking abilities at the session level but also a state that is persisted across sessions. This API is obvisously a WIP, we'll let you know when it's out 
+
+
+
+-----------------------------------------------------------------
+Hi,
+  I put this on the forum but it looks like most people are still using Discord so  .... here too.
+ 
+A React component providing a microphone that works with Snips so so any browser can be a Snips Satellite.
+https://github.com/syntithenai/opensnips/tree/master/snips-react-satellite
+
+-----------------------------------------------------------------------------
+
+In the process of developing this I have collected a few questions (that I've noted in the repository). 
+
+My first topic is around the dialogueManager. 
+
+In summary,
+0. Is the hermes/mqtt protocol proprietary? 
+1. Any chance of open sourcing the dialogueManager? OR Does the Snips team support or object to the development of an open source implementation.
+2. Any suggestions why my snips-react-satellite component requires the start session boogie before the ASR will listen to me.
+GitHub
+syntithenai/opensnips
+Open source projects related to Snips https://snips.ai/. - syntithenai/opensnips
+
+The dialogueManager is fussy about the order of events. 
+To some extent it will log errors describing problems in the order of events but there are situations in which the dialogueManager remains silent and doesn't respond to messages on the mqtt bus (to my considerable frustration).
+
+There are two entry points into the session process.
+startSession and hotwordDetected. startSession is the officially suggested approach for an application to initiate a session and additionally provides for sending customData.
+
+Every request after the session is started includes the sessionId (or the siteId). If these variables don't match and existing session, the dialogueManager ignores the mqtt message.
+@Greg has raised the possibility of skipping the earlier stages of the session process and being able to send textCaptured from an application and this restriction prevents that. 
+
+@uchangi was noting that if you disable notifications, then playFinished is never sent and the session locks up so you need a dummy audioServer or hotwordServer if you disable those services.
+
+I have had troubles using startSession from an arbitrary siteId and there is a hack in place for the microphone component to start and stop a session to 'initialise' the ASR.
+
+I would like to be able to run multiple ASR and NLU models, inject piwho information ,and generally have more control over how the session works.
+
+To support scaling for using Snips as part of a website, I believe that the mqtt topics will need to include something identifying the user to allow fine grained subscription.
+In my view it would be neat if each of the snips services just responded, eg asr/startListening and audioPackets should send textCaptured regardless of session status.
+
+Something that would really help is extended docs with a little more clarity around how the dialogueManager works.
+In particular
+- sayFinished must be sent before dialogueManager will send sessionEnded. (also playFinished)
+- sessionId matching an active session must be provided for xxx/xxx/xxx messages
+- siteId matching an active session must be provided for xxx/xxx/xxx messages
+- any other requirements or notes to for alternative components to be compliant with Snips.
+
+
+Is the hermes/mqtt protocol proprietary? 
+In engaging the hacker community, it would be great if you could open source the dialogueManager. I haven't met Rust yet but I'm game. I see that allowing the community to extend on the hermes protocol will be vital in allowing people to develop applications.
+
+As things stand, I see that I will need to create my own implementation of the dialogueManager to support my requirements.
+
+What is the attitude of the Snips team to community implementations of the protocol? Will I find support out there to make sure that any open source components I develop are interchangable with Snips components or would I be better to vary the implementation sufficiently to avoid treading on toes. My inclination is to play nicely with the other kids in a sharing is better world but I don't want to violate anyone's copyright.
+
+
+-----------------------------------------------------------------
+
+Hi @syntithenai , 
+The DialogueManager is still evolving quite a lot, so we are not going to open source it short term. We are not at all opposed to the development of an open source alternative. It would actually be quite interesting to see how this "community version" builds up and evolves.

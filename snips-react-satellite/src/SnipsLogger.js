@@ -437,7 +437,7 @@ export default class SnipsLogger  extends SnipsMqttServer {
     };
     
     /**
-     * Send Mqtt message to sppeak text
+     * Send Mqtt message to speak text
      */ 
     say(siteId,text) {
         let that = this;
