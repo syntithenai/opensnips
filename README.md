@@ -6,12 +6,11 @@
 
 This project is home to a number of open source projects related to the Snips voice platform.
 
+- [Hermod](https://github.com/syntithenai/hermod), a BSD-2 licenced full voice stack with a dialog manager optimised for a multi user (web hosted) environment.
+
 - <b>[snips-react-satellite](./snips-react-satellite/README.md) </b> - React component to add a microphone button to a web page that streams mqtt audio to Snips. Implements hotword,audioserver,tts and skill-server components of the Snips mqtt hermes protocol.
 
 - collection of assistants including meekahome music player
-
-- TODO. opensnips 100% open source implementation in nodejs of the snips hermes protocol using kaldi asr and rasa nlu.
-Previous sample implementation developed in python has been archived.
 
 - docker images for snips, nodejs, mosquitto
 
