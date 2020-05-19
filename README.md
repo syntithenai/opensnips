@@ -1,6 +1,8 @@
 # OpenSnips
 
+This repository is DEPRECATED.
 
+For a working full featured voice dialog manager suite see https://github.com/syntithenai/hermod   
 
 ## Overview
 
