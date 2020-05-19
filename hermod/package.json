@@ -32,7 +32,7 @@
     "node-record-lpcm16": "^0.3.1",
     "node-vad": "^1.1.1",
     "node-wav": "0.0.2",
-    "npm": "^6.5.0",
+    "npm": "^6.13.4",
     "pcm-util": "^3.0.0",
     "pcm-volume": "^1.0.0",
     "play-sound": "^1.1.3",
