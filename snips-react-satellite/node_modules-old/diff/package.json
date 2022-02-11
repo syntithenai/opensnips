@@ -58,7 +58,7 @@
     "grunt-mocha-test": "^0.12.7",
     "grunt-webpack": "^1.0.11",
     "istanbul": "github:kpdecker/istanbul",
-    "karma": "^0.13.11",
+    "karma": "^6.3.14",
     "karma-mocha": "^0.2.0",
     "karma-mocha-reporter": "^2.0.0",
     "karma-phantomjs-launcher": "^1.0.0",
