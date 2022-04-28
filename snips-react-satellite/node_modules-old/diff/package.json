@@ -36,7 +36,7 @@
   "dependencies": {},
   "description": "A javascript text diff implementation.",
   "devDependencies": {
-    "async": "^1.4.2",
+    "async": "^2.6.4",
     "babel-core": "^6.0.0",
     "babel-loader": "^6.0.0",
     "babel-preset-es2015-mod": "^6.3.13",
